@@ -1,0 +1,1697 @@
+# Tandem Protocol Guide
+
+**For:** AI agents working on multi-phase projects with the user
+**Purpose:** Prevent premature advancement, ensure quality gates, maintain audit trail
+**Location:** Reference at `/home/ted/projects/urma-next-obsidian/behavioral-review-plan-log.md` (lines 9-45)
+
+---
+
+## Why This Protocol Exists
+
+**Problems it prevents:**
+1. **Goalpost moving** - AI reduces scope without user awareness
+2. **Premature advancement** - Moving to next phase before completing current phase
+3. **Missing deliverables** - Skipping required artifacts
+4. **No audit trail** - Can't trace what was approved when
+5. **False completion** - Marking things done that don't meet criteria
+
+**Key principle:** The user must explicitly approve each phase before logging/committing/advancing.
+
+---
+
+## The 5-Step Protocol (Plus Step 0)
+
+### Step 0: Clean Up Old Evidence Files (Session Initialization)
+
+**What:** At the start of a NEW planning session, remove ALL evidence files from the previous planning session.
+
+**Why this step exists:**
+- Evidence files accumulate during a planning session (Phase 1, 2, 3...)
+- Old evidence files from PREVIOUS sessions create confusion (e.g., finding phase-8.1 when new session starts at Phase 1)
+- Allows new session to start clean with phases numbered from 1
+- Git commit history provides archive (requires commit discipline)
+
+**When to perform:**
+- **ONLY at start of NEW planning session** (when user provides new plan-log or major direction change)
+- **NOT between phases** within same planning session (let them accumulate)
+
+**When NOT to perform:**
+- Between phases within current planning session (Phase 1 → Phase 2 → Phase 3, etc.)
+- When continuing work on current session after context loss
+
+**Mechanism:**
+
+1. **Detect new planning session:**
+   - User provides new plan-log file
+   - User says "starting new planning session" or similar
+   - Major direction change that resets phase numbering
+
+2. **Check for old evidence files:**
+   ```bash
+   ls -1 coaching-report/phase-*-completion-evidence.md coaching-report/phase-*-quality-review.md 2>/dev/null | wc -l
+   ```
+
+3. **Verify git status for project directory:**
+   ```bash
+   git status coaching-report/
+   ```
+
+4. **If uncommitted changes to evidence files exist:**
+   - **STOP** - Cannot proceed with cleanup
+   - Tell user: "Found N uncommitted evidence files from previous session. Need git commit before starting new session."
+   - Wait for user to commit or provide direction
+
+5. **If git is clean (or only untracked evidence files exist):**
+   - Delete all old phase evidence files:
+     ```bash
+     rm -f coaching-report/phase-*-completion-evidence.md
+     rm -f coaching-report/phase-*-quality-review.md
+     ```
+   - Confirm to user: "Removed N evidence files from previous planning session (git history provides archive). Ready to start new session at Phase 1."
+
+6. **Proceed to Step 1 for Phase 1 of new session**
+
+**This enforces:**
+- Commit discipline (must commit before starting new session)
+- Clean workspace for new session (no stale files from previous session)
+- Evidence accumulation within session (Phase 1, 2, 3... all kept until session ends)
+
+---
+
+### Step 1: Plan Validation and Approval
+
+**What:** Before starting implementation, validate understanding of the plan and get approval to proceed.
+
+**Why this step exists:**
+- Catches misunderstandings BEFORE wasting tokens on wrong work
+- Validates target files, insertion points, and approach are correct
+- Creates accountability checklist upfront ("call targets before taking shots")
+- Provides user checkpoint to redirect before investment
+
+**Step 1 Deliverables:**
+- Present your understanding of the plan to user (with specific targets, line numbers, concrete actions) and get user confirmation that understanding is correct
+- Create evidence file documenting the validated plan with completion criteria
+- Create TodoWrite structure (Steps 1-5 for current phase)
+- Ask "May I proceed?" and await approval
+
+**Actions:**
+
+1. **Read the plan** (from plan-log or verbal discussion)
+2. **Identify targets precisely:**
+   - Which files will be modified? (full paths)
+   - Which line numbers for insertions?
+   - Which sections will change?
+3. **Present understanding to user for validation:**
+   - "I understand the plan as: [summary]"
+   - "Target files: [list with paths and line numbers]"
+   - "Approach: [specific actions]"
+   - **WAIT for user confirmation:** "Is my understanding correct?"
+4. **Create completion evidence:**
+   - File: `phase-X.Y-completion-evidence.md`
+   - List all success criteria as unchecked boxes
+   - Document target files with line numbers
+   - **If plan includes sub-phases (7B, 7C, 7D, etc.), list ALL sub-phases in completion criteria**
+   - **ANY PLURAL must expand to separate checkboxes:** "Add innovations" must become:
+     ```
+     - [ ] Innovation 1: [specific name]
+     - [ ] Innovation 2: [specific name]
+     - [ ] Innovation 3: [specific name]
+     ```
+     NOT "✅ 3/3 innovations added" or "Add innovations (COMPLETE)". Each item gets its own checkbox. This prevents vague, game-able completion claims.
+   - Create implementation checklist with token estimates
+   - Add "⏸️ AWAITING STEP 1 APPROVAL" at end
+5. **Request approval to proceed:**
+   - Reference the evidence file created
+   - **Ask explicitly:** "May I proceed with implementation?"
+
+6. **Clarify full protocol commitment:**
+   After asking "May I proceed?", explicitly state what this approval covers:
+
+   ```
+   Upon your approval, I will:
+   1. Complete the implementation (Step 2)
+   2. Create/update completion evidence (Step 3)
+   3. Present deliverable to you and wait for your explicit approval (Step 4)
+   4. ONLY AFTER approval: log to plan-log, git commit, update README (Step 5)
+   ```
+
+   **This clarifies that:**
+   - "Proceed with implementation" means the full cycle through Step 4
+   - Step 5 actions (logging/committing) only happen after user approval at the checkpoint
+   - User will have opportunity to review work before it's logged/committed
+   - This is a commitment to follow the protocol, not permission to skip ahead
+
+7. **Wait for user response:**
+   - User may approve → Proceed to Step 2
+   - User may correct misunderstanding → Revise and re-present
+
+7. **Create TodoWrite structure for protocol steps (REQUIRED):**
+
+   TodoWrite makes protocol steps visible, trackable, and self-reinforcing. Create todos that mirror Steps 1-5.
+
+   **For simple phases (single deliverable, no sub-phases):**
+   ```javascript
+   TodoWrite({
+     todos: [
+       // Completed phases (collapsed)
+       {content: "Phase 3: Context injection", status: "completed", activeForm: "Adding context patterns"},
+
+       // Current phase (expanded into Steps 1-5)
+       {content: "Phase 4 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
+       {content: "Phase 4 Step 2: Complete deliverable", status: "pending", activeForm: "Creating deliverable"},
+       {content: "Phase 4 Step 3: Update evidence", status: "pending", activeForm: "Documenting completion"},
+       {content: "Phase 4 Step 4: Present and await approval", status: "pending", activeForm: "Presenting and awaiting approval"},
+       {content: "Phase 4 Step 5: Post-approval (evidence→plan-log heredoc→commit→setup Phase 5)", status: "pending", activeForm: "Finalizing Phase 4"},
+
+       // Future phases (collapsed)
+       {content: "Phase 5: Comparison table", status: "pending", activeForm: "Updating comparison"},
+       {content: "Phase 6: Cross-references", status: "pending", activeForm: "Updating references"},
+     ]
+   })
+   ```
+
+   **For complex phases (multiple sub-phases or experiments):**
+   Defer creating sub-phase todos until Step 2 starts. Keep Step 1 simple:
+   ```javascript
+   {content: "Phase 5 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
+   {content: "Phase 5 Step 2: Complete sub-phases (will expand)", status: "pending", activeForm: "Working on deliverables"},
+   {content: "Phase 5 Steps 3-5: Evidence→present→approve→commit", status: "pending", activeForm: "Finalizing Phase 5"},
+   ```
+
+   **Why this pattern works:**
+   - User can see exactly which protocol step you're on
+   - Can't skip steps without marking todos complete
+   - Step 5 explicitly includes "setup Phase X+1" making pattern self-reinforcing
+   - Cognitive load managed: 5-7 items for current phase, 3-5 for future = 8-12 total
+
+   **Self-reinforcing mechanism:**
+   When you execute Step 5, the final action is "setup Phase X+1" which means creating Steps 1-5 todos for the next phase. This ensures the pattern continues automatically.
+
+8. **User may ask clarifying questions** → Answer and confirm
+
+9. **Upon approval: Log plan to plan-log**
+   - Use `plan-log` to document the approved plan
+   - Include: phase number, deliverables, success criteria, approach
+   - This creates session entry BEFORE implementation begins
+   - Ensures plan is preserved even if implementation is interrupted
+   - Then proceed to Step 2 (implementation)
+
+---
+
+**Example completion evidence (Step 1):**
+
+```markdown
+# Phase X.Y Completion Evidence
+
+**Format source:** This completion evidence follows the template defined in `../guides/tandem-protocol.md` (Step 1: Plan Validation and Approval)
+
+## Understanding of Plan
+[Summary of what you'll do]
+
+## Target Files Identified
+- `/path/to/file1.md` (lines 50-75 will be modified)
+- `/path/to/file2.md` (new file, estimated 200 lines)
+
+## Success Criteria (Checklist)
+- [ ] Feature X implemented
+- [ ] Tests written for Feature X
+- [ ] Documentation updated
+- [ ] No conflicts with existing code
+
+**For multi-phase tasks, list ALL sub-phases:**
+- [ ] Phase 7B: Reframe Executive Summary
+- [ ] Phase 7C: Reframe Sections 1-3
+- [ ] Phase 7D: Reframe Sections 4-7
+- [ ] Phase 7E: Add OTHER innovations
+- [ ] Phase 7F: Verification pass
+
+## Implementation Approach
+Step 1: [action] (estimated 20K tokens, 15 min)
+Step 2: [action] (estimated 30K tokens, 20 min)
+...
+
+## Token Budget
+Total estimated: 75-100K tokens
+
+## Questions for Validation
+1. Is file path correct?
+2. Should I also update related documentation?
+
+# ⏸️ AWAITING STEP 0 APPROVAL
+```
+
+---
+
+**Common mistakes:**
+
+❌ **Skipping Step 0 entirely** - "I'll just start working and figure it out"
+✅ **Always do Step 0** - Validates understanding, catches errors early
+
+❌ **Vague target identification** - "I'll update the protocol file"
+✅ **Precise targets** - "I'll insert 80 lines after line 552 in tandem-protocol.md"
+
+❌ **No pre-implementation checklist** - Start work, discover gaps later
+✅ **Checklist created first** - Know exactly what "done" looks like before starting
+
+❌ **Assuming understanding is correct** - "The plan is clear, I don't need confirmation"
+✅ **Explicit validation** - Present understanding, wait for confirmation
+
+❌ **Implementation without approval** - Present validation but start work immediately
+✅ **Wait for user "yes"** - Only proceed to Step 2 after explicit approval
+
+---
+
+**Real example: Wrong file targeted**
+
+In a recent protocol update, initial plan stated:
+```
+Target: behavioral-review-plan-log.md lines 9-46
+```
+
+**Without Step 0:** Would have spent 65-90K tokens editing wrong file (plan log header instead of comprehensive guide).
+
+**With Step 0:** Would have presented:
+```
+I understand the plan as: Update behavioral-review-plan-log.md protocol header
+Target file: behavioral-review-plan-log.md (lines 9-46, currently 38 lines)
+May I proceed?
+```
+
+User would have responded: "No, wrong file. Target is guides/tandem-protocol.md (563 lines)."
+
+**Cost:** 5-10K tokens for Step 0 validation vs 65-90K tokens wasted on wrong implementation.
+
+---
+
+**When Step 1 is required:**
+- Every phase start (always)
+- After user provides new instructions
+- When resuming work after conversation rewind
+- When uncertain about any aspect of plan
+
+**When Step 1 can be brief:**
+- Very simple, single-action tasks (but still confirm targets)
+- Continuation of clearly-specified work
+- User has already validated targets in discussion
+
+---
+
+### Step 2: Complete the Deliverable(s) WITH Incremental Evidence Updates
+
+**What:** Create the actual phase deliverable file(s) specified in the plan AND update completion evidence incrementally.
+
+**Example:**
+- Phase 0.1 deliverable: `phase-0-deep-research-notes.md`
+- Phase 8.1 deliverable: `coaching-report-main.md`
+
+**IMPORTANT: Maintain completion evidence as you work**
+- For multi-part tasks, update the completion evidence document incrementally
+- Check off completed items as you finish them (don't wait until the end)
+- Document progress every 10-20 items or major milestones
+- **Each item must have its own checkbox:** If adding 4 opportunities, create 4 separate checkboxes (one per opportunity), not "Add 4 opportunities (COMPLETE)"
+- Check off each checkbox as you complete that specific item
+- This creates audit trail and prevents claiming incomplete work as complete
+
+**TodoWrite Integration for Multi-Phase Tasks (REQUIRED):**
+
+**CRITICAL:** When Phase X has multiple sub-phases (X.1, X.2, X.3) or experiments (A, B, C, D), you MUST expand Step 2 into sub-phase todos with explicit BLOCKING evidence updates.
+
+**At start of Step 2 for complex phase, expand TodoWrite:**
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 5 Step 1: Validate plan", status: "completed", activeForm: "Validating plan"},
+
+    // Step 2 expanded into sub-phases with BLOCKING evidence updates
+    {content: "Phase 5.1: Add Subagents column", status: "in_progress", activeForm: "Adding column"},
+    {content: "Phase 5.1: Update evidence (BLOCKING)", status: "pending", activeForm: "Updating evidence"},
+    {content: "Phase 5.2: Add flowchart", status: "pending", activeForm: "Creating flowchart"},
+    {content: "Phase 5.2: Update evidence (BLOCKING)", status: "pending", activeForm: "Updating evidence"},
+    {content: "Phase 5.3: Add comparison", status: "pending", activeForm: "Writing comparison"},
+    {content: "Phase 5.3: Update evidence (BLOCKING)", status: "pending", activeForm: "Updating evidence"},
+    {content: "Phase 5.4: Present sub-phase progress", status: "pending", activeForm: "Presenting progress"},
+
+    // Steps 3-5 remain collapsed until Step 2 complete
+    {content: "Phase 5 Steps 3-5: Evidence→present→approve→commit", status: "pending", "activeForm": "Finalizing Phase 5"},
+
+    {content: "Phase 6: Cross-references", status: "pending", activeForm: "Updating references"},
+  ]
+})
+```
+
+**After completing each sub-phase (BLOCKING - MUST FOLLOW):**
+1. Mark sub-phase work todo as completed (e.g., "Phase 5.1: Add Subagents column")
+2. Update the completion evidence file (check off relevant boxes for that sub-phase)
+3. Mark evidence update todo as completed (e.g., "Phase 5.1: Update evidence (BLOCKING)")
+4. **Present to user:** "Completed Phase X.Y. Updated evidence: [N/M] checkboxes now complete."
+5. **YOU CANNOT PROCEED to next sub-phase WITHOUT completing steps 1-4**
+
+**Why "(BLOCKING)" marker matters:**
+- Makes it visually obvious these are NOT optional
+- Can't proceed to "Phase 5.2" without completing "Phase 5.1: Update evidence (BLOCKING)"
+- TodoWrite status shows if you're blocked (work complete but evidence pending)
+- User can see at a glance if evidence updates are lagging behind work
+
+**Why this is BLOCKING:**
+- Without incremental updates, you will violate protocol and lose audit trail
+- User needs to see progress in real-time, not bulk updates at end
+- Presenting after each sub-phase allows user to course-correct early
+- This is NOT optional - it's a required checkpoint between sub-phases
+
+**Why this matters:**
+- Evidence updates become explicit, trackable tasks (not forgotten)
+- User sees incremental progress in real-time (not bulk update at end)
+- Creates accountability (can't skip evidence updates)
+- Maintains audit trail throughout work (not reconstructed at end)
+- **Self-enforcing:** The next sub-phase is visible in todos but can't be marked complete until evidence update done
+
+**How to verify completion:**
+- Check plan for deliverable specifications
+- Ensure file exists and contains required content
+- Count lines/sections to verify scope
+- Verify completion evidence document reflects actual progress
+
+**Common mistakes:**
+- Creating partial deliverable and calling it complete
+- **CRITICAL: Not updating completion evidence during work** - Only updating at end loses audit trail (PROTOCOL VIOLATION)
+- **CRITICAL: Working through all sub-phases then bulk-updating evidence** - Violates blocking requirement (lines 277-287)
+- **CRITICAL: Not including evidence updates in TodoWrite** - Makes updates invisible and easy to forget (REQUIRED pattern)
+- **CRITICAL: Not presenting evidence updates to user after each sub-phase** - User can't see incremental progress, violates step 4 blocking requirement
+- **CRITICAL: Proceeding to next sub-phase without presenting progress** - Violates "YOU CANNOT PROCEED" requirement
+
+---
+
+### Step 3: Update Completion Evidence
+
+**What:** After completing Step 2, update the completion evidence document from Step 1 with actual results.
+
+**IMPORTANT:** The evidence document should end with `# ⏸️ AWAITING USER APPROVAL` at this stage. Do NOT mark it as "APPROVED" or "COMPLETE" yet - that happens in Step 5 AFTER user approval.
+
+**Update the completion evidence from Step 1:**
+- Check off all completed items from the original checklist
+- Add "Actual Results" section showing what was delivered
+- Document any deviations from plan
+- Add self-assessment with honest grade
+- Keep the `# ⏸️ AWAITING USER APPROVAL` footer
+- Do NOT change it to "APPROVED" until Step 5
+
+**Required contents:**
+1. **Header:**
+   ```markdown
+   # Phase X.Y Completion Evidence
+
+   **Phase:** [Phase number and name]
+   **Date Completed:** [YYYY-MM-DD]
+   **Deliverable:** [filename] ([N] lines/pages)
+   ```
+
+2. **Completion Criteria Table:**
+   - List ALL criteria from the plan
+   - Provide verification evidence (line numbers, file sizes, specific examples)
+   - Mark each criterion ✅ COMPLETE, ✅ PARTIAL, or ❌ INCOMPLETE
+
+   Example:
+   ```markdown
+   | Criterion | Evidence | Status |
+   |-----------|----------|--------|
+   | Re-read FULL studies | Read complete source files for 4 studies | ✅ PARTIAL |
+   | Ask WHY questions | Each study has "WHY Questions & Answers" sections | ✅ COMPLETE |
+   | Document mechanisms | Lines 52-89, 244-301, 520-613, 753-841 | ✅ COMPLETE |
+   ```
+
+3. **Deliverable Details:**
+   - File path
+   - Size (lines/words)
+   - Content structure summary
+   - Key sections with line numbers
+
+4. **Content Quality Verification:**
+
+   **CRITICAL:** Verify actual deliverable quality, not just existence.
+
+   **For all deliverables, check:**
+   - **Size distribution:** Are all outputs reasonable size? (spot tiny/huge files)
+   - **Spot-check samples:** Verify actual content from each section/category
+   - **Error patterns:** Check for repeated errors or failure indicators
+   - **Completeness:** Does content match expected structure/format?
+
+   **Examples by task type:**
+
+   *File downloads/generation:*
+   - Check file size distribution: `find . -exec wc -l {} + | sort -n | head -20`
+   - Spot-check first/last files in each section
+   - Check for error pages (404, 500, etc.) in downloaded content
+   - Verify expected vs actual file count per category
+
+   *Code implementation:*
+   - Run the code/tests to verify it executes
+   - Check for compilation/runtime errors
+   - Verify output matches expected behavior
+   - Test edge cases and error conditions
+
+   *Documentation/writing:*
+   - Spot-read sections from beginning/middle/end
+   - Check for placeholder text, TODOs, incomplete sections
+   - Verify all promised sections exist
+   - Check cross-references and links work
+
+   *Batch operations:*
+   - Sample items from each category/batch
+   - Check for consistent quality across batches
+   - Verify operation applied correctly to samples
+   - Count completions vs total items
+
+   **Red flags requiring investigation:**
+   - All items same size (may indicate copy/paste or template errors)
+   - Suspiciously small files (may be errors, not real content)
+   - Missing sections/categories that were planned
+   - Error messages or failure indicators in content
+   - Count mismatches (expected N, got M)
+
+5. **Deviations from Plan:**
+   - Expected vs actual
+   - Rationale for deviations
+   - Impact assessment
+
+6. **Key Insights Discovered:**
+   - List major findings
+   - Connect to evidence
+   - Show understanding depth
+
+7. **Self-Assessment:**
+   - What went well
+   - What could be better
+   - Grade with justification (A-F, score/100)
+   - Honest about shortcomings
+
+7. **Footer:**
+   ```markdown
+   # ⏸️ AWAITING USER APPROVAL
+   ```
+
+**Special Case: Line-by-Line Edit Tasks**
+
+For tasks involving systematic edits across many instances (e.g., reframing patterns, fixing citation errors, renaming variables):
+
+**Step 1 MUST include:**
+- **Complete numbered inventory** of ALL instances requiring edits in the completion evidence document
+- Each instance with: line number, current text snippet, category (e.g., KEEP, REFRAME, CONSIDER), and recommended action
+- Total count of instances
+- Format with unchecked boxes: `- [ ]` for each item
+- **THIS INVENTORY WITH CHECKBOXES STAYS IN THE COMPLETION EVIDENCE FILE AND GETS UPDATED IN STEP 3**
+
+**File structure:**
+- `phase-X-completion-evidence.md` contains BOTH the inventory (Step 1) AND the completion tracking (Step 3)
+
+Example Step 1 inventory format (in completion evidence file):
+```markdown
+# Phase 7 Completion Evidence
+
+[... header sections ...]
+
+## Inventory and Completion Tracking
+
+**Total instances:** 116
+**Method:** grep -n "pattern" file.md
+
+### All Items (check off as completed in Step 3)
+
+- [ ] 1. **Line 1:** "Title text" - KEEP (reason)
+- [ ] 2. **Line 11:** "Generalization presented as specific" - REFRAME (lead with insight)
+- [ ] 3. **Line 17:** "Another generalization" - REFRAME (domain-first pattern)
+- [ ] 4. **Line 96:** "Context-dependent usage" - CONSIDER (needs judgment call)
+...
+- [ ] 116. [final item]
+
+**Categories:**
+- KEEP: ~30 instances (26%)
+- REFRAME: ~75 instances (65%)
+- CONSIDER: ~11 instances (9%)
+```
+
+**Step 2 WORKING APPROACH (for line-by-line tasks):**
+- **Work systematically through the numbered checklist**
+- Update checkboxes every 10-20 edits (checkpoint your progress)
+- Do NOT work opportunistically through grep searches without tracking which items you're completing
+- The checklist IS your work plan - follow it sequentially or mark items as you find them
+
+**Step 3 updates (REQUIRED - BLOCKING):**
+- **Check the boxes for completed items: `- [ ]` becomes `- [x]`**
+- **Add notes after each checked item showing what was done**
+- **YOU CANNOT PROCEED TO STEP 4 WITHOUT UPDATING THE CHECKLIST**
+
+Example after Step 3 updates (SAME file, checkboxes updated):
+  ```markdown
+## Inventory and Completion Tracking
+
+**Total instances:** 116
+
+### All Items
+
+- [x] 1. **Line 1:** "Title text" - KEEP → KEPT (document title)
+- [x] 2. **Line 11:** "Generalization..." - REFRAME → COMPLETED: "Domain-optimal workflows achieve... Example demonstrates..."
+- [ ] 3. **Line 17:** "Another generalization" - REFRAME → NOT DONE
+- [x] 4. **Line 96:** "Context-dependent" - CONSIDER → KEPT because [rationale]
+...
+- [ ] 116. [status]
+
+**Completion Summary:**
+- Checked: 86/116 items (74%)
+- KEEP category: 30/30 confirmed (100%)
+- REFRAME category: 45/75 completed (60%) ← INCOMPLETE
+- CONSIDER category: 11/11 decided (100%)
+  ```
+
+**Why this is required:**
+- Prevents claiming completion when work is incomplete (45/75 edits ≠ complete)
+- Forces systematic work through the inventory instead of opportunistic editing
+- Makes incomplete work immediately visible (can see exactly which items remain)
+- Enables user to spot-check specific edits by line number
+- Creates audit trail of every decision
+- **The inventory IS the work plan - must check off every item**
+
+**Step 4 presentation (for line-by-line tasks):**
+- **MUST include checklist completion percentage in presentation**
+- Format: "Completed 116/116 items (100%)" or "Completed 86/116 items (74%) - INCOMPLETE"
+- If <100%, explain what remains and why presenting early
+- User can verify by checking the completion evidence file
+
+**Common mistakes:**
+- **CRITICAL: Making edits but not updating the checklist** - This leaves no evidence trail
+- **Working through grep searches instead of the checklist** - Can't track which items were completed
+- Vague evidence ("completed task" instead of "lines 52-89 show WHY analysis")
+- **Summary metrics without line-by-line detail ("38 edits made" without listing which 38)**
+- **Claiming high completion when edit count doesn't match inventory (38 edits vs 70 planned)**
+- **Claiming 100% complete when checklist shows 0/116 checked** - The checklist IS the evidence
+- Grade inflation (giving A when criteria not fully met)
+- Grade reassessment (changing grade when initial grade isn't high enough)
+- Hiding deviations from plan
+- Forgetting the ⏸️ AWAITING USER APPROVAL marker
+
+---
+
+### Step 4: Present and Await Approval
+
+**What:** Announce completion with structured summary, then wait for user review and explicit approval before proceeding to Step 5.
+
+**BEFORE presenting, verify completion:**
+1. **Check plan log for planned sub-phases** - If Phase X.1-X.5 were planned, verify ALL are complete
+2. **Multi-phase tasks:** Cannot present "Phase X complete" if only X.1-X.3 are done and X.4-X.5 remain
+3. **Options if incomplete:**
+   - Complete remaining sub-phases first, THEN present
+   - Present as partial: "Phase X.1-X.3 complete (X.4-X.5 deferred)"
+   - Get user approval to skip remaining sub-phases
+
+**Template:**
+```
+## Phase X.Y Complete
+
+**Deliverable:** [filename] ([N] lines)
+**Completion Evidence:** phase-X.Y-completion-evidence.md
+
+### Key Highlights
+
+1. [Major accomplishment with evidence]
+2. [Critical insight discovered]
+3. [Notable outcome or pattern]
+
+**Upon your approval, I will:**
+1. Update evidence file to mark Phase X.Y as APPROVED
+2. Log Phase X.Y completion to plan-log.md
+3. Update README with completion status
+4. Git commit (deliverable + evidence + README + updated files)
+5. Update TodoWrite (mark Phase X.Y complete, Phase X.Y+1 in_progress)
+6. Proceed to Phase X.Y+1
+
+**May I log and proceed?**
+```
+
+**Critical elements:**
+- Concise (2-3 bullet highlights, not full summary)
+- Evidence-based (cite line numbers, file sizes)
+- **For line-by-line edit tasks:** MUST include checklist completion count (e.g., "116/116 items completed (100%)")
+- **MUST list Step 5 actions before asking for approval** - User needs to know what "log and proceed" means
+- **Explicit approval question:** "May I log and proceed?"
+- **NO self-grade in presentation** (it's in evidence file; user will ask if they want to discuss)
+
+**Common mistakes:**
+- **CRITICAL: Presenting "Phase X complete" when sub-phases remain** - Check plan log first (e.g., completing 7B-D but not 7E-F)
+- **CRITICAL: Using summary counts instead of separate checkboxes** - "✅ 4/4 innovations added" or "Add innovations (COMPLETE)" is vague. Must show each item with its own checkbox: "✅ Innovation 1: Multi-agent review", "✅ Innovation 2: Static analysis", etc.
+- Long rambling summary (keep it to 3-5 sentences)
+- Asking "Is this okay?" instead of explicit "May I log progress and proceed?"
+- Forgetting to ask for approval
+- **For line-by-line tasks: Not including checklist completion count** - This hides incomplete work
+- **For line-by-line tasks: Saying "77 edits made" without checklist verification** - Could be 77/116 = incomplete
+- Including self-grade in presentation (it's premature; user doesn't trust initial grades)
+- Moving to next step without waiting for response
+
+---
+
+#### During User Review
+
+**What:** After your presentation, user reviews your work. This is an active review process where user may request changes before approval.
+
+**What WILL happen during review:**
+- User reviews the completion evidence document
+- User may ask: **"grade your work"** - Provide honest verbal assessment with specific deductions
+- User may ask: **"improve your work"** - Make improvements and re-present
+- User may provide their own feedback - Address it and re-present
+- User may ask clarifying questions
+
+**What you MUST do:**
+1. **Wait for user action** - Don't proceed until user engages
+2. **Respond to grading requests** - Honest assessment (this is when grade matters, not Step 4)
+3. **Make improvements if requested** - Fix issues, update evidence file if needed, re-present
+4. **Re-present after improvements** - Show what changed, reference updated evidence file, ask for approval again
+5. **Wait for explicit approval** - Only proceed to Step 5 when user says "yes/approved/proceed" AFTER review is complete
+
+**What you CANNOT do:**
+- Log progress to plan log
+- Commit changes to git
+- Update README or status documents
+- Start next phase
+- Mark todo items as completed
+- Assume silence = approval
+- Skip the checkpoint by proceeding immediately after asking "May I log and proceed?"
+
+**How to recognize approval:**
+When user says "yes" to your "May I log progress and proceed?" question, that IS the checkpoint approval. Proceed immediately to Step 5.
+
+User will say:
+- "yes" or "approved" or "proceed"
+- "okay, log it and continue"
+- "go ahead with Step 5"
+
+**Checkpoint variations:**
+- **Simple approval:** User reviews evidence file, says "yes" → Proceed to Step 5
+- **With grading:** User says "grade your work" → You provide grade → User says "yes" → Proceed to Step 5
+- **With improvements:** User says "improve your work" → You improve → You re-ask → User says "yes" → Proceed to Step 5
+
+**Common mistakes:**
+- **Waiting after "yes"** - When user says "yes", that completes the checkpoint. Don't wait for another signal.
+- Assuming user feedback = final approval (they may have more feedback before saying "yes")
+- Proceeding after timeout
+- Not making requested improvements before re-presenting
+- Forgetting to re-present after making improvements
+
+**Example checkpoint sequence:**
+
+```
+Me: "Phase X.Y Complete"
+Me: "Deliverable: file.md (500 lines)"
+Me: "Completion Evidence: phase-X.Y-completion-evidence.md"
+Me: "Key highlights: [1-3 items with evidence]"
+Me: "May I log progress and proceed to Phase X.Y+1?"
+
+[CHECKPOINT BEGINS - User reviews]
+
+User: "grade your work"
+Me: [provides honest verbal grade with specific deductions]
+User: "improve your work"
+Me: [makes improvements, updates evidence file if needed]
+Me: "Improvements complete: [summary of changes]"
+Me: "Updated evidence file reflects changes"
+Me: "May I now log and proceed?"
+User: "yes"
+
+[CHECKPOINT ENDS - User has approved]
+
+Me: [executes Step 5: README update, git commit, plan-log]
+Me: [proceeds to next phase]
+```
+
+---
+
+### Step 5: Post-Approval Actions
+
+**What:** After explicit user approval (Step 4), perform ALL of these actions IN ORDER:
+
+#### 5a. Update Completion Evidence to "APPROVED"
+
+**First action after approval:** Update the evidence document to show approval received.
+
+If using pre-implementation evidence:
+```markdown
+# ✅ APPROVED BY USER - [Date]
+
+User approved on [date] with comment: "[user's approval message]"
+
+**Final Results:**
+[Same content that was under "Actual Results"]
+```
+
+If using separate completion evidence:
+- Change footer from `# ⏸️ AWAITING USER APPROVAL` to `# ✅ APPROVED`
+- Add approval date and user comment if relevant
+
+**Why this is 5a:** Evidence document must reflect approval before being committed.
+
+#### 5b. Update README
+- Update project README (`coaching-report/README.md` or similar)
+- Mark phase as completed
+- Add deliverable to deliverables list
+- Update "Last Modified" date
+
+Example:
+```markdown
+## Phase 0.1: Deep Research Re-engagement ✅
+
+**Status:** Complete (2025-01-18)
+**Deliverable:** `phase-0-deep-research-notes.md` (966 lines)
+**Evidence:** `phase-0.1-completion-evidence.md`
+```
+
+#### 5c. Log to Plan Log
+- Add entry to `behavioral-review-plan-log.md` BEFORE committing
+- Must include: "User approved Phase X.Y on [date]"
+- Use `plan-log` command with heredoc on stdin:
+
+```bash
+plan-log <<'EOF'
+# Phase X.Y Complete: [Title]
+
+User approved Phase X.Y on [date].
+
+## Progress
+[Deliverables, evidence file, grade]
+
+## Plan
+Phase X.Y+1: [Next phase tasks]
+EOF
+```
+
+**Why log before commit:** So the plan log entry gets committed along with everything else.
+
+#### 5d. Git Commit
+- Commit deliverable + completion evidence + README + plan log entry
+- Use descriptive commit message
+- Follow format:
+
+```bash
+git add coaching-report/phase-0-deep-research-notes.md
+git add coaching-report/phase-0.1-completion-evidence.md
+git add coaching-report/README.md
+git commit -m "Phase 0.1 complete: Deep research re-engagement with WHY questions
+
+Analyzed 4 core studies (#106, #179, #159, #192) with mechanism-level understanding.
+Key insight: User's 0.9% agent usage is correct for experienced developers, not a gap.
+
+966 lines of analysis documenting causal chains and cross-study patterns.
+Self-grade: A- (91/100)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Note:** Plan log was already updated by `plan-log` command in 5c, so it gets committed automatically here.
+
+#### 5e. Update TodoWrite and Start Next Phase (Self-Reinforcing Pattern)
+
+**CRITICAL:** This is where the self-reinforcing pattern activates. You must create the protocol structure for Phase X+1.
+
+**Actions:**
+1. **Collapse completed phase** - Mark all Phase X steps as completed, collapse to single line
+2. **Create Phase X+1 protocol structure** - Expand Steps 1-5 for next phase
+3. **Keep future phases collapsed** - Phase X+2, X+3 remain as single lines
+
+**For simple next phase:**
+```javascript
+TodoWrite({
+  todos: [
+    // Completed phases (collapsed)
+    {content: "Phase 3: Context injection", status: "completed", activeForm: "Adding context patterns"},
+    {content: "Phase 4: Main SKILL.md updates", status: "completed", activeForm: "Updating SKILL.md"},
+
+    // Next phase (expanded into Steps 1-5) - THIS IS THE SELF-REINFORCING PART
+    {content: "Phase 5 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
+    {content: "Phase 5 Step 2: Complete deliverable", status: "pending", activeForm: "Creating deliverable"},
+    {content: "Phase 5 Step 3: Update evidence", status: "pending", activeForm: "Documenting completion"},
+    {content: "Phase 5 Step 4: Present and await approval", status: "pending", activeForm: "Presenting and awaiting approval"},
+    {content: "Phase 5 Step 5: Post-approval (evidence→plan-log heredoc→commit→setup Phase 6)", status: "pending", activeForm: "Finalizing Phase 5"},
+
+    // Future phases (collapsed)
+    {content: "Phase 6: Cross-references", status: "pending", activeForm: "Updating references"},
+    {content: "Phase 7: Real-world examples", status: "pending", activeForm: "Integrating examples"},
+  ]
+})
+```
+
+**For complex next phase (defer sub-phase expansion until Step 2):**
+```javascript
+{content: "Phase 5 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
+{content: "Phase 5 Step 2: Complete sub-phases (will expand)", status: "pending", activeForm: "Working on deliverables"},
+{content: "Phase 5 Steps 3-5: Evidence→present→approve→commit", status: "pending", "activeForm": "Finalizing Phase 5"},
+```
+
+**After updating TodoWrite, begin next phase (absorbing old Step 7):**
+- Read the plan for Phase X+1
+- Understand success criteria
+- Start with Step 1 validation for new phase
+- Do NOT skip Step 1, even if returning from Step 0 checkpoint
+
+**Why this makes pattern self-reinforcing:**
+- Step 5 of Phase X explicitly says "setup Phase X+1 and start next phase"
+- Executing Step 5e requires creating Steps 1-5 for Phase X+1
+- Phase X+1's Step 5 will say "setup Phase X+2"
+- Pattern continues automatically - no need for user to remind you
+
+**Common mistakes when starting next phase:**
+- Starting next phase before Step 5
+- Forgetting what the next phase actually requires
+- Not checking plan before starting
+- Skipping Step 1 validation for new phase
+
+**Order matters:** README → Git → Log → TodoWrite
+
+**Common mistakes:**
+- Skipping any of these steps
+- Doing them out of order
+- Logging before user approval
+- Vague log entries without "User approved" statement
+
+---
+
+## Quick Reference Checklist
+
+When completing a phase, verify:
+
+**Process Management:**
+- [ ] Context window monitored (stayed under 140K token threshold)
+- [ ] TodoWrite updated every 40-50K tokens during work
+- [ ] Checkpoint executed via plan-progress if token budget exceeded
+
+**Protocol Steps:**
+- [ ] Step 0: Cleaned up old evidence files from previous session (if starting new planning session)
+- [ ] Step 1: Created pre-implementation evidence, validated plan understanding, got approval to proceed
+- [ ] Step 2: Deliverable file exists and meets plan specifications
+- [ ] Step 2: **BLOCKING: For multi-phase tasks - TodoWrite included evidence update todos after each sub-phase (REQUIRED)**
+- [ ] Step 2: **BLOCKING: For multi-phase tasks - Evidence checkboxes updated incrementally AND presented to user after EACH sub-phase (YOU CANNOT PROCEED without this)**
+- [ ] Step 3: `phase-X.Y-completion-evidence.md` created with all required sections (or pre-impl updated)
+- [ ] Step 3: Content quality verified (size distribution, spot-checks, error patterns checked)
+- [ ] Step 3: Evidence document ends with `# ⏸️ AWAITING USER APPROVAL`
+- [ ] Step 4: Presented to user with structured summary and explicit approval question, then waited for explicit user approval
+- [ ] Step 5a: Updated completion evidence to "APPROVED" status
+- [ ] Step 5b: Updated README with completion status
+- [ ] Step 5c: Logged to plan log with "User approved Phase X.Y on [date]"
+- [ ] Step 5d: Git committed (deliverable + evidence + README)
+- [ ] Step 5e: Updated TodoWrite and started next phase (with Step 1 validation, including Step 0 if new session)
+
+**If any checkbox is unchecked, the protocol is not complete.**
+
+---
+
+## Examples
+
+### Good Example: Step 1 Plan Validation
+
+```markdown
+## Step 1: Plan Validation for Protocol Update
+
+**I understand the plan as:** Add Step 1 (Plan Validation) to Tandem Protocol guide
+
+**Target files identified:**
+- `/home/ted/projects/urma-next-obsidian/guides/tandem-protocol.md` (924 lines)
+- Will insert Step 1 section before current Step 2 (line 149)
+- Will renumber existing steps 1-6 → 2-7
+- Will update Quick Reference Checklist (lines 493-513)
+- Will add Step 1 example to Examples section
+
+**Success criteria:**
+- [ ] Step 1 section added (80-100 lines estimated)
+- [ ] All existing steps renumbered 2-7
+- [ ] Quick Reference updated with Step 1
+- [ ] Example showing Step 1 validation added
+- [ ] Tone matches existing guide format
+
+**Implementation approach:**
+- Step 1: Draft Step 1 section (30-40K tokens, 30 min)
+- Step 2: Renumber all steps and cross-references (15-20K tokens, 20 min)
+- Step 3: Update Quick Reference (5-10K tokens, 10 min)
+- Step 4: Add example (10-15K tokens, 15 min)
+- Step 5: Update pre-impl evidence (5K tokens, 10 min)
+
+**Token budget:** 65-90K tokens, 85 minutes
+
+**Pre-implementation evidence:** `step-1-addition-pre-implementation.md` created with full checklist
+
+**May I proceed with implementation?**
+
+**Upon your approval, I will:**
+1. Complete the implementation (Step 2)
+2. Create/update completion evidence (Step 3)
+3. Present deliverable to you and wait for your explicit approval (Step 4)
+4. ONLY AFTER approval: log to plan-log, git commit, update README (Step 5)
+```
+
+✅ **What's good:**
+- Precise target identification (file path, line numbers)
+- Complete success criteria as checkboxes
+- Token budget and timeline estimated
+- Protocol commitment clearly stated (what happens after approval)
+- Pre-implementation evidence document created
+- Clear approval question
+
+**User response:** "1: renumber. 2: yes. 3: that's fine" → Approval granted, clarified numbering approach
+
+### Good Example: Phase 0.1 Completion
+
+```markdown
+## Phase 0.1 Complete
+
+**Deliverable:** phase-0-deep-research-notes.md (966 lines)
+**Completion Evidence:** phase-0.1-completion-evidence.md
+
+### Key Highlights
+
+1. Analyzed 4 core studies (N=5,080 participants) with mechanism-level WHY analysis
+2. Critical insight: User's 0.9% agent usage is CORRECT for experienced developers (Source #192)
+3. Cross-study synthesis begun: bounded vs unbounded task architecture identified
+
+### Self-Grade: A- (91/100)
+
+**Deductions:** -5 for 50% study coverage, -4 for citation error discovered
+
+**May I log progress and proceed to Phase 0.2?**
+```
+
+✅ **What's good:**
+- Concise highlights with evidence
+- Honest grading with deductions
+- Explicit approval question
+
+### Bad Example
+
+```markdown
+i finished the research phase. it went well. here's what i found:
+
+- read some studies
+- they were interesting
+- learned about agents
+- found some patterns
+- wrote notes
+
+pretty good work! ready to move on?
+```
+
+❌ **What's wrong:**
+- No evidence (line numbers, file names, sizes)
+- No completion evidence document
+- No self-grade
+- Vague summaries
+- Casual tone
+- Weak approval question
+- Missing ⏸️ marker
+
+### Good Example: Context Window Checkpoint
+
+**Scenario:** Phase 2 revision work reaches 138K tokens (69%), deliverable 60% complete
+
+```markdown
+I've reached 138K/200K tokens (69%) with Phase 2 deliverable at 60% complete.
+
+Executing checkpoint per Context Window Management protocol (140K threshold).
+
+**Completed work:**
+- Research gathering: 5 sources identified, quotes extracted
+- Methodology documentation complete
+- Triangulation sources found
+
+**Incomplete work:**
+- Draft revision not written (estimated 60-80K tokens needed)
+
+Using plan-progress to checkpoint:
+```
+
+```bash
+plan-progress <<'EOF'
+# Progress: Phase 2 Section 6 Revision - CHECKPOINT (Token Budget)
+
+## Progress
+
+**Completed:**
+- Research gathering (5 context-switching sources, hallucination taxonomy + triangulation)
+- Quotes extracted with line numbers
+- Methodology details documented
+
+**Token usage:** 138K/200K (69%)
+**Deliverable status:** Research complete, revision not started (60% complete)
+
+**Self-grade for work completed:** B (85/100) - research thorough, but deliverable incomplete
+
+## Plan
+
+**Next session first priority:** Draft Section 6 revision using gathered research
+
+**Remaining work:**
+1. Draft Context-Switching section with quotes (20-25K)
+2. Draft Hallucination Taxonomy section (20-25K)
+3. Draft Shorter Lines section (15-20K)
+4. Create completion evidence (5-10K)
+
+**Estimated tokens needed:** 60-80K
+**Checkpoint strategy:** Monitor at 70K into new session (80% of remaining budget)
+EOF
+```
+
+✅ **What's good:**
+- Recognized threshold (138K approaching 140K)
+- Stopped immediately (didn't "finish one more thing")
+- Clear progress vs plan distinction
+- Specific remaining work with token estimates
+- Ready for clean handoff to next session
+
+---
+
+## Common Failure Modes
+
+### Failure Mode 1: "Silent Advancement"
+**Symptom:** AI logs completion and starts next phase without user approval.
+**Why it happens:** Eagerness to make progress, assumption that completion = approval.
+**Prevention:** Always wait for explicit "yes, approved, proceed" from user.
+
+### Failure Mode 2: "Fake Completion"
+**Symptom:** Marking phase complete when criteria not met.
+**Why it happens:** Want to avoid appearing stuck, scope fatigue.
+**Prevention:** Honest self-grading, explicit deviations section in evidence doc.
+
+### Failure Mode 3: "Evidence-Free Claims"
+**Symptom:** Completion evidence says "completed analysis" without line numbers/proof.
+**Why it happens:** Treating evidence doc as formality, not actual verification.
+**Prevention:** Specific evidence (lines 52-89, file size, example quotes).
+
+### Failure Mode 4: "Protocol Shortcuts"
+**Symptom:** Skipping steps (no git commit, no README update, no log entry).
+**Why it happens:** Seeing some steps as bureaucratic overhead.
+**Prevention:** Understand WHY each step exists (audit trail, context restoration).
+
+### Failure Mode 5: "Assumed Approval"
+**Symptom:** User says "good work" and AI proceeds to log/commit/advance.
+**Why it happens:** Interpreting positive feedback as approval to proceed.
+**Prevention:** Ask explicitly: "Does this approval include logging and proceeding to Phase X.Y+1?"
+
+---
+
+## Debugging Protocol Failures
+
+If you realize you violated the protocol:
+
+1. **Stop immediately** - Don't compound the error
+2. **Acknowledge the violation** - "I realize I proceeded without approval. This violated the protocol."
+3. **Assess damage:**
+   - Did I log without approval? (Undo: remove log entry)
+   - Did I commit without approval? (Undo: git reset)
+   - Did I start next phase? (Undo: return to approval wait)
+4. **Present correctly** - Follow Step 3 properly
+5. **Wait for approval** - Follow Step 4 this time
+6. **Learn from it** - Why did I skip the protocol? What assumption was wrong?
+
+**Don't:**
+- Hide the violation
+- Continue forward hoping user won't notice
+- Make excuses ("I thought you meant...")
+- Argue the protocol is unnecessary
+
+---
+
+## Protocol Variations
+
+### For Sub-Phases (e.g., Phase 8.1, 8.2)
+- Same protocol applies
+- Each sub-phase gets its own evidence document
+- Log each sub-phase completion separately
+- User approval required for each
+
+### For Quick Fixes/Corrections
+- If user requests correction during Step 4 (waiting for approval)
+- Make correction, update evidence if needed
+- Re-present with "Addressed feedback: [description]"
+- Wait for approval again
+
+### For Multi-Deliverable Phases
+- Create one evidence document covering all deliverables
+- List each deliverable separately with individual verification
+- Present as bundle with combined grade
+
+---
+
+## Integration with Other Tools
+
+### With /plan-show
+- Run `plan-show` at session start to see protocol + current plan
+- Helps restore context after compaction
+
+### With /plan-search
+- Use to find previous phase completions as examples
+- Search for "User approved Phase" to see approval patterns
+
+### With git
+- Commit message should reference phase number and grade
+- Include 🤖 Claude Code footer
+- Use conventional commit format
+
+### With TodoWrite: Incremental Algorithm
+
+**Purpose:** TodoWrite tracks progress but can become overwhelming (>15 items = cognitive overload). Use incremental expansion to maintain focus while providing clear phase transitions.
+
+---
+
+#### Phase 0: Initial Planning
+
+**Start with high-level phase view (7-8 items max):**
+
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 1: Strategic Reading (1h)", status: "pending", activeForm: "Reading strategically"},
+    {content: "Phase 2: Section 6 Additions (4-6h)", status: "pending", activeForm: "Adding Section 6"},
+    {content: "Phase 3: Integrate Section 6 (1-2h)", status: "pending", activeForm: "Integrating Section 6"},
+    {content: "Phase 4: Add rigor to Sections 1-2 (5-8h)", status: "pending", activeForm: "Improving Sections 1-2"},
+    {content: "Phase 5: Add rigor to Sections 3-4 (6-9h)", status: "pending", activeForm: "Improving Sections 3-4"},
+    {content: "Phase 6: Add rigor to Sections 5-6 (6-9h)", status: "pending", activeForm: "Improving Sections 5-6"},
+    {content: "Phase 7: Narrative reframing (8-12h)", status: "pending", activeForm: "Reframing narrative"},
+    {content: "Phase 8: Final coherence check (2-3h)", status: "pending", activeForm: "Checking coherence"}
+  ]
+})
+```
+
+**At this stage:** Each phase is one todo. User sees full project arc without detail overload.
+
+---
+
+#### During Active Phase: Expand Current Phase
+
+**When starting Phase 2, expand into sub-tasks (5-7 items max):**
+
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 1: Strategic Reading", status: "completed", activeForm: "Read strategically"},
+
+    // Phase 2 expanded:
+    {content: "Add Context-Switching quotes", status: "in_progress", activeForm: "Adding quotes"},
+    {content: "Add methodology explanations", status: "pending", activeForm: "Adding methodology"},
+    {content: "Find hallucination triangulation", status: "pending", activeForm: "Finding triangulation"},
+    {content: "Revise draft with research rigor", status: "pending", activeForm: "Revising draft"},
+    {content: "Create Phase 2 completion evidence", status: "pending", activeForm: "Creating evidence"},
+    {content: "Load Phase 3 todos (after Step 5)", status: "pending", activeForm: "Loading Phase 3 tasks"},
+
+    {content: "Phase 3: Integrate Section 6", status: "pending", activeForm: "Integrating Section 6"},
+    // ... remaining phases collapsed
+  ]
+})
+```
+
+**Key patterns:**
+- **Previous phase:** Collapsed to one line, marked completed
+- **Current phase:** Expanded into 5-7 sub-tasks showing progress
+- **Future phases:** Collapsed to one line each
+- **Last sub-task:** "Load Phase X+1 todos" signals transition
+
+**For planned sub-phases (e.g., Phase 7A-7F in plan log):**
+If plan log specifies sub-phases like "Phase 7B: Reframe Executive Summary", treat each as a separate todo:
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 7A: Inventory user-centric patterns", status: "completed", activeForm: "Inventorying patterns"},
+    {content: "Phase 7B: Reframe Executive Summary", status: "completed", activeForm: "Reframing summary"},
+    {content: "Phase 7C: Reframe Sections 1-3", status: "completed", activeForm: "Reframing sections 1-3"},
+    {content: "Phase 7D: Reframe Sections 4-7", status: "completed", activeForm: "Reframing sections 4-7"},
+    {content: "Phase 7E: Add OTHER innovations", status: "pending", activeForm: "Adding innovations"},
+    {content: "Phase 7F: Verification pass", status: "pending", activeForm: "Verifying reframes"},
+    {content: "Phase 8: Review completion", status: "pending", activeForm: "Reviewing completion"}
+  ]
+})
+```
+**Why this matters:** Prevents presenting "Phase 7 complete" when 7E-7F remain (visible incompleteness in todo list)
+
+---
+
+#### Update Frequency
+
+**Update TodoWrite:**
+- Every 40-50K tokens (helps track token budget)
+- After completing each sub-task (shows progress)
+- When starting new phase (expand next, collapse current)
+- At checkpoint boundaries (120K, 140K)
+
+**Why frequent updates:**
+- Maintains awareness of progress velocity
+- Triggers context window checkpoint assessment
+- Shows user where you are in real-time
+
+---
+
+#### Phase Transition: Collapse and Expand
+
+**When Phase 2 complete (after Step 5 approval):**
+
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 1: Strategic Reading", status: "completed", activeForm: "Read strategically"},
+    {content: "Phase 2: Section 6 Additions", status: "completed", activeForm: "Added Section 6"},
+
+    // Phase 3 expanded:
+    {content: "Read coaching-report Section 6", status: "in_progress", activeForm: "Reading Section 6"},
+    {content: "Identify insertion point", status: "pending", activeForm: "Finding insertion point"},
+    {content: "Insert Section 6 additions", status: "pending", activeForm: "Inserting additions"},
+    {content: "Verify flow and coherence", status: "pending", activeForm: "Verifying flow"},
+    {content: "Create Phase 3 completion evidence", status: "pending", activeForm: "Creating evidence"},
+    {content: "Load Phase 4 todos (after Step 5)", status: "pending", activeForm: "Loading Phase 4 tasks"},
+
+    {content: "Phase 4: Add rigor to Sections 1-2", status: "pending", activeForm: "Improving Sections 1-2"},
+    // ... remaining phases
+  ]
+})
+```
+
+**Transition pattern:**
+1. Mark all Phase 2 sub-tasks completed
+2. Collapse Phase 2 to one line, mark completed
+3. Expand Phase 3 into sub-tasks
+4. Mark first Phase 3 sub-task as "in_progress"
+5. Keep future phases collapsed
+
+---
+
+#### Common Mistakes
+
+❌ **Expanding all phases at once** - Results in 30+ items (overwhelming)
+✅ **One phase expanded at a time** - Maintains 8-12 item range
+
+❌ **Not updating during phase** - Todos become stale
+✅ **Update every 40-50K tokens** - Shows velocity
+
+❌ **Forgetting "Load Phase X+1" task** - Unclear when to expand next
+✅ **Always include transition task** - Clear expansion signal
+
+❌ **Keeping completed sub-tasks visible** - List grows unbounded
+✅ **Collapse completed phases** - Focus on current and future
+
+---
+
+#### Integration with Tandem Protocol
+
+**TodoWrite updates at specific protocol steps:**
+
+- **Step 1 (Complete Deliverable):** Update sub-tasks as completed
+- **Step 5d (After approval):** Collapse current phase, expand next phase
+- **Between sessions:** TodoWrite persists, shows where to resume
+
+**Example Step 5 execution:**
+
+After user approves Phase 2:
+```javascript
+TodoWrite({
+  todos: [
+    {content: "Phase 1: Strategic Reading", status: "completed"},
+    {content: "Phase 2: Section 6 Additions", status: "completed"},
+    {content: "Phase 3: Integrate Section 6", status: "in_progress"},
+    // Phase 3 will be expanded in first action of Phase 3 work
+  ]
+})
+```
+
+---
+
+#### Why This Algorithm Exists
+
+**Based on actual usage:** Projects with 8+ phases and 40+ sub-tasks. Showing all at once (40 items) causes cognitive overload.
+
+**Benefits:**
+- **Focus:** 8-12 visible items (current phase detail + future overview)
+- **Context:** User sees project arc + current progress
+- **Transitions:** "Load Phase X+1 todos" signals phase boundary
+- **Persistence:** After compaction, TodoWrite shows where to resume
+
+**Integration with context window:** Updating every 40-50K tokens serves dual purpose - shows progress AND maintains token budget awareness
+
+---
+
+## For AI Agents: Mental Model
+
+**Think of the protocol as:**
+- A contract between you and the user
+- Quality gates preventing drift
+- Context restoration mechanism for future sessions
+- Audit trail for accountability
+
+**Don't think of it as:**
+- Bureaucratic overhead
+- Optional formality
+- Suggestions to follow loosely
+- Something to optimize away
+
+**The protocol exists because:**
+- AI can drift from user intent over long sessions
+- Compaction erases context without artifacts
+- Users need checkpoints to redirect before too much divergence
+- Explicit approval is required for authorization (git commits, etc.)
+
+---
+
+## Context Window Management for Long Sessions
+
+**Why this matters:** Multi-phase projects can consume 100K+ tokens in a single session. Without checkpoint discipline, you may exhaust context before completing deliverables, requiring conversation rewind and lost work.
+
+**Learned from:** Actual failure mode where 139K/200K tokens (70%) were spent on research gathering without completing the revision deliverable.
+
+---
+
+### Before Starting Any Phase
+
+**Estimate token budget by task type:**
+
+| Task Type | Typical Token Usage |
+|-----------|-------------------|
+| Research (reading sources) | 30-50K per source |
+| Drafting (writing new content) | 20-30K per deliverable |
+| Revision (editing existing) | 10-20K per file |
+| Verification (testing, checking) | 5-15K per check |
+| Agent queries (Task/Explore) | 5-10K per query |
+
+**Strategy: Use agents for research, not direct Read calls**
+
+❌ **Don't do this:**
+```
+Read source-file-1.md (entire file, 1500 lines) → 30K tokens
+Read source-file-2.md (entire file, 2000 lines) → 40K tokens
+Read source-file-3.md (entire file, 1800 lines) → 35K tokens
+Total: 105K tokens for research alone
+```
+
+✅ **Do this instead:**
+```
+Task agent: "Extract quote from source-file-1 about X" → 8K tokens
+Task agent: "Find methodology in source-file-2" → 6K tokens
+Task agent: "Get findings from source-file-3" → 7K tokens
+Total: 21K tokens (5× more efficient)
+```
+
+**Why:** Agent queries return targeted information without full file content.
+
+---
+
+### During Work: Checkpoint Triggers
+
+**Context window budget: 200K tokens (typical)**
+
+**Checkpoint thresholds:**
+
+1. **120K tokens (60% usage) - Assessment checkpoint:**
+   - Stop and assess: "Can I complete deliverable with 80K remaining?"
+   - Questions to ask:
+     - Is deliverable 80%+ complete?
+     - Do I need more research (high token cost)?
+     - Are there unexpected complications?
+   - **If NO to first question:** Execute checkpoint now
+   - **If YES:** Continue but monitor closely
+
+2. **140K tokens (70% usage) - FORCE checkpoint:**
+   - **Stop immediately** regardless of progress
+   - Document current progress
+   - Execute checkpoint via `plan-progress`
+   - Get user approval before continuing
+   - **Why force:** 60K remaining insufficient for completion + potential revisions
+
+**How to check current usage:**
+- Look for `<system_warning>Token usage: XXXXX/200000` in responses
+- Track major operations (Read calls, agent queries, large edits)
+- Update TodoWrite with token awareness
+
+---
+
+### Executing a Checkpoint
+
+**Use the `plan-progress` command:**
+
+```bash
+plan-progress <<'EOF'
+# Progress: [Phase name] - CHECKPOINT (Token Budget)
+
+## Progress
+
+**Completed:**
+- [List completed sub-tasks with evidence]
+- [File names, line counts, specific accomplishments]
+
+**Token usage:** XXXk/200K (XX%)
+**Deliverable status:** [XX% complete | incomplete]
+
+**Self-grade for work completed:** [Grade] ([score]/100)
+
+## Plan
+
+**Next session first priority:** [What to do immediately]
+
+**Remaining work:**
+1. [Specific task with token estimate]
+2. [Specific task with token estimate]
+
+**Estimated tokens needed:** XX-XXk
+EOF
+```
+
+---
+
+### Common Mistakes
+
+❌ **"I'll just finish this one more thing"** - Often leads to 10-20K more tokens and incomplete work
+✅ **Checkpoint at threshold** - Clean break preserves progress
+
+❌ **Reading full files for research** - Burns 30-50K per file
+✅ **Use Task agents with queries** - 5-10K per request
+
+❌ **No token tracking** - Sudden surprise at 180K usage
+✅ **Update TodoWrite every 40-50K** - Maintains awareness
+
+❌ **Combining research + execution** - Unpredictable budget
+✅ **Separate phases** - Research phase, then execution phase
+
+---
+
+### Integration with TodoWrite
+
+Add checkpoint awareness to todos:
+
+```javascript
+TodoWrite({
+  todos: [
+    {content: "CHECKPOINT AT 120K tokens", status: "pending"},
+    {content: "Phase 2: Draft additions", status: "in_progress"},
+    // ... rest
+  ]
+})
+```
+
+Update every 40-50K tokens to maintain threshold awareness.
+
+---
+
+## Appendix: Verification Templates
+
+This appendix provides copy-paste templates for Step 3 content quality verification.
+
+### Template 1: File Download/Generation Verification
+
+```bash
+# Check file count by category
+find output_dir -type f -name "*.ext" | wc -l
+
+# Check size distribution (spot outliers)
+find output_dir -type f -name "*.ext" -exec wc -l {} + | sort -n | head -20
+find output_dir -type f -name "*.ext" -exec wc -l {} + | sort -n | tail -20
+
+# Check for error pages (common patterns)
+grep -r "404" output_dir/
+grep -r "Not Found" output_dir/
+grep -r "Error" output_dir/ | head -20
+
+# Spot-check first file in each section
+ls output_dir/section1/ | head -1 | xargs -I {} head -30 "output_dir/section1/{}"
+ls output_dir/section2/ | head -1 | xargs -I {} head -30 "output_dir/section2/{}"
+
+# Verify no empty files
+find output_dir -type f -size 0
+
+# Count by subdirectory
+for dir in output_dir/*/; do echo "$(basename $dir): $(find $dir -type f | wc -l)"; done
+```
+
+**Checklist:**
+- [ ] Total file count matches expected
+- [ ] No files with suspicious sizes (too small/large)
+- [ ] No error patterns in content
+- [ ] Spot-checks show valid content
+- [ ] All categories/sections present
+
+### Template 2: Code Implementation Verification
+
+```bash
+# Compile/build check
+npm run build
+# OR
+cargo build
+# OR
+python -m py_compile *.py
+
+# Run tests
+npm test
+# OR
+cargo test
+# OR
+pytest
+
+# Check for compilation warnings
+npm run build 2>&1 | grep -i "warning"
+
+# Run specific edge case tests
+npm test -- --grep "edge case"
+
+# Check code executes without errors
+node script.js
+# OR
+python script.py
+
+# Verify output matches expected
+node script.js > output.txt
+diff output.txt expected_output.txt
+```
+
+**Checklist:**
+- [ ] Code compiles/builds without errors
+- [ ] All tests pass
+- [ ] No critical warnings
+- [ ] Edge cases handled correctly
+- [ ] Output matches expected behavior
+
+### Template 3: Documentation/Writing Verification
+
+```bash
+# Check document structure
+grep "^#" document.md  # All headings
+grep "^## " document.md | wc -l  # Count main sections
+
+# Check for placeholder text
+grep -i "TODO" document.md
+grep -i "TBD" document.md
+grep -i "FIXME" document.md
+grep "\[.*\]" document.md  # Bracket placeholders
+
+# Check for incomplete sections
+grep -A 5 "^## " document.md | grep -B 1 "^$"  # Empty sections
+
+# Word count per section
+awk '/^## / {if (NR>1) print section, words; section=$0; words=0; next} {words+=NF} END {print section, words}' document.md
+
+# Check cross-references exist
+grep -o "\[.*\](.*.md)" document.md | cut -d'(' -f2 | cut -d')' -f1 | while read file; do
+  [ -f "$file" ] && echo "✓ $file" || echo "✗ Missing: $file"
+done
+
+# Spot-read sections
+head -50 document.md  # Beginning
+awk 'NR==100,NR==150' document.md  # Middle
+tail -50 document.md  # End
+```
+
+**Checklist:**
+- [ ] All promised sections exist
+- [ ] No TODO/TBD/FIXME placeholders
+- [ ] No empty sections
+- [ ] Word counts reasonable per section
+- [ ] Cross-references valid
+- [ ] Spot-checks show quality content
+
+### Template 4: Batch Operations Verification
+
+```bash
+# Sample items from each category
+find category1/ -type f | shuf -n 3  # 3 random files
+find category2/ -type f | shuf -n 3
+
+# Check operation applied correctly
+for file in $(find output/ -type f | shuf -n 5); do
+  echo "=== $file ==="
+  # Check specific operation result
+  grep "expected_pattern" "$file" && echo "✓" || echo "✗ MISSING"
+done
+
+# Verify consistency
+find output/ -type f -exec grep -l "operation_marker" {} \; | wc -l  # Should match total
+
+# Count completions vs total
+total=$(find input/ -type f | wc -l)
+completed=$(find output/ -type f | wc -l)
+echo "Completed: $completed / $total"
+
+# Check for failures
+[ -f failed_items.txt ] && wc -l failed_items.txt || echo "No failures recorded"
+
+# Verify no partial/corrupted output
+find output/ -type f -exec file {} \; | grep -v "expected_type"
+```
+
+**Checklist:**
+- [ ] Sampled items show correct operation
+- [ ] All categories processed
+- [ ] Operation consistent across batches
+- [ ] Completion count correct
+- [ ] Failures logged if any
+
+### Template 5: Test Suite Verification
+
+```bash
+# Run tests with coverage
+npm test -- --coverage
+# OR
+pytest --cov=src tests/
+
+# Check test count
+grep -r "^test(" tests/ | wc -l  # Count test functions
+grep -r "it(" tests/ | wc -l  # Count Jest/Mocha tests
+
+# Verify all features tested
+echo "Features implemented:"
+grep -r "function " src/ | cut -d' ' -f2 | cut -d'(' -f1 | sort -u
+echo "Features tested:"
+grep -r "test.*function_name" tests/ | wc -l
+
+# Run tests and check exit code
+npm test
+echo "Exit code: $?"  # Should be 0
+
+# Check for skipped tests
+grep -r "skip" tests/
+grep -r "xit(" tests/
+grep -r "xdescribe(" tests/
+
+# Timing check (performance regression)
+npm test 2>&1 | grep "Time:"
+```
+
+**Checklist:**
+- [ ] All tests pass
+- [ ] Coverage meets threshold (e.g., >80%)
+- [ ] All features have tests
+- [ ] No skipped tests without reason
+- [ ] Test execution time reasonable
+
+---
+
+## Last Updated
+
+2025-11-24 by Claude (Session: generic-verification-templates)
+
+**Changes in this version:**
+- Added Appendix: Verification Templates (191 lines) with 5 copy-paste templates for Step 3 verification
+- Templates cover common task types: file downloads, code, documentation, batch operations, test suites
+- Each template includes bash commands and verification checklists for quick application
+
+**Previous update:** 2025-01-20 - Added Context Window Management and TodoWrite Integration
+
+**Based on:**
+- behavioral-review-plan-log.md lines 9-45 (Phase Completion Protocol)
+- Multiple phase completion examples from various projects
+- Common verification failure patterns across different task types

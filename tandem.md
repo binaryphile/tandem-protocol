@@ -13,7 +13,7 @@ After reading this, check your current step in the Tandem Protocol and ensure co
 The full Tandem Protocol is loaded in context via:
 
 ```
-@/home/ted/projects/urma-next-obsidian/guides/task-completion-protocol.md
+@$TANDEM_PROTOCOL_DIR/tandem-protocol.md
 ```
 
 **You already have the protocol in context.** This command is just a memory jogger.

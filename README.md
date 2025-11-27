@@ -22,19 +22,19 @@ Create or edit `CLAUDE.md` in your project root:
 ```markdown
 # Project Context
 
-@/home/ted/projects/urma-next-obsidian/guides/task-completion-protocol.md
+@$TANDEM_PROTOCOL_DIR/tandem-protocol.md
 
 <!-- rest of your project context -->
 ```
 
-**Path:** `/home/ted/projects/yourproject/CLAUDE.md` (project root, NOT `.claude/CLAUDE.md`)
+**Path:** `$PROJECT_ROOT/CLAUDE.md` (project root, NOT `.claude/CLAUDE.md`)
 
 ### 2. Install the command
 
 ```bash
 mkdir -p ~/.claude/commands
 
-cp ~/projects/share/tandem-protocol/tandem.md ~/.claude/commands/
+ln -sf $TANDEM_PROTOCOL_DIR/tandem.md ~/.claude/commands/
 ```
 
 ### 3. Reload Claude Code

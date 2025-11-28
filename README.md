@@ -15,31 +15,53 @@ This implementation uses **attention activation** - the protocol is always in co
 
 ## Installation
 
-### 1. Add protocol to project context
-
-Create or edit `CLAUDE.md` in your project root:
-
-```markdown
-# Project Context
-
-@$TANDEM_PROTOCOL_DIR/tandem-protocol.md
-
-<!-- rest of your project context -->
-```
-
-**Path:** `$PROJECT_ROOT/CLAUDE.md` (project root, NOT `.claude/CLAUDE.md`)
-
-### 2. Install the command
+### Quick Install (Recommended)
 
 ```bash
-mkdir -p ~/.claude/commands
-
-ln -sf $TANDEM_PROTOCOL_DIR/tandem.md ~/.claude/commands/
+bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_ORG/tandem-protocol/main/install.sh)
 ```
 
-### 3. Reload Claude Code
+This clones to `~/tandem-protocol` and creates the `/tandem` command. Then add to your project's CLAUDE.md:
 
-Exit and restart Claude Code to load the command.
+```markdown
+# Tandem Protocol
+@~/tandem-protocol/tandem-protocol.md
+```
+
+### Manual Install
+
+If you prefer manual setup:
+
+```bash
+# 1. Clone to home directory
+cd ~ && git clone https://github.com/YOUR_ORG/tandem-protocol.git
+
+# 2. Create command symlink
+mkdir -p ~/.claude/commands
+ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
+
+# 3. Add to your project's CLAUDE.md
+echo "" >> CLAUDE.md
+echo "# Tandem Protocol" >> CLAUDE.md
+echo "@~/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
+```
+
+**Verify:** Start Claude Code, then run `/tandem`
+
+### Alternative Installations
+
+**For teams** (version-controlled with project):
+```bash
+git submodule add https://github.com/YOUR_ORG/tandem-protocol.git vendor/tandem-protocol
+echo "@vendor/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
+```
+
+**For custom locations:**
+Install anywhere, then reference with tilde or absolute path in CLAUDE.md:
+- Tilde: `@~/your/path/tandem-protocol.md`
+- Absolute: `@/your/path/tandem-protocol.md`
+
+**Advanced:** See [ADVANCED.md](./ADVANCED.md) for Docker, CI/CD, Windows WSL, monorepos, and more.
 
 ## Usage
 
@@ -103,3 +125,22 @@ You: [Follow Step 5: Log and commit]
 - Protocol survives compaction (in CLAUDE.md)
 - Lightweight activation on demand
 - Repeated emphasis maintains compliance
+
+## Testing
+
+This repository includes automated tests to verify installation and migration scripts work correctly.
+
+### Run All Tests
+
+```bash
+bash tests/run_all.sh
+```
+
+### What's Tested
+
+- ✅ URL validation (no placeholder URLs)
+- ✅ Migration script (from env vars to tilde paths)
+- ✅ Manual installation steps
+- ✅ Quick install script
+
+See [tests/README.md](./tests/README.md) for details.

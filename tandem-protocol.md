@@ -21,60 +21,67 @@
 
 ## The 5-Step Protocol (Plus Step 0)
 
-### Step 0: Clean Up Old Evidence Files (Session Initialization)
+### Step 0: Check for Evidence Files (Protocol Violation Detection)
 
-**What:** At the start of a NEW planning session, remove ALL evidence files from the previous planning session.
+**What:** At the start of work, check if any evidence files exist from previous incomplete work.
 
 **Why this step exists:**
-- Evidence files accumulate during a planning session (Phase 1, 2, 3...)
-- Old evidence files from PREVIOUS sessions create confusion (e.g., finding phase-8.1 when new session starts at Phase 1)
-- Allows new session to start clean with phases numbered from 1
-- Git commit history provides archive (requires commit discipline)
+- Evidence files are **temporary working documents** (Steps 1-4 only)
+- Evidence files are **deleted in Step 5c** after being appended to plan-log
+- If evidence files exist at Step 0, previous phase was not completed properly
+- This indicates **protocol violation** (Step 5c was not executed)
 
 **When to perform:**
-- **ONLY at start of NEW planning session** (when user provides new plan-log or major direction change)
-- **NOT between phases** within same planning session (let them accumulate)
-
-**When NOT to perform:**
-- Between phases within current planning session (Phase 1 → Phase 2 → Phase 3, etc.)
-- When continuing work on current session after context loss
+- At start of every work session
+- After conversation compaction/restoration
+- When resuming work on a project
 
 **Mechanism:**
 
-1. **Detect new planning session:**
-   - User provides new plan-log file
-   - User says "starting new planning session" or similar
-   - Major direction change that resets phase numbering
-
-2. **Check for old evidence files:**
+1. **Check for evidence files:**
    ```bash
-   ls -1 coaching-report/phase-*-completion-evidence.md coaching-report/phase-*-quality-review.md 2>/dev/null | wc -l
+   ls -1 ./*-completion-evidence.md ./*-evidence.md 2>/dev/null | wc -l
    ```
 
-3. **Verify git status for project directory:**
-   ```bash
-   git status coaching-report/
-   ```
+2. **If NO evidence files exist:**
+   - ✅ Good - previous work completed properly
+   - Proceed to Step 1 for new phase
 
-4. **If uncommitted changes to evidence files exist:**
-   - **STOP** - Cannot proceed with cleanup
-   - Tell user: "Found N uncommitted evidence files from previous session. Need git commit before starting new session."
-   - Wait for user to commit or provide direction
-
-5. **If git is clean (or only untracked evidence files exist):**
-   - Delete all old phase evidence files:
-     ```bash
-     rm -f coaching-report/phase-*-completion-evidence.md
-     rm -f coaching-report/phase-*-quality-review.md
+3. **If evidence files exist:**
+   - ⚠️ **PROTOCOL VIOLATION DETECTED**
+   - Previous phase was incomplete (evidence not appended to plan-log and deleted)
+   - Tell user:
      ```
-   - Confirm to user: "Removed N evidence files from previous planning session (git history provides archive). Ready to start new session at Phase 1."
+     Found N evidence file(s) from incomplete work:
+     [list files]
 
-6. **Proceed to Step 1 for Phase 1 of new session**
+     This indicates Step 5c was not completed (evidence not appended to plan-log).
+
+     Options:
+     1. Complete the interrupted phase (review evidence, append to plan-log, delete file)
+     2. Abandon the work (delete evidence file as cleanup)
+     3. Investigate what happened (read evidence file to understand state)
+     ```
+   - **WAIT for user decision**
+
+4. **If user chooses to complete (Option 1):**
+   - Review evidence file content
+   - Verify it's marked "APPROVED" (if not, this was abandoned at Step 4)
+   - Execute Step 5c: Append to plan-log and delete evidence file
+   - Then proceed to next phase
+
+5. **If user chooses to abandon (Option 2):**
+   - Delete evidence file:
+     ```bash
+     rm -f [evidence-file.md]
+     ```
+   - Confirm: "Evidence file deleted. Previous work abandoned. Ready to start new phase."
+   - Proceed to Step 1 for new phase
 
 **This enforces:**
-- Commit discipline (must commit before starting new session)
-- Clean workspace for new session (no stale files from previous session)
-- Evidence accumulation within session (Phase 1, 2, 3... all kept until session ends)
+- Protocol compliance (Step 5c must delete evidence files)
+- Clean workspace (no stale files between phases)
+- Evidence lifecycle discipline (temporary during Steps 1-4, appended and deleted in Step 5c)
 
 ---
 
@@ -120,6 +127,12 @@
      NOT "✅ 3/3 innovations added" or "Add innovations (COMPLETE)". Each item gets its own checkbox. This prevents vague, game-able completion claims.
    - Create implementation checklist with token estimates
    - Add "⏸️ AWAITING STEP 1 APPROVAL" at end
+
+   **Evidence file lifecycle:**
+   - **Steps 1-4:** Temporary working document for tracking completion
+   - **Step 5c:** Content appended to plan-log via safe concatenation, file deleted
+   - **NOT committed to git** (plan-log contains the evidence after Step 5c)
+
 5. **Request approval to proceed:**
    - Reference the evidence file created
    - **Ask explicitly:** "May I proceed with implementation?"
@@ -386,6 +399,8 @@ TodoWrite({
 **What:** After completing Step 2, update the completion evidence document from Step 1 with actual results.
 
 **IMPORTANT:** The evidence document should end with `# ⏸️ AWAITING USER APPROVAL` at this stage. Do NOT mark it as "APPROVED" or "COMPLETE" yet - that happens in Step 5 AFTER user approval.
+
+**Reminder:** This evidence file is temporary. In Step 5c, the complete evidence will be appended to plan-log and the file will be deleted (not committed to git).
 
 **Update the completion evidence from Step 1:**
 - Check off all completed items from the original checklist
@@ -762,34 +777,82 @@ Example:
 ```
 
 #### 5c. Log to Plan Log
-- Add entry to `behavioral-review-plan-log.md` BEFORE committing
+- Add entry to plan-log BEFORE committing
 - Must include: "User approved Phase X.Y on [date]"
-- Use `plan-log` command with heredoc on stdin:
+- **Append full completion evidence to plan-log entry**
+- Use `bash -c` with brace group for safe concatenation:
 
 ```bash
-plan-log <<'EOF'
+bash -c '{
+  cat <<'\''EOF'\''
 # Phase X.Y Complete: [Title]
 
 User approved Phase X.Y on [date].
 
 ## Progress
-[Deliverables, evidence file, grade]
+
+**Deliverable:** [filename] ([N] lines)
+**Key accomplishments:**
+- [Item 1 with evidence]
+- [Item 2 with evidence]
+
+## Evidence
+
+EOF
+  cat phase-X.Y-completion-evidence.md
+  cat <<'\''EOF'\''
 
 ## Plan
+
 Phase X.Y+1: [Next phase tasks]
 EOF
+} | plan-log'
+
+# After successful append, delete temporary evidence file
+rm phase-X.Y-completion-evidence.md
 ```
 
-**Why log before commit:** So the plan log entry gets committed along with everything else.
+**Why this approach is safe:**
+- `bash -c` wrapper: Claude Code Bash tool requires this for reliable piping
+- Quoted heredoc `<<'\''EOF'\''`: Prevents command substitution in header/footer text
+- `cat evidence.md`: Streams file content verbatim without interpretation
+- **Security guarantee:** Even if evidence contains `$(...)` or backticks, they're treated as literal text (no execution risk)
+
+**Alternative approach (if intermediate file needed):**
+```bash
+# Build complete entry in temp file
+cat > /tmp/plan-entry.md <<'EOF'
+# Phase X.Y Complete: [Title]
+
+User approved Phase X.Y on [date].
+
+## Progress
+[Summary]
+
+## Evidence
+
+EOF
+cat phase-X.Y-completion-evidence.md >> /tmp/plan-entry.md
+cat >> /tmp/plan-entry.md <<'EOF'
+
+## Plan
+Phase X.Y+1: [Next]
+EOF
+
+cat /tmp/plan-entry.md | plan-log
+rm /tmp/plan-entry.md phase-X.Y-completion-evidence.md
+```
+
+**Why log before commit:** So the plan log entry (with appended evidence) gets committed along with everything else.
 
 #### 5d. Git Commit
-- Commit deliverable + completion evidence + README + plan log entry
+- Commit deliverable + README + plan log entry
+- Evidence file was already appended to plan-log in Step 5c and deleted (not committed separately)
 - Use descriptive commit message
 - Follow format:
 
 ```bash
 git add coaching-report/phase-0-deep-research-notes.md
-git add coaching-report/phase-0.1-completion-evidence.md
 git add coaching-report/README.md
 git commit -m "Phase 0.1 complete: Deep research re-engagement with WHY questions
 
@@ -799,12 +862,14 @@ Key insight: User's 0.9% agent usage is correct for experienced developers, not 
 966 lines of analysis documenting causal chains and cross-study patterns.
 Self-grade: A- (91/100)
 
+Evidence appended to plan-log (not committed as separate file).
+
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
-**Note:** Plan log was already updated by `plan-log` command in 5c, so it gets committed automatically here.
+**Note:** Plan log was already updated by `plan-log` command in 5c (with evidence appended), so it gets committed automatically here. Evidence file was deleted after append.
 
 #### 5e. Update TodoWrite and Start Next Phase (Self-Reinforcing Pattern)
 
@@ -883,18 +948,18 @@ When completing a phase, verify:
 
 **Protocol Steps:**
 - [ ] Step 0: Cleaned up old evidence files from previous session (if starting new planning session)
-- [ ] Step 1: Created pre-implementation evidence, validated plan understanding, got approval to proceed
+- [ ] Step 1: Created pre-implementation evidence (temporary working doc), validated plan understanding, got approval to proceed
 - [ ] Step 2: Deliverable file exists and meets plan specifications
 - [ ] Step 2: **BLOCKING: For multi-phase tasks - TodoWrite included evidence update todos after each sub-phase (REQUIRED)**
 - [ ] Step 2: **BLOCKING: For multi-phase tasks - Evidence checkboxes updated incrementally AND presented to user after EACH sub-phase (YOU CANNOT PROCEED without this)**
-- [ ] Step 3: `phase-X.Y-completion-evidence.md` created with all required sections (or pre-impl updated)
+- [ ] Step 3: `phase-X.Y-completion-evidence.md` created with all required sections (temporary file for Steps 1-4)
 - [ ] Step 3: Content quality verified (size distribution, spot-checks, error patterns checked)
 - [ ] Step 3: Evidence document ends with `# ⏸️ AWAITING USER APPROVAL`
 - [ ] Step 4: Presented to user with structured summary and explicit approval question, then waited for explicit user approval
 - [ ] Step 5a: Updated completion evidence to "APPROVED" status
 - [ ] Step 5b: Updated README with completion status
-- [ ] Step 5c: Logged to plan log with "User approved Phase X.Y on [date]"
-- [ ] Step 5d: Git committed (deliverable + evidence + README)
+- [ ] Step 5c: Appended evidence to plan-log via bash -c, deleted temp evidence file
+- [ ] Step 5d: Git committed (deliverable + README)
 - [ ] Step 5e: Updated TodoWrite and started next phase (with Step 1 validation, including Step 0 if new session)
 
 **If any checkbox is unchecked, the protocol is not complete.**
@@ -1492,6 +1557,8 @@ Update every 40-50K tokens to maintain threshold awareness.
 ## Appendix: Verification Templates
 
 This appendix provides copy-paste templates for Step 3 content quality verification.
+
+**Note:** Verification results should be documented in the completion evidence file (Step 3). The evidence file is then appended to plan-log in Step 5c, making verification checklists part of the permanent audit trail.
 
 ### Template 1: File Download/Generation Verification
 

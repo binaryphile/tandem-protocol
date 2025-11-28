@@ -1,50 +1,201 @@
-# Migrating to Self-Contained Tandem Protocol
+# Migration Guide
 
-If you have existing projects using the old Task Completion Protocol location, follow these steps:
+This guide helps you migrate from older Tandem Protocol installations to the current tilde-based approach.
 
-## Step 1: Update CLAUDE.md References
+---
 
-**Find:** `@/home/ted/projects/urma-next-obsidian/guides/task-completion-protocol.md`
-**Replace:** `@$TANDEM_PROTOCOL_DIR/tandem-protocol.md`
+## Migrating from Environment Variables
 
-## Step 2: Set Environment Variable
+If your CLAUDE.md files reference `@$TANDEM_PROTOCOL_DIR/tandem-protocol.md`, you need to migrate to supported @reference syntax.
 
-Add to your shell profile (~/.bashrc, ~/.zshrc, etc.):
+### Why Migrate?
+
+Environment variable expansion in @references (`@$VAR/path`) is not documented by Claude Code. Documented syntax uses:
+- Tilde paths: `@~/path/file.md`
+- Absolute paths: `@/absolute/path/file.md`
+- Relative paths: `@relative/path/file.md`
+
+### Migration Steps
+
+#### Step 1: Find Your Current Installation
 
 ```bash
-export TANDEM_PROTOCOL_DIR="$HOME/projects/share/tandem-protocol"
+echo $TANDEM_PROTOCOL_DIR
+# Example output: /home/you/projects/share/tandem-protocol
 ```
 
-Then reload:
+If not set or you want a fresh start, see [README.md](./README.md) for installation.
+
+#### Step 2: Determine Your New Reference Syntax
+
+**If installed in home directory** (recommended):
+
 ```bash
+# If: /home/you/projects/share/tandem-protocol
+# Or: /home/you/tandem-protocol
+# Use tilde syntax:
+@~/tandem-protocol/tandem-protocol.md
+# or:
+@~/projects/share/tandem-protocol/tandem-protocol.md
+```
+
+**If installed system-wide or custom location:**
+
+```bash
+# Use absolute path:
+@/opt/tandem-protocol/tandem-protocol.md
+# or whatever your actual path is
+```
+
+#### Step 3: Update CLAUDE.md Files
+
+**Manual update (one file):**
+
+```bash
+# Edit your project's CLAUDE.md
+# Find: @$TANDEM_PROTOCOL_DIR/tandem-protocol.md
+# Replace with: @~/tandem-protocol/tandem-protocol.md
+```
+
+**Bulk update (all projects):**
+
+```bash
+# For ~/tandem-protocol installation:
+find ~/projects -name "CLAUDE.md" -type f -exec \
+  sed -i.bak 's|@\$TANDEM_PROTOCOL_DIR/tandem-protocol.md|@~/tandem-protocol/tandem-protocol.md|g' {} \;
+
+# For other locations, adjust the replacement path accordingly
+```
+
+**Note:** This creates `.bak` backup files. The `-i` flag works on both macOS and Linux, but some GNU sed versions might need `-i.bak` with the extension.
+
+#### Step 4: Remove Environment Variable (Optional)
+
+```bash
+# Remove from ~/.bashrc, ~/.zshrc, ~/.profile, etc.
+# Delete or comment out:
+# export TANDEM_PROTOCOL_DIR="..."
+
+# Reload shell
 source ~/.bashrc  # or ~/.zshrc
 ```
 
-## Step 3: Install the Command
-
-Symlink the command to your commands directory:
+#### Step 5: Verify
 
 ```bash
-ln -sf $TANDEM_PROTOCOL_DIR/tandem.md ~/.claude/commands/
+# Start Claude Code in a project
+cd your-project
+claude
+
+# Run /memory to see loaded files
+> /memory
+# Look for tandem-protocol.md in the list
+
+# Or test directly
+> /tandem
+# Should show protocol reminder
 ```
 
-## Step 4: Update Documentation
+---
 
-Search your project for references to "task-completion-protocol" and update to "tandem-protocol" where appropriate.
+## Migrating from Old Location (urma-next-obsidian)
 
-## What About the Old File?
+If you were using the original Task Completion Protocol from urma-next-obsidian:
 
-The old file at `/home/ted/projects/urma-next-obsidian/guides/task-completion-protocol.md` is left untouched. You can:
-- Keep it for reference
-- Archive it
-- Use it for projects that haven't migrated yet
+### Step 1: Install Tandem Protocol
 
-The new file is the source of truth going forward.
+Follow [README.md](./README.md) installation instructions.
 
-## Terminology Changes
+### Step 2: Update References
 
+**Find:**
+```markdown
+@/home/user/projects/urma-next-obsidian/guides/task-completion-protocol.md
+```
+
+**Replace with:**
+```markdown
+@~/tandem-protocol/tandem-protocol.md
+```
+
+### Step 3: Update Terminology
+
+The protocol has been renamed:
 - "Task Completion Protocol" → "Tandem Protocol"
 - "task-completion-protocol" → "tandem-protocol"
-- References to "Ted" → "user"
 
-The protocol content remains the same, only the name and references have changed for clarity and portability.
+Content and steps remain the same.
+
+---
+
+## Troubleshooting Migration
+
+### Changes Not Taking Effect
+
+```bash
+# 1. Verify file exists
+ls -la ~/tandem-protocol/tandem-protocol.md
+
+# 2. Check CLAUDE.md has correct reference
+cat CLAUDE.md | grep tandem
+
+# 3. Restart Claude Code
+# Exit and restart to reload CLAUDE.md
+```
+
+### Sed Command Fails
+
+**macOS vs Linux differences:**
+
+```bash
+# macOS (BSD sed):
+sed -i .bak 's|old|new|g' file
+
+# Linux (GNU sed):
+sed -i.bak 's|old|new|g' file
+
+# Portable version (works on both):
+sed -i.bak 's|old|new|g' file
+```
+
+### Rollback Migration
+
+If something went wrong:
+
+```bash
+# Restore from backups
+find ~/projects -name "CLAUDE.md.bak" -type f | while read backup; do
+  original="${backup%.bak}"
+  mv "$backup" "$original"
+done
+```
+
+### Path Doesn't Match
+
+If you cloned to a different location:
+
+```bash
+# Find where you actually installed it
+find ~ -name "tandem-protocol.md" -type f 2>/dev/null | grep tandem
+
+# Use that path in your CLAUDE.md references
+# Example: @~/tools/tandem-protocol/tandem-protocol.md
+```
+
+---
+
+## Post-Migration Checklist
+
+- [ ] Protocol file exists at expected location
+- [ ] CLAUDE.md has correct @reference syntax
+- [ ] `/tandem` command works
+- [ ] `/memory` shows tandem-protocol.md loaded
+- [ ] Environment variable removed (if desired)
+- [ ] Backup `.bak` files cleaned up (after verification)
+
+---
+
+## See Also
+
+- [README.md](./README.md) - Installation guide
+- [ADVANCED.md](./ADVANCED.md) - Special environments and edge cases

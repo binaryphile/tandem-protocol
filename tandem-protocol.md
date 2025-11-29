@@ -2,7 +2,7 @@
 
 **For:** AI agents working on multi-phase projects with the user
 **Purpose:** Prevent premature advancement, ensure quality gates, maintain audit trail
-**Location:** Reference at `/home/ted/projects/urma-next-obsidian/behavioral-review-plan-log.md` (lines 9-45)
+**Location:** This protocol is the canonical reference for phase completion discipline.
 
 ---
 
@@ -250,7 +250,7 @@ Total estimated: 75-100K tokens
 1. Is file path correct?
 2. Should I also update related documentation?
 
-# ⏸️ AWAITING STEP 0 APPROVAL
+# ⏸️ AWAITING STEP 1 APPROVAL
 ```
 
 ---

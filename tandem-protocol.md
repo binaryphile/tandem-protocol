@@ -8,14 +8,7 @@
 
 ## Why This Protocol Exists
 
-**Problems it prevents:**
-1. **Goalpost moving** - AI reduces scope without user awareness
-2. **Premature advancement** - Moving to next phase before completing current phase
-3. **Missing deliverables** - Skipping required artifacts
-4. **No audit trail** - Can't trace what was approved when
-5. **False completion** - Marking things done that don't meet criteria
-
-**Key principle:** The user must explicitly approve each phase before logging/committing/advancing.
+Prevents goalpost moving, premature advancement, missing deliverables, and false completion. Key principle: User must explicitly approve each phase before logging/committing/advancing.
 
 ---
 
@@ -25,11 +18,7 @@
 
 **What:** At the start of work, check if any evidence files exist from previous incomplete work.
 
-**Why this step exists:**
-- Evidence files are **temporary working documents** (Steps 1-4 only)
-- Evidence files are **deleted in Step 5c** after being appended to plan-log
-- If evidence files exist at Step 0, previous phase was not completed properly
-- This indicates **protocol violation** (Step 5c was not executed)
+**Why this step exists:** Evidence files are temporary working documents (Steps 1-4 only), deleted in Step 5c after being appended to plan-log. If evidence files exist at Step 0, previous phase was not completed properly (protocol violation - Step 5c not executed).
 
 **When to perform:**
 - At start of every work session
@@ -89,11 +78,7 @@
 
 **What:** Before starting implementation, validate understanding of the plan and get approval to proceed.
 
-**Why this step exists:**
-- Catches misunderstandings BEFORE wasting tokens on wrong work
-- Validates target files, insertion points, and approach are correct
-- Creates accountability checklist upfront ("call targets before taking shots")
-- Provides user checkpoint to redirect before investment
+**Why this step exists:** Catches misunderstandings before wasting tokens, validates target files/insertion points/approach, creates accountability checklist upfront, and provides user checkpoint to redirect before investment.
 
 **Step 1 Deliverables:**
 - Present your understanding of the plan to user (with specific targets, line numbers, concrete actions) and get user confirmation that understanding is correct
@@ -325,24 +310,7 @@ TodoWrite({
 4. **Present to user:** "Completed Phase X.Y. Updated evidence: [N/M] checkboxes now complete."
 5. **YOU CANNOT PROCEED to next sub-phase WITHOUT completing steps 1-4**
 
-**Why "(BLOCKING)" marker matters:**
-- Makes it visually obvious these are NOT optional
-- Can't proceed to "Phase 5.2" without completing "Phase 5.1: Update evidence (BLOCKING)"
-- TodoWrite status shows if you're blocked (work complete but evidence pending)
-- User can see at a glance if evidence updates are lagging behind work
-
-**Why this is BLOCKING:**
-- Without incremental updates, you will violate protocol and lose audit trail
-- User needs to see progress in real-time, not bulk updates at end
-- Presenting after each sub-phase allows user to course-correct early
-- This is NOT optional - it's a required checkpoint between sub-phases
-
-**Why this matters:**
-- Evidence updates become explicit, trackable tasks (not forgotten)
-- User sees incremental progress in real-time (not bulk update at end)
-- Creates accountability (can't skip evidence updates)
-- Maintains audit trail throughout work (not reconstructed at end)
-- **Self-enforcing:** The next sub-phase is visible in todos but can't be marked complete until evidence update done
+**Why BLOCKING:** Evidence updates are required checkpoints between sub-phases. Without incremental updates, protocol gets violated and audit trail is lost. User needs real-time progress visibility to course-correct early. The TodoWrite pattern is self-enforcing: next sub-phase is visible but can't proceed until evidence update is marked complete.
 
 **How to verify completion:**
 - Check plan for deliverable specifications
@@ -514,13 +482,7 @@ For tasks involving systematic edits across many instances (e.g., reframing patt
 **Completion Summary:** Checked: 86/116 (74%), REFRAME: 45/75 (60%) ← INCOMPLETE
 ```
 
-**Why this is required:**
-- Prevents claiming completion when work is incomplete (45/75 edits ≠ complete)
-- Forces systematic work through the inventory instead of opportunistic editing
-- Makes incomplete work immediately visible (can see exactly which items remain)
-- Enables user to spot-check specific edits by line number
-- Creates audit trail of every decision
-- **The inventory IS the work plan - must check off every item**
+**Why required:** Prevents claiming incomplete work as complete, forces systematic work through inventory (not opportunistic editing), makes progress visible, enables spot-checking, creates audit trail. The inventory IS the work plan - must check off every item.
 
 **Step 4 presentation (for line-by-line tasks):**
 - **MUST include checklist completion percentage in presentation**
@@ -746,11 +708,7 @@ EOF
 rm phase-X.Y-completion-evidence.md
 ```
 
-**Why this approach is safe:**
-- `bash -c` wrapper: Claude Code Bash tool requires this for reliable piping
-- Quoted heredoc `<<'\''EOF'\''`: Prevents command substitution in header/footer text
-- `cat evidence.md`: Streams file content verbatim without interpretation
-- **Security guarantee:** Even if evidence contains `$(...)` or backticks, they're treated as literal text (no execution risk)
+**Why safe:** bash -c wrapper required for Claude Code piping, quoted heredoc prevents command substitution, cat streams verbatim. Security guarantee: evidence content with $(...) or backticks treated as literal text (no execution risk).
 
 **Alternative approach:** Build complete entry in /tmp/plan-entry.md, then pipe to plan-log.
 
@@ -826,11 +784,7 @@ TodoWrite({
 - Start with Step 1 validation for new phase
 - Do NOT skip Step 1, even if returning from Step 0 checkpoint
 
-**Why this makes pattern self-reinforcing:**
-- Step 5 of Phase X explicitly says "setup Phase X+1 and start next phase"
-- Executing Step 5e requires creating Steps 1-5 for Phase X+1
-- Phase X+1's Step 5 will say "setup Phase X+2"
-- Pattern continues automatically - no need for user to remind you
+**Why self-reinforcing:** Step 5e explicitly says "setup Phase X+1", which requires creating Steps 1-5 for next phase. Pattern continues automatically.
 
 **Common mistakes when starting next phase:**
 - Starting next phase before Step 5
@@ -971,30 +925,13 @@ When completing a phase, verify:
 
 ## Common Failure Modes
 
-### Failure Mode 1: "Silent Advancement"
-**Symptom:** AI logs completion and starts next phase without user approval.
-**Why it happens:** Eagerness to make progress, assumption that completion = approval.
-**Prevention:** Always wait for explicit "yes, approved, proceed" from user.
-
-### Failure Mode 2: "Fake Completion"
-**Symptom:** Marking phase complete when criteria not met.
-**Why it happens:** Want to avoid appearing stuck, scope fatigue.
-**Prevention:** Honest self-grading, explicit deviations section in evidence doc.
-
-### Failure Mode 3: "Evidence-Free Claims"
-**Symptom:** Completion evidence says "completed analysis" without line numbers/proof.
-**Why it happens:** Treating evidence doc as formality, not actual verification.
-**Prevention:** Specific evidence (lines 52-89, file size, example quotes).
-
-### Failure Mode 4: "Protocol Shortcuts"
-**Symptom:** Skipping steps (no git commit, no README update, no log entry).
-**Why it happens:** Seeing some steps as bureaucratic overhead.
-**Prevention:** Understand WHY each step exists (audit trail, context restoration).
-
-### Failure Mode 5: "Assumed Approval"
-**Symptom:** User says "good work" and AI proceeds to log/commit/advance.
-**Why it happens:** Interpreting positive feedback as approval to proceed.
-**Prevention:** Ask explicitly: "Does this approval include logging and proceeding to Phase X.Y+1?"
+| Mode | Symptom | Why | Prevention |
+|------|---------|-----|------------|
+| Silent Advancement | AI logs/starts without approval | Eagerness, assumes completion=approval | Wait for explicit "yes, approved, proceed" |
+| Fake Completion | Marks phase complete when criteria not met | Avoid appearing stuck, scope fatigue | Honest self-grading, explicit deviations |
+| Evidence-Free Claims | Says "completed" without line numbers/proof | Treats evidence as formality | Specific evidence (lines, file sizes, quotes) |
+| Protocol Shortcuts | Skips steps (no commit, README, log) | Sees steps as bureaucratic overhead | Understand WHY each step exists |
+| Assumed Approval | User says "good work", AI proceeds | Interprets positive feedback as approval | Ask explicitly: "Does this include logging/proceeding?" |
 
 ---
 
@@ -1022,39 +959,13 @@ If you realize you violated the protocol:
 
 ## Protocol Variations
 
-### For Sub-Phases (e.g., Phase 8.1, 8.2)
-- Same protocol applies
-- Each sub-phase gets its own evidence document
-- Log each sub-phase completion separately
-- User approval required for each
-
-### For Quick Fixes/Corrections
-- If user requests correction during Step 4 (waiting for approval)
-- Make correction, update evidence if needed
-- Re-present with "Addressed feedback: [description]"
-- Wait for approval again
-
-### For Multi-Deliverable Phases
-- Create one evidence document covering all deliverables
-- List each deliverable separately with individual verification
-- Present as bundle with combined grade
+**Sub-Phases:** Same protocol applies, each sub-phase gets its own evidence document, log each completion separately, user approval required for each. **Quick Fixes/Corrections:** During Step 4, make correction, update evidence if needed, re-present with "Addressed feedback: [description]", wait for approval again. **Multi-Deliverable Phases:** Create one evidence document covering all deliverables, list each separately with individual verification, present as bundle with combined grade.
 
 ---
 
 ## Integration with Other Tools
 
-### With /plan-show
-- Run `plan-show` at session start to see protocol + current plan
-- Helps restore context after compaction
-
-### With /plan-search
-- Use to find previous phase completions as examples
-- Search for "User approved Phase" to see approval patterns
-
-### With git
-- Commit message should reference phase number and grade
-- Include 🤖 Claude Code footer
-- Use conventional commit format
+**plan-show:** Run at session start to see protocol + current plan (restores context after compaction). **plan-search:** Find previous phase completions, search "User approved Phase" for approval patterns. **git:** Reference phase number and grade in commits, include 🤖 Claude Code footer, use conventional format.
 
 ### With TodoWrite: Incremental Algorithm
 
@@ -1078,17 +989,12 @@ If you realize you violated the protocol:
 
 #### Common Mistakes
 
-❌ **Expanding all phases at once** - Results in 30+ items (overwhelming)
-✅ **One phase expanded at a time** - Maintains 8-12 item range
-
-❌ **Not updating during phase** - Todos become stale
-✅ **Update every 40-50K tokens** - Shows velocity
-
-❌ **Forgetting "Load Phase X+1" task** - Unclear when to expand next
-✅ **Always include transition task** - Clear expansion signal
-
-❌ **Keeping completed sub-tasks visible** - List grows unbounded
-✅ **Collapse completed phases** - Focus on current and future
+| Don't | Do |
+|-------|-----|
+| Expand all phases at once (30+ items, overwhelming) | One phase expanded at a time (8-12 items) |
+| Not update during phase (todos become stale) | Update every 40-50K tokens (shows velocity) |
+| Forget "Load Phase X+1" task (unclear when to expand) | Always include transition task (clear signal) |
+| Keep completed sub-tasks visible (list grows unbounded) | Collapse completed phases (focus on current/future) |
 
 ---
 
@@ -1098,39 +1004,13 @@ Update at: Step 1 (update sub-tasks as completed), Step 5d (collapse current, ex
 
 ---
 
-#### Why This Algorithm Exists
-
-**Based on actual usage:** Projects with 8+ phases and 40+ sub-tasks. Showing all at once (40 items) causes cognitive overload.
-
-**Benefits:**
-- **Focus:** 8-12 visible items (current phase detail + future overview)
-- **Context:** User sees project arc + current progress
-- **Transitions:** "Load Phase X+1 todos" signals phase boundary
-- **Persistence:** After compaction, TodoWrite shows where to resume
-
-**Integration with context window:** Updating every 40-50K tokens serves dual purpose - shows progress AND maintains token budget awareness
+**Why this algorithm:** Incremental expansion prevents cognitive overload (8+ phases = 40+ items). Maintains 8-12 visible items for focus while showing project arc. Updating every 40-50K tokens tracks progress and token budget.
 
 ---
 
 ## For AI Agents: Mental Model
 
-**Think of the protocol as:**
-- A contract between you and the user
-- Quality gates preventing drift
-- Context restoration mechanism for future sessions
-- Audit trail for accountability
-
-**Don't think of it as:**
-- Bureaucratic overhead
-- Optional formality
-- Suggestions to follow loosely
-- Something to optimize away
-
-**The protocol exists because:**
-- AI can drift from user intent over long sessions
-- Compaction erases context without artifacts
-- Users need checkpoints to redirect before too much divergence
-- Explicit approval is required for authorization (git commits, etc.)
+Treat protocol as contract/quality gates/audit trail (not bureaucratic overhead or optional formality). Required because AI drifts during long sessions, compaction erases context, users need approval checkpoints, and explicit authorization is needed for git commits.
 
 ---
 
@@ -1445,20 +1325,3 @@ npm test 2>&1 | grep "Time:"
 - [ ] No skipped tests without reason
 - [ ] Test execution time reasonable
 
----
-
-## Last Updated
-
-2025-11-24 by Claude (Session: generic-verification-templates)
-
-**Changes in this version:**
-- Added Appendix: Verification Templates (191 lines) with 5 copy-paste templates for Step 3 verification
-- Templates cover common task types: file downloads, code, documentation, batch operations, test suites
-- Each template includes bash commands and verification checklists for quick application
-
-**Previous update:** 2025-01-20 - Added Context Window Management and TodoWrite Integration
-
-**Based on:**
-- behavioral-review-plan-log.md lines 9-45 (Phase Completion Protocol)
-- Multiple phase completion examples from various projects
-- Common verification failure patterns across different task types

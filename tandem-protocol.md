@@ -162,43 +162,9 @@
 
    TodoWrite makes protocol steps visible, trackable, and self-reinforcing. Create todos that mirror Steps 1-5.
 
-   **For simple phases (single deliverable, no sub-phases):**
-   ```javascript
-   TodoWrite({
-     todos: [
-       // Completed phases (collapsed)
-       {content: "Phase 3: Context injection", status: "completed", activeForm: "Adding context patterns"},
+   **Pattern:** Expand current phase into Steps 1-5, collapse completed/future phases to single lines. For simple phases, expand all 5 steps. For complex phases with sub-phases, defer Step 2 expansion: `{content: "Phase X Step 2: Complete sub-phases (will expand)", status: "pending", ...}` and collapse Steps 3-5.
 
-       // Current phase (expanded into Steps 1-5)
-       {content: "Phase 4 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
-       {content: "Phase 4 Step 2: Complete deliverable", status: "pending", activeForm: "Creating deliverable"},
-       {content: "Phase 4 Step 3: Update evidence", status: "pending", activeForm: "Documenting completion"},
-       {content: "Phase 4 Step 4: Present and await approval", status: "pending", activeForm: "Presenting and awaiting approval"},
-       {content: "Phase 4 Step 5: Post-approval (evidence→plan-log heredoc→commit→setup Phase 5)", status: "pending", activeForm: "Finalizing Phase 4"},
-
-       // Future phases (collapsed)
-       {content: "Phase 5: Comparison table", status: "pending", activeForm: "Updating comparison"},
-       {content: "Phase 6: Cross-references", status: "pending", activeForm: "Updating references"},
-     ]
-   })
-   ```
-
-   **For complex phases (multiple sub-phases or experiments):**
-   Defer creating sub-phase todos until Step 2 starts. Keep Step 1 simple:
-   ```javascript
-   {content: "Phase 5 Step 1: Validate plan", status: "in_progress", activeForm: "Validating plan"},
-   {content: "Phase 5 Step 2: Complete sub-phases (will expand)", status: "pending", activeForm: "Working on deliverables"},
-   {content: "Phase 5 Steps 3-5: Evidence→present→approve→commit", status: "pending", activeForm: "Finalizing Phase 5"},
-   ```
-
-   **Why this pattern works:**
-   - User can see exactly which protocol step you're on
-   - Can't skip steps without marking todos complete
-   - Step 5 explicitly includes "setup Phase X+1" making pattern self-reinforcing
-   - Cognitive load managed: 5-7 items for current phase, 3-5 for future = 8-12 total
-
-   **Self-reinforcing mechanism:**
-   When you execute Step 5, the final action is "setup Phase X+1" which means creating Steps 1-5 todos for the next phase. This ensures the pattern continues automatically.
+   **Why:** User sees which protocol step you're on, can't skip steps without marking complete, Step 5 "setup Phase X+1" makes pattern self-reinforcing, cognitive load managed (8-12 total items).
 
 8. **User may ask clarifying questions** → Answer and confirm
 
@@ -518,65 +484,35 @@ For tasks involving systematic edits across many instances (e.g., reframing patt
 **File structure:**
 - `phase-X-completion-evidence.md` contains BOTH the inventory (Step 1) AND the completion tracking (Step 3)
 
-Example Step 1 inventory format (in completion evidence file):
+**Inventory format example:**
 ```markdown
-# Phase 7 Completion Evidence
-
-[... header sections ...]
-
 ## Inventory and Completion Tracking
-
 **Total instances:** 116
 **Method:** grep -n "pattern" file.md
 
-### All Items (check off as completed in Step 3)
-
+### All Items
 - [ ] 1. **Line 1:** "Title text" - KEEP (reason)
-- [ ] 2. **Line 11:** "Generalization presented as specific" - REFRAME (lead with insight)
-- [ ] 3. **Line 17:** "Another generalization" - REFRAME (domain-first pattern)
-- [ ] 4. **Line 96:** "Context-dependent usage" - CONSIDER (needs judgment call)
+- [ ] 2. **Line 11:** "Generalization..." - REFRAME (lead with insight)
 ...
 - [ ] 116. [final item]
 
-**Categories:**
-- KEEP: ~30 instances (26%)
-- REFRAME: ~75 instances (65%)
-- CONSIDER: ~11 instances (9%)
+**Categories:** KEEP: 30 (26%), REFRAME: 75 (65%), CONSIDER: 11 (9%)
 ```
 
-**Step 2 WORKING APPROACH (for line-by-line tasks):**
-- **Work systematically through the numbered checklist**
-- Update checkboxes every 10-20 edits (checkpoint your progress)
-- Do NOT work opportunistically through grep searches without tracking which items you're completing
-- The checklist IS your work plan - follow it sequentially or mark items as you find them
+**Step 2:** Work systematically through numbered checklist, update checkboxes every 10-20 edits, do NOT work opportunistically through grep searches.
 
 *(See Step 2 for BLOCKING requirement details)*
 
-**Step 3 updates (REQUIRED - BLOCKING):**
-- Check the boxes for completed items: `- [ ]` becomes `- [x]`
-- Add notes after each checked item showing what was done
+**Step 3 (REQUIRED - BLOCKING):** Check boxes `- [ ]` → `- [x]`, add notes after each item.
 
-Example after Step 3 updates (SAME file, checkboxes updated):
-  ```markdown
-## Inventory and Completion Tracking
-
-**Total instances:** 116
-
-### All Items
-
-- [x] 1. **Line 1:** "Title text" - KEEP → KEPT (document title)
-- [x] 2. **Line 11:** "Generalization..." - REFRAME → COMPLETED: "Domain-optimal workflows achieve... Example demonstrates..."
-- [ ] 3. **Line 17:** "Another generalization" - REFRAME → NOT DONE
-- [x] 4. **Line 96:** "Context-dependent" - CONSIDER → KEPT because [rationale]
+**After Step 3:**
+```markdown
+- [x] 1. KEEP → KEPT (document title)
+- [x] 2. REFRAME → COMPLETED: "Domain-optimal..."
+- [ ] 3. REFRAME → NOT DONE
 ...
-- [ ] 116. [status]
-
-**Completion Summary:**
-- Checked: 86/116 items (74%)
-- KEEP category: 30/30 confirmed (100%)
-- REFRAME category: 45/75 completed (60%) ← INCOMPLETE
-- CONSIDER category: 11/11 decided (100%)
-  ```
+**Completion Summary:** Checked: 86/116 (74%), REFRAME: 45/75 (60%) ← INCOMPLETE
+```
 
 **Why this is required:**
 - Prevents claiming completion when work is incomplete (45/75 edits ≠ complete)
@@ -816,30 +752,7 @@ rm phase-X.Y-completion-evidence.md
 - `cat evidence.md`: Streams file content verbatim without interpretation
 - **Security guarantee:** Even if evidence contains `$(...)` or backticks, they're treated as literal text (no execution risk)
 
-**Alternative approach (if intermediate file needed):**
-```bash
-# Build complete entry in temp file
-cat > /tmp/plan-entry.md <<'EOF'
-# Phase X.Y Complete: [Title]
-
-User approved Phase X.Y on [date].
-
-## Progress
-[Summary]
-
-## Evidence
-
-EOF
-cat phase-X.Y-completion-evidence.md >> /tmp/plan-entry.md
-cat >> /tmp/plan-entry.md <<'EOF'
-
-## Plan
-Phase X.Y+1: [Next]
-EOF
-
-cat /tmp/plan-entry.md | plan-log
-rm /tmp/plan-entry.md phase-X.Y-completion-evidence.md
-```
+**Alternative approach:** Build complete entry in /tmp/plan-entry.md, then pipe to plan-log.
 
 **Why log before commit:** So the plan log entry (with appended evidence) gets committed along with everything else.
 
@@ -1041,84 +954,18 @@ When completing a phase, verify:
 
 ### Bad Example
 
-```markdown
-i finished the research phase. it went well. here's what i found:
-
-- read some studies
-- they were interesting
-- learned about agents
-- found some patterns
-- wrote notes
-
-pretty good work! ready to move on?
-```
-
-❌ **What's wrong:**
+❌ **Common presentation mistakes:**
 - No evidence (line numbers, file names, sizes)
 - No completion evidence document
 - No self-grade
-- Vague summaries
+- Vague summaries ("read some studies", "found some patterns")
 - Casual tone
 - Weak approval question
 - Missing ⏸️ marker
 
 ### Good Example: Context Window Checkpoint
 
-**Scenario:** Phase 2 revision work reaches 138K tokens (69%), deliverable 60% complete
-
-```markdown
-I've reached 138K/200K tokens (69%) with Phase 2 deliverable at 60% complete.
-
-Executing checkpoint per Context Window Management protocol (140K threshold).
-
-**Completed work:**
-- Research gathering: 5 sources identified, quotes extracted
-- Methodology documentation complete
-- Triangulation sources found
-
-**Incomplete work:**
-- Draft revision not written (estimated 60-80K tokens needed)
-
-Using plan-progress to checkpoint:
-```
-
-```bash
-plan-progress <<'EOF'
-# Progress: Phase 2 Section 6 Revision - CHECKPOINT (Token Budget)
-
-## Progress
-
-**Completed:**
-- Research gathering (5 context-switching sources, hallucination taxonomy + triangulation)
-- Quotes extracted with line numbers
-- Methodology details documented
-
-**Token usage:** 138K/200K (69%)
-**Deliverable status:** Research complete, revision not started (60% complete)
-
-**Self-grade for work completed:** B (85/100) - research thorough, but deliverable incomplete
-
-## Plan
-
-**Next session first priority:** Draft Section 6 revision using gathered research
-
-**Remaining work:**
-1. Draft Context-Switching section with quotes (20-25K)
-2. Draft Hallucination Taxonomy section (20-25K)
-3. Draft Shorter Lines section (15-20K)
-4. Create completion evidence (5-10K)
-
-**Estimated tokens needed:** 60-80K
-**Checkpoint strategy:** Monitor at 70K into new session (80% of remaining budget)
-EOF
-```
-
-✅ **What's good:**
-- Recognized threshold (138K approaching 140K)
-- Stopped immediately (didn't "finish one more thing")
-- Clear progress vs plan distinction
-- Specific remaining work with token estimates
-- Ready for clean handoff to next session
+✅ **Checkpoint execution at 138K tokens (69%):** Recognized threshold approaching 140K, stopped immediately, used plan-progress to document completed work (research gathering) vs incomplete work (draft not started), estimated remaining tokens needed (60-80K), and provided clear handoff to next session with specific priorities and checkpoint strategy.
 
 ---
 
@@ -1215,122 +1062,17 @@ If you realize you violated the protocol:
 
 ---
 
-#### Phase 0: Initial Planning
+#### Algorithm: Expand Current, Collapse Others
 
-**Start with high-level phase view (7-8 items max):**
+**Initial setup (7-8 phase overview):** Start with collapsed view showing all phases as single lines.
 
-```javascript
-TodoWrite({
-  todos: [
-    {content: "Phase 1: Strategic Reading (1h)", status: "pending", activeForm: "Reading strategically"},
-    {content: "Phase 2: Section 6 Additions (4-6h)", status: "pending", activeForm: "Adding Section 6"},
-    {content: "Phase 3: Integrate Section 6 (1-2h)", status: "pending", activeForm: "Integrating Section 6"},
-    {content: "Phase 4: Add rigor to Sections 1-2 (5-8h)", status: "pending", activeForm: "Improving Sections 1-2"},
-    {content: "Phase 5: Add rigor to Sections 3-4 (6-9h)", status: "pending", activeForm: "Improving Sections 3-4"},
-    {content: "Phase 6: Add rigor to Sections 5-6 (6-9h)", status: "pending", activeForm: "Improving Sections 5-6"},
-    {content: "Phase 7: Narrative reframing (8-12h)", status: "pending", activeForm: "Reframing narrative"},
-    {content: "Phase 8: Final coherence check (2-3h)", status: "pending", activeForm: "Checking coherence"}
-  ]
-})
-```
+**During work (expand current phase):** Expand active phase into 5-7 sub-tasks. Pattern: completed phases collapsed, current phase expanded (with "Load Phase X+1 todos" as last sub-task), future phases collapsed. Total: 8-12 visible items.
 
-**At this stage:** Each phase is one todo. User sees full project arc without detail overload.
+**Planned sub-phases:** If plan specifies Phase 7A-7F, treat each as separate todo (prevents presenting "Phase 7 complete" when 7E-7F remain).
 
----
+**Update frequency:** Every 40-50K tokens, after each sub-task, when starting new phase, at checkpoint boundaries (120K, 140K). Maintains progress awareness and triggers checkpoint assessment.
 
-#### During Active Phase: Expand Current Phase
-
-**When starting Phase 2, expand into sub-tasks (5-7 items max):**
-
-```javascript
-TodoWrite({
-  todos: [
-    {content: "Phase 1: Strategic Reading", status: "completed", activeForm: "Read strategically"},
-
-    // Phase 2 expanded:
-    {content: "Add Context-Switching quotes", status: "in_progress", activeForm: "Adding quotes"},
-    {content: "Add methodology explanations", status: "pending", activeForm: "Adding methodology"},
-    {content: "Find hallucination triangulation", status: "pending", activeForm: "Finding triangulation"},
-    {content: "Revise draft with research rigor", status: "pending", activeForm: "Revising draft"},
-    {content: "Create Phase 2 completion evidence", status: "pending", activeForm: "Creating evidence"},
-    {content: "Load Phase 3 todos (after Step 5)", status: "pending", activeForm: "Loading Phase 3 tasks"},
-
-    {content: "Phase 3: Integrate Section 6", status: "pending", activeForm: "Integrating Section 6"},
-    // ... remaining phases collapsed
-  ]
-})
-```
-
-**Key patterns:**
-- **Previous phase:** Collapsed to one line, marked completed
-- **Current phase:** Expanded into 5-7 sub-tasks showing progress
-- **Future phases:** Collapsed to one line each
-- **Last sub-task:** "Load Phase X+1 todos" signals transition
-
-**For planned sub-phases (e.g., Phase 7A-7F in plan log):**
-If plan log specifies sub-phases like "Phase 7B: Reframe Executive Summary", treat each as a separate todo:
-```javascript
-TodoWrite({
-  todos: [
-    {content: "Phase 7A: Inventory user-centric patterns", status: "completed", activeForm: "Inventorying patterns"},
-    {content: "Phase 7B: Reframe Executive Summary", status: "completed", activeForm: "Reframing summary"},
-    {content: "Phase 7C: Reframe Sections 1-3", status: "completed", activeForm: "Reframing sections 1-3"},
-    {content: "Phase 7D: Reframe Sections 4-7", status: "completed", activeForm: "Reframing sections 4-7"},
-    {content: "Phase 7E: Add OTHER innovations", status: "pending", activeForm: "Adding innovations"},
-    {content: "Phase 7F: Verification pass", status: "pending", activeForm: "Verifying reframes"},
-    {content: "Phase 8: Review completion", status: "pending", activeForm: "Reviewing completion"}
-  ]
-})
-```
-**Why this matters:** Prevents presenting "Phase 7 complete" when 7E-7F remain (visible incompleteness in todo list)
-
----
-
-#### Update Frequency
-
-**Update TodoWrite:**
-- Every 40-50K tokens (helps track token budget)
-- After completing each sub-task (shows progress)
-- When starting new phase (expand next, collapse current)
-- At checkpoint boundaries (120K, 140K)
-
-**Why frequent updates:**
-- Maintains awareness of progress velocity
-- Triggers context window checkpoint assessment
-- Shows user where you are in real-time
-
----
-
-#### Phase Transition: Collapse and Expand
-
-**When Phase 2 complete (after Step 5 approval):**
-
-```javascript
-TodoWrite({
-  todos: [
-    {content: "Phase 1: Strategic Reading", status: "completed", activeForm: "Read strategically"},
-    {content: "Phase 2: Section 6 Additions", status: "completed", activeForm: "Added Section 6"},
-
-    // Phase 3 expanded:
-    {content: "Read coaching-report Section 6", status: "in_progress", activeForm: "Reading Section 6"},
-    {content: "Identify insertion point", status: "pending", activeForm: "Finding insertion point"},
-    {content: "Insert Section 6 additions", status: "pending", activeForm: "Inserting additions"},
-    {content: "Verify flow and coherence", status: "pending", activeForm: "Verifying flow"},
-    {content: "Create Phase 3 completion evidence", status: "pending", activeForm: "Creating evidence"},
-    {content: "Load Phase 4 todos (after Step 5)", status: "pending", activeForm: "Loading Phase 4 tasks"},
-
-    {content: "Phase 4: Add rigor to Sections 1-2", status: "pending", activeForm: "Improving Sections 1-2"},
-    // ... remaining phases
-  ]
-})
-```
-
-**Transition pattern:**
-1. Mark all Phase 2 sub-tasks completed
-2. Collapse Phase 2 to one line, mark completed
-3. Expand Phase 3 into sub-tasks
-4. Mark first Phase 3 sub-task as "in_progress"
-5. Keep future phases collapsed
+**Phase transition (after Step 5 approval):** Collapse completed phase to one line, expand next phase into sub-tasks, mark first sub-task "in_progress".
 
 ---
 
@@ -1352,25 +1094,7 @@ TodoWrite({
 
 #### Integration with Tandem Protocol
 
-**TodoWrite updates at specific protocol steps:**
-
-- **Step 1 (Complete Deliverable):** Update sub-tasks as completed
-- **Step 5d (After approval):** Collapse current phase, expand next phase
-- **Between sessions:** TodoWrite persists, shows where to resume
-
-**Example Step 5 execution:**
-
-After user approves Phase 2:
-```javascript
-TodoWrite({
-  todos: [
-    {content: "Phase 1: Strategic Reading", status: "completed"},
-    {content: "Phase 2: Section 6 Additions", status: "completed"},
-    {content: "Phase 3: Integrate Section 6", status: "in_progress"},
-    // Phase 3 will be expanded in first action of Phase 3 work
-  ]
-})
-```
+Update at: Step 1 (update sub-tasks as completed), Step 5d (collapse current, expand next), between sessions (persists to show resume point).
 
 ---
 
@@ -1430,25 +1154,7 @@ TodoWrite({
 | Verification (testing, checking) | 5-15K per check |
 | Agent queries (Task/Explore) | 5-10K per query |
 
-**Strategy: Use agents for research, not direct Read calls**
-
-❌ **Don't do this:**
-```
-Read source-file-1.md (entire file, 1500 lines) → 30K tokens
-Read source-file-2.md (entire file, 2000 lines) → 40K tokens
-Read source-file-3.md (entire file, 1800 lines) → 35K tokens
-Total: 105K tokens for research alone
-```
-
-✅ **Do this instead:**
-```
-Task agent: "Extract quote from source-file-1 about X" → 8K tokens
-Task agent: "Find methodology in source-file-2" → 6K tokens
-Task agent: "Get findings from source-file-3" → 7K tokens
-Total: 21K tokens (5× more efficient)
-```
-
-**Why:** Agent queries return targeted information without full file content.
+**Strategy:** Use Task agents for targeted queries (5-10K tokens) instead of reading full files (30-50K tokens) - agents return targeted information without loading full file content.
 
 ---
 

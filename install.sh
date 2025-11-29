@@ -2,69 +2,108 @@
 set -e
 
 # Tandem Protocol Installation Script
-# Usage: bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_ORG/tandem-protocol/main/install.sh)
-#        or: bash install.sh
+# Usage: bash /path/to/tandem-protocol/install.sh [--global]
+#
+# Assumes you've already cloned the repository.
+# Script auto-detects its own location - no need to cd or set env vars.
+#
+# --global: Install to ~/.claude/CLAUDE.md (all projects)
+# (default): Install to ./CLAUDE.local.md (current project only)
+#
+# Override detection: TANDEM_PROTOCOL_DIR=/custom/path bash install.sh
 
-REPO_URL="${TANDEM_REPO_URL:-https://github.com/YOUR_ORG/tandem-protocol.git}"
-INSTALL_DIR="${TANDEM_INSTALL_DIR:-$HOME/tandem-protocol}"
-COMMANDS_DIR="$HOME/.claude/commands"
+GLOBAL=false
+if [[ "$1" == "--global" ]]; then
+    GLOBAL=true
+fi
 
 echo "🚀 Installing Tandem Protocol..."
 echo ""
 
-# Check if already installed
-if [ -d "$INSTALL_DIR/.git" ] || [ -d "$INSTALL_DIR" ]; then
-    echo "⚠️  Tandem Protocol already exists at: $INSTALL_DIR"
-    read -p "Update existing installation? (y/N) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "📦 Updating..."
-        if [ -d "$INSTALL_DIR/.git" ]; then
-            cd "$INSTALL_DIR" && git pull
-        else
-            echo "ℹ️  Directory exists but is not a git repository"
-        fi
-    else
-        echo "ℹ️  Skipping installation."
-    fi
+# Detect protocol directory from script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -n "$TANDEM_PROTOCOL_DIR" ]; then
+    # Override with env var if provided
+    PROTOCOL_DIR="$TANDEM_PROTOCOL_DIR"
+    echo "📍 Using TANDEM_PROTOCOL_DIR: $PROTOCOL_DIR"
 else
-    echo "📦 Installing from: $REPO_URL"
-    # Check if REPO_URL is a local directory
-    if [ -d "$REPO_URL" ]; then
-        echo "📁 Copying from local directory..."
-        cp -r "$REPO_URL" "$INSTALL_DIR"
-    else
-        echo "📦 Cloning repository..."
-        git clone "$REPO_URL" "$INSTALL_DIR"
-    fi
+    # Use script's directory
+    PROTOCOL_DIR="$SCRIPT_DIR"
+    echo "📍 Detected from script location: $PROTOCOL_DIR"
 fi
 
-# Create symlink
-echo "🔗 Creating command symlink..."
-mkdir -p "$COMMANDS_DIR"
-ln -sf "$INSTALL_DIR/tandem.md" "$COMMANDS_DIR/tandem.md"
+# Verify required files exist
+if [ ! -f "$PROTOCOL_DIR/tandem-protocol.md" ]; then
+    echo "❌ Error: tandem-protocol.md not found in $PROTOCOL_DIR"
+    exit 1
+fi
 
-# Verify
-if [ -L "$COMMANDS_DIR/tandem.md" ] && [ -f "$INSTALL_DIR/tandem.md" ]; then
+if [ ! -f "$PROTOCOL_DIR/tandem.md" ]; then
+    echo "❌ Error: tandem.md not found in $PROTOCOL_DIR"
+    exit 1
+fi
+
+# Create symlink for /tandem command
+COMMANDS_DIR="$HOME/.claude/commands"
+echo "🔗 Creating /tandem command symlink..."
+mkdir -p "$COMMANDS_DIR"
+ln -sf "$PROTOCOL_DIR/tandem.md" "$COMMANDS_DIR/tandem.md"
+
+if [ -L "$COMMANDS_DIR/tandem.md" ]; then
     echo "✅ Symlink created: $COMMANDS_DIR/tandem.md"
 else
     echo "❌ Failed to create symlink"
     exit 1
 fi
 
-# Generate CLAUDE.md snippet
-echo ""
+# Determine target CLAUDE.md file
+if [ "$GLOBAL" = true ]; then
+    CLAUDE_FILE="$HOME/.claude/CLAUDE.md"
+    SCOPE="global (all projects)"
+else
+    CLAUDE_FILE="./CLAUDE.local.md"
+    SCOPE="local (current project only)"
+fi
+
+# Convert protocol directory to relative path using tilde if in home directory
+PROTOCOL_REF="$PROTOCOL_DIR"
+if [[ "$PROTOCOL_DIR" == "$HOME"* ]]; then
+    PROTOCOL_REF="~${PROTOCOL_DIR#$HOME}"
+fi
+
+REFERENCE_LINE="@$PROTOCOL_REF/tandem-protocol.md"
+
+# Check if CLAUDE file exists
+if [ -f "$CLAUDE_FILE" ]; then
+    # Check if reference already exists
+    if grep -Fq "$REFERENCE_LINE" "$CLAUDE_FILE"; then
+        echo "ℹ️  Reference already exists in $CLAUDE_FILE"
+        echo "✅ Installation complete!"
+        exit 0
+    fi
+
+    # Append to existing file
+    echo "📝 Adding reference to existing $CLAUDE_FILE..."
+    echo "" >> "$CLAUDE_FILE"
+    echo "# Tandem Protocol" >> "$CLAUDE_FILE"
+    echo "$REFERENCE_LINE" >> "$CLAUDE_FILE"
+else
+    # Create new file
+    echo "📝 Creating $CLAUDE_FILE..."
+    mkdir -p "$(dirname "$CLAUDE_FILE")"
+    cat > "$CLAUDE_FILE" <<EOF
+# Tandem Protocol
+$REFERENCE_LINE
+EOF
+fi
+
 echo "✅ Installation complete!"
 echo ""
-echo "📝 Next step: Add this line to your project's CLAUDE.md:"
-echo ""
-echo "    @~/tandem-protocol/tandem-protocol.md"
-echo ""
-echo "💡 Tip: Run this in your project directory:"
-echo ""
-echo "    echo '' >> CLAUDE.md"
-echo "    echo '# Tandem Protocol' >> CLAUDE.md"
-echo "    echo '@~/tandem-protocol/tandem-protocol.md' >> CLAUDE.md"
+echo "📋 Installation summary:"
+echo "   Scope: $SCOPE"
+echo "   CLAUDE file: $CLAUDE_FILE"
+echo "   Reference: $REFERENCE_LINE"
 echo ""
 echo "🔍 Verify: Start Claude Code in your project, then run /tandem"
 echo ""

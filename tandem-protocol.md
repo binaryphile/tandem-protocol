@@ -400,7 +400,7 @@ TodoWrite({
 
 **IMPORTANT:** The evidence document should end with `# ⏸️ AWAITING USER APPROVAL` at this stage. Do NOT mark it as "APPROVED" or "COMPLETE" yet - that happens in Step 5 AFTER user approval.
 
-**Reminder:** This evidence file is temporary. In Step 5c, the complete evidence will be appended to plan-log and the file will be deleted (not committed to git).
+*(Evidence file lifecycle: See Step 1)*
 
 **Update the completion evidence from Step 1:**
 - Check off all completed items from the original checklist
@@ -550,10 +550,11 @@ Example Step 1 inventory format (in completion evidence file):
 - Do NOT work opportunistically through grep searches without tracking which items you're completing
 - The checklist IS your work plan - follow it sequentially or mark items as you find them
 
+*(See Step 2 for BLOCKING requirement details)*
+
 **Step 3 updates (REQUIRED - BLOCKING):**
-- **Check the boxes for completed items: `- [ ]` becomes `- [x]`**
-- **Add notes after each checked item showing what was done**
-- **YOU CANNOT PROCEED TO STEP 4 WITHOUT UPDATING THE CHECKLIST**
+- Check the boxes for completed items: `- [ ]` becomes `- [x]`
+- Add notes after each checked item showing what was done
 
 Example after Step 3 updates (SAME file, checkboxes updated):
   ```markdown
@@ -697,10 +698,7 @@ User will say:
 - "okay, log it and continue"
 - "go ahead with Step 5"
 
-**Checkpoint variations:**
-- **Simple approval:** User reviews evidence file, says "yes" → Proceed to Step 5
-- **With grading:** User says "grade your work" → You provide grade → User says "yes" → Proceed to Step 5
-- **With improvements:** User says "improve your work" → You improve → You re-ask → User says "yes" → Proceed to Step 5
+**Checkpoint variations:** User may approve directly, ask for grading first, or request improvements - see example below.
 
 **Common mistakes:**
 - **Waiting after "yes"** - When user says "yes", that completes the checkpoint. Don't wait for another signal.
@@ -1002,11 +1000,7 @@ When completing a phase, verify:
 
 **May I proceed with implementation?**
 
-**Upon your approval, I will:**
-1. Complete the implementation (Step 2)
-2. Create/update completion evidence (Step 3)
-3. Present deliverable to you and wait for your explicit approval (Step 4)
-4. ONLY AFTER approval: log to plan-log, git commit, update README (Step 5)
+*(Upon approval, list Step 5 actions as shown in Step 4 template)*
 ```
 
 ✅ **What's good:**

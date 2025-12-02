@@ -14,10 +14,10 @@ The Tandem Protocol is loaded in context via CLAUDE.md:
 
 ```
 # Full version (with background & examples):
-@$TANDEM_PROTOCOL_DIR/tandem-protocol.md
+@~/tandem-protocol/tandem-protocol.md
 
 # OR Concise version (mechanics only):
-@$TANDEM_PROTOCOL_DIR/tandem-protocol-concise.md
+@~/tandem-protocol/tandem-protocol-concise.md
 ```
 
 **You already have the protocol in context.** This command is just a memory jogger.

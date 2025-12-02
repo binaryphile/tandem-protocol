@@ -210,6 +210,85 @@ flowchart TD
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
 
+### Example: Pattern 2 in Action
+
+Here's a realistic conversation showing Pattern 2 (Quality Check):
+
+> **You:** Make a plan to add input validation to the `calculate_discount` function
+>
+> **Claude:** I understand the plan as: Add input validation to the `calculate_discount` function to check for valid input types and ranges.
+>
+> Target file: `src/pricing.py` (line 45)
+> Approach: Add type checking and range validation before calculation logic
+>
+> Evidence file created: `validation-evidence.md`
+> Success criteria: 3 items
+> Estimated effort: 500-700 tokens
+>
+> **I have a few clarifying questions:**
+> - Should validation throw exceptions or return error objects?
+> - What should the valid range be for discount percentages (0-100)?
+> - Should we validate data types strictly or coerce when possible?
+>
+> **Upon your approval, I will:**
+> 1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from evidence
+> 2. Proceed to Step 2 (implement validation)
+> 3. Update TodoWrite
+>
+> May I proceed?
+>
+> **You:** Throw exceptions, yes 0-100 is correct, and validate strictly. Proceed.
+>
+> **Claude:** *[Implements validation, updates evidence]*
+>
+> ## Validation Implementation Complete
+>
+> **Deliverable:** Updated `calculate_discount` function with input validation
+> **Evidence:** validation-evidence.md
+>
+> Key highlights:
+> - Added type checking for amount and percentage parameters
+> - Added range validation (0-100 for percentage)
+> - Added error messages for invalid inputs
+>
+> **Upon your approval, I will:**
+> 1. Mark evidence as APPROVED
+> 2. Commit changes to git
+> 3. Update TodoWrite
+>
+> May I proceed?
+>
+> **You:** grade your work
+>
+> **Claude:** **Self-Grade: B+ (88/100)**
+>
+> What went well:
+> - Type checking implemented correctly
+> - Range validation works for percentage
+> - Clear error messages
+>
+> Deductions:
+> - -12: Didn't validate for negative amounts (oversight)
+>
+> **You:** Add validation for negative amounts
+>
+> **Claude:** *[Adds negative amount check, updates evidence]*
+>
+> Updated validation to reject negative amounts. Re-presenting:
+>
+> **Upon your approval, I will:**
+> 1. Mark evidence as APPROVED
+> 2. Commit changes to git
+> 3. Update TodoWrite
+>
+> May I proceed?
+>
+> **You:** proceed
+>
+> **Claude:** *[Commits changes and completes phase]*
+
+---
+
 **Multi-phase projects**: For projects with multiple implementation phases, this pattern repeats for each phase (Step 5d loops back to Step 0).
 
 ## The 5 Steps (Quick Reference)

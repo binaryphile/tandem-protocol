@@ -1,3 +1,3 @@
 # Tandem Protocol
-@~/projects/share/tandem-protocol/tandem-protocol.md
+@~/projects/share/tandem-protocol/tandem-protocol-concise.md
 

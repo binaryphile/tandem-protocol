@@ -10,10 +10,14 @@ After reading this, check your current step in the Tandem Protocol and ensure co
 
 ## Protocol Location
 
-The full Tandem Protocol is loaded in context via:
+The Tandem Protocol is loaded in context via CLAUDE.md:
 
 ```
+# Full version (with background & examples):
 @$TANDEM_PROTOCOL_DIR/tandem-protocol.md
+
+# OR Concise version (mechanics only):
+@$TANDEM_PROTOCOL_DIR/tandem-protocol-concise.md
 ```
 
 **You already have the protocol in context.** This command is just a memory jogger.

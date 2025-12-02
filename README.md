@@ -135,16 +135,34 @@ At each gate, you can:
 **Choose your thoroughness level based on task complexity:**
 The three patterns below show different levels of quality assurance. Use simpler patterns for straightforward tasks, more thorough patterns for complex or critical work.
 
+### Understanding Evidence Files
+
+The amber nodes in the diagrams represent **evidence files** (`task-name-evidence.md`) - structured documentation that tracks each phase.
+
+**What's the difference between plan and evidence?**
+- **Plan:** "I will do X using approach Y" (Step 1, before work starts)
+- **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (Step 3-5, after work completes)
+
+**Why use evidence files?**
+They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.
+
+**The evidence file evolves incrementally:**
+1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
+2. **Completed** (Step 3): Actual results and self-assessment added, then frozen pending approval
+3. **Finalized** (Step 5): Marked approved and committed to git
+
 #### Pattern 1: Happy Path (Simple Tasks)
 
-For straightforward work where you trust the approach. Simply approve at both gates.
+For straightforward work where you trust the approach. Simply approve at both gates.  Even though these approvals may seem like no-ops, as complexity rises, the simple act of generating a plan and evidence files results in higher quality outcomes and fewer planning gaps than with a non-planned work session.
 
 ```mermaid
 flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> G1{"GATE 1<br/>User decides"}
+    P1 --> EV1(["task-evidence.md<br/>created"])
+    EV1 --> G1{"GATE 1<br/>User decides"}
     G1 -->|Approve| IMPL["LLM: Complete & present"]
-    IMPL --> G2{"GATE 2<br/>User decides"}
+    IMPL --> EV2(["task-evidence.md<br/>completed"])
+    EV2 --> G2{"GATE 2<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
 
     style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
@@ -153,6 +171,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
 ```
 
 #### Pattern 2: Quality Check (Moderate Complexity)
@@ -162,9 +182,11 @@ For work requiring validation. Request self-evaluation after completion, then de
 ```mermaid
 flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> G1{"GATE 1<br/>User decides"}
+    P1 --> EV1(["task-evidence.md<br/>created"])
+    EV1 --> G1{"GATE 1<br/>User decides"}
     G1 -->|Approve| IMPL["LLM: Complete & present"]
-    IMPL --> G2{"GATE 2<br/>User decides"}
+    IMPL --> EV2(["task-evidence.md<br/>completed"])
+    EV2 --> G2{"GATE 2<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
     G2 -->|Request grade| GRADE["LLM: Provide grade"]
     GRADE --> IMP["User: Request changes"]
@@ -178,6 +200,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
 ```
 
 #### Pattern 3: Enhanced QA (Complex/Critical Work)
@@ -187,12 +211,14 @@ For complex or high-stakes work. Request self-evaluation at both plan and comple
 ```mermaid
 flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> G1{"GATE 1<br/>User decides"}
+    P1 --> EV1(["task-evidence.md<br/>created"])
+    EV1 --> G1{"GATE 1<br/>User decides"}
     G1 -->|Approve| IMPL["LLM: Complete & present"]
     G1 -->|Request grade| GRADE1["LLM: Provide grade"]
     GRADE1 --> IMP1["User: Request changes"]
     IMP1 -.-> G1
-    IMPL --> G2{"GATE 2<br/>User decides"}
+    IMPL --> EV2(["task-evidence.md<br/>completed"])
+    EV2 --> G2{"GATE 2<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
     G2 -->|Request grade| GRADE2["LLM: Provide grade"]
     GRADE2 --> IMP2["User: Request changes"]
@@ -208,6 +234,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
 ```
 
 ### Example: Pattern 2 in Action
@@ -270,7 +298,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > Deductions:
 > - -12: Didn't validate for negative amounts (oversight)
 >
-> **You:** Add validation for negative amounts
+> **You:** improve your work
 >
 > **Claude:** *[Adds negative amount check, updates evidence]*
 >

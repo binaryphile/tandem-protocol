@@ -73,8 +73,28 @@ if len(evidence_files) > 0:
     print(f"Found {len(evidence_files)} evidence files from incomplete work:")
     print(evidence_files)
 
-    options = ["complete", "abandon", "investigate"]
-    choice = prompt_user(options)
+    response = AskUserQuestion({
+        "questions": [{
+            "question": "What would you like to do with the incomplete work?",
+            "header": "Recovery",
+            "options": [
+                {
+                    "label": "Complete",
+                    "description": "Review and finalize the previous work"
+                },
+                {
+                    "label": "Abandon",
+                    "description": "Delete evidence and start fresh"
+                },
+                {
+                    "label": "Investigate",
+                    "description": "Read evidence file first"
+                }
+            ],
+            "multiSelect": false
+        }]
+    })
+    choice = response["Recovery"].lower()
 
     if choice == "complete":
         # Review evidence, verify APPROVED status

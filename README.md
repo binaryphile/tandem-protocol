@@ -13,6 +13,27 @@ The **Tandem Protocol** is a 5-step workflow for complex, multi-phase projects w
 
 This implementation uses **attention activation** - the protocol is always in context (via CLAUDE.md @reference), and the `/tandem` command serves as a lightweight memory jogger when protocol compliance drifts.
 
+## Choosing a Version
+
+Two versions are available - choose based on your preference:
+
+**Full Protocol** (`tandem-protocol.md`) - ~1,700 lines
+- Complete explanations of why each step exists
+- Detailed examples (good and bad patterns)
+- Common failure modes and how to avoid them
+- Extensive background and design rationale
+- Best for: Learning the protocol, understanding the "why"
+
+**Concise Protocol** (`tandem-protocol-concise.md`) - ~600 lines
+- Mechanically prescriptive quick reference
+- Mermaid flowchart + step-by-step pseudo-code
+- Actual tool syntax (TodoWrite, AskUserQuestion)
+- Verification templates with bash commands
+- Platform-flexible (web UI, CLI tools, non-Claude agents)
+- Best for: Daily use, quick lookups, minimal token usage
+
+Both versions cover the same 5-step workflow. Choose the one that fits your needs, or switch between them anytime.
+
 ## Installation
 
 ### Quick Install (Recommended)
@@ -24,8 +45,13 @@ bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_ORG/tandem-protocol/mai
 This clones to `~/tandem-protocol` and creates the `/tandem` command. Then add to your project's CLAUDE.md:
 
 ```markdown
-# Tandem Protocol
+# Tandem Protocol (choose one)
+
+# Full version - with background & examples:
 @~/tandem-protocol/tandem-protocol.md
+
+# Concise version - mechanics only:
+@~/tandem-protocol/tandem-protocol-concise.md
 ```
 
 ### Manual Install
@@ -40,10 +66,17 @@ cd ~ && git clone https://github.com/YOUR_ORG/tandem-protocol.git
 mkdir -p ~/.claude/commands
 ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
 
-# 3. Add to your project's CLAUDE.md
+# 3. Add to your project's CLAUDE.md (choose one version)
+
+# Full version:
 echo "" >> CLAUDE.md
 echo "# Tandem Protocol" >> CLAUDE.md
 echo "@~/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
+
+# OR Concise version:
+echo "" >> CLAUDE.md
+echo "# Tandem Protocol" >> CLAUDE.md
+echo "@~/tandem-protocol/tandem-protocol-concise.md" >> CLAUDE.md
 ```
 
 **Verify:** Start Claude Code, then run `/tandem`
@@ -53,13 +86,17 @@ echo "@~/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
 **For teams** (version-controlled with project):
 ```bash
 git submodule add https://github.com/YOUR_ORG/tandem-protocol.git vendor/tandem-protocol
+
+# Choose one version in CLAUDE.md:
 echo "@vendor/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
+# OR
+echo "@vendor/tandem-protocol/tandem-protocol-concise.md" >> CLAUDE.md
 ```
 
 **For custom locations:**
 Install anywhere, then reference with tilde or absolute path in CLAUDE.md:
-- Tilde: `@~/your/path/tandem-protocol.md`
-- Absolute: `@/your/path/tandem-protocol.md`
+- Full: `@~/your/path/tandem-protocol.md`
+- Concise: `@~/your/path/tandem-protocol-concise.md`
 
 **Advanced:** See [ADVANCED.md](./ADVANCED.md) for Docker, CI/CD, Windows WSL, monorepos, and more.
 

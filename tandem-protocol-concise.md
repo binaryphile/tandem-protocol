@@ -133,13 +133,35 @@ Estimated: XX-XXK tokens
 
 # Optional: Create TodoWrite structure (if tool available)
 if tool_available("TodoWrite"):
-    create_todos([
-        "Phase X Step 1: Validate plan (in_progress)",
-        "Phase X Step 2: Complete deliverable (pending)",
-        "Phase X Step 3: Update evidence (pending)",
-        "Phase X Step 4: Present and await approval (pending)",
-        "Phase X Step 5: Post-approval actions (pending)"
-    ])
+    TodoWrite({
+        "todos": [
+            {
+                "content": "Phase X Step 1: Validate plan",
+                "status": "in_progress",
+                "activeForm": "Validating plan for Phase X"
+            },
+            {
+                "content": "Phase X Step 2: Complete deliverable",
+                "status": "pending",
+                "activeForm": "Completing deliverable for Phase X"
+            },
+            {
+                "content": "Phase X Step 3: Update evidence",
+                "status": "pending",
+                "activeForm": "Updating evidence for Phase X"
+            },
+            {
+                "content": "Phase X Step 4: Present and await approval",
+                "status": "pending",
+                "activeForm": "Presenting Phase X for approval"
+            },
+            {
+                "content": "Phase X Step 5: Post-approval actions",
+                "status": "pending",
+                "activeForm": "Completing post-approval actions for Phase X"
+            }
+        ]
+    })
 
 # Wait for explicit approval
 wait_for("proceed", "yes", "approved")
@@ -355,11 +377,40 @@ else:
 
 # 5d: Setup next phase
 if tool_available("TodoWrite"):
-    update_todos([
-        "Phase X: [complete status]",
-        "Phase X+1 Step 1: Validate plan (in_progress)",
-        "Phase X+1 Step 2-5: [pending]"
-    ])
+    TodoWrite({
+        "todos": [
+            {
+                "content": "Phase X Step 5: Post-approval actions",
+                "status": "completed",
+                "activeForm": "Completing post-approval actions for Phase X"
+            },
+            {
+                "content": "Phase X+1 Step 1: Validate plan",
+                "status": "in_progress",
+                "activeForm": "Validating plan for Phase X+1"
+            },
+            {
+                "content": "Phase X+1 Step 2: Complete deliverable",
+                "status": "pending",
+                "activeForm": "Completing deliverable for Phase X+1"
+            },
+            {
+                "content": "Phase X+1 Step 3: Update evidence",
+                "status": "pending",
+                "activeForm": "Updating evidence for Phase X+1"
+            },
+            {
+                "content": "Phase X+1 Step 4: Present and await approval",
+                "status": "pending",
+                "activeForm": "Presenting Phase X+1 for approval"
+            },
+            {
+                "content": "Phase X+1 Step 5: Post-approval actions",
+                "status": "pending",
+                "activeForm": "Completing post-approval actions for Phase X+1"
+            }
+        ]
+    })
 
 proceed_to_step_0()  # For next phase
 ```

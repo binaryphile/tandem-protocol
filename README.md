@@ -137,14 +137,14 @@ The three patterns below show different levels of quality assurance. Use simpler
 
 ### Understanding Evidence Files
 
-The amber nodes in the diagrams represent **evidence files** (`task-name-evidence.md`) - structured documentation that tracks each phase.
+The purple nodes in the diagrams represent **evidence files** (`task-evidence.md`) - working, temporary documentation that tracks each phase and survives compaction.
 
 **What's the difference between plan and evidence?**
 - **Plan:** "I will do X using approach Y" (Step 1, before work starts)
 - **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (Step 3-5, after work completes)
 
 **Why use evidence files?**
-They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.
+They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, then being required to measure their completion by explicitly acknowledging results.  A standard self-evaluation (after work completion) in the evidence file requires genuine LLM engagement as well, reinforcing accountability.
 
 **The evidence file evolves incrementally:**
 1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
@@ -160,7 +160,7 @@ flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
     P1 --> EV1(["task-evidence.md<br/>created"])
     EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
     IMPL --> EV2(["task-evidence.md<br/>completed"])
     EV2 --> G2{"GATE 2<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
@@ -184,7 +184,7 @@ flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
     P1 --> EV1(["task-evidence.md<br/>created"])
     EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
     IMPL --> EV2(["task-evidence.md<br/>completed"])
     EV2 --> G2{"GATE 2<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
@@ -213,7 +213,7 @@ flowchart TD
     START["User: Request work"] --> P1["LLM: Present plan"]
     P1 --> EV1(["task-evidence.md<br/>created"])
     EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
     G1 -->|Request grade| GRADE1["LLM: Provide grade"]
     GRADE1 --> IMP1["User: Request changes"]
     IMP1 -.-> G1

@@ -2,7 +2,6 @@
 
 **For:** AI agents working on multi-phase projects with the user
 **Purpose:** Prevent premature advancement, ensure quality gates, maintain audit trail
-**Location:** This protocol is the canonical reference for phase completion discipline.
 
 ---
 

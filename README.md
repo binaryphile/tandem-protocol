@@ -171,8 +171,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
-    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 #### Pattern 2: Quality Check (Moderate Complexity)
@@ -200,8 +200,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
-    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 #### Pattern 3: Enhanced QA (Complex/Critical Work)
@@ -234,8 +234,8 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
-    style EV2 fill:#fff9e6,stroke:#f59e0b,stroke-width:2px
+    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 ### Example: Pattern 2 in Action

@@ -183,6 +183,25 @@ if tool_available("TodoWrite"):
         ]
     })
 
+# Present plan and next steps to user
+present(f"""
+## Plan Ready for Approval
+
+**Evidence file created:** {evidence_file}
+**Success criteria:** [X items from evidence file]
+**Estimated effort:** XX-XXK tokens
+
+### Approach Summary
+[Brief summary of implementation approach from evidence file]
+
+**Upon your approval, I will:**
+1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from evidence
+2. Proceed to Step 2 (Complete deliverable)
+3. Update TodoWrite to mark Step 1 complete, Step 2 in_progress
+
+**May I proceed?**
+""")
+
 # Wait for explicit approval
 wait_for("proceed", "yes", "approved")
 
@@ -358,40 +377,12 @@ Evidence: {evidence_filename}
 🤖 Generated with AI assistance
 """)
 
-# 5c: Append evidence to plan-log and delete temp file (if using plan-log)
-# Use bash -c with heredoc for safe concatenation:
-if has_plan_log:
-    bash_command = """
-    bash -c '{
-      cat <<'\''EOF'\''
-    # Phase X Complete: [Title]
-
-    User approved Phase X on [date].
-
-    ## Progress
-    [Summary of accomplishments]
-
-    ## Evidence
-
-    EOF
-      cat phase-X-evidence.md
-      cat <<'\''EOF'\''
-
-    ## Plan
-
-    Phase X+1: [Next phase tasks]
-    EOF
-    } | plan-log'
-    """
-    execute(bash_command)
-    rm("phase-X-evidence.md")  # Delete temp file after appending
-
-# For web UI: output evidence to chat
-elif web_ui:
+# 5c: Commit evidence file or output to chat
+if web_ui:
+    # For web UI: output evidence to chat
     output_to_chat(evidence_file_contents)
-
-# For git-only: commit evidence file
 else:
+    # For git environments: commit evidence file
     git_add(evidence_file)
     git_commit("Add Phase X evidence")
 

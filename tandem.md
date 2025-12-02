@@ -47,8 +47,7 @@ The Tandem Protocol is loaded in context via CLAUDE.md:
 
 **Step 5:** Post-approval (after "yes"/"approved"/"proceed")
 - Update evidence to APPROVED
-- Log to plan-log (heredoc format)
-- Git commit
+- Commit evidence file to git
 - Update TodoWrite
 
 ## Check Your Current Step

@@ -121,25 +121,96 @@ The command doesn't reproduce the protocol - it **activates your attention** to 
 3. `/tandem` reminds you to check the protocol
 4. Repeated emphasis beats the attention curve
 
-### Example workflow
+### Usage Patterns
 
+The protocol has two checkpoint gates where you control the workflow:
+- **GATE 1**: Plan approval (after Step 1)
+- **GATE 2**: Work approval (after Step 4)
+
+At each gate, you can:
+- **Approve** - Allow work to continue
+- **Request grade** - Ask for self-evaluation before deciding
+- **Provide feedback** - Request improvements or corrections
+
+**Choose your thoroughness level based on task complexity:**
+The three patterns below show different levels of quality assurance. Use simpler patterns for straightforward tasks, more thorough patterns for complex or critical work.
+
+#### Pattern 1: Happy Path (Simple Tasks)
+
+For straightforward work where you trust the approach. Simply approve at both gates.
+
+```mermaid
+flowchart TD
+    START["User: Request work"] --> P1["LLM: Present plan"]
+    P1 --> G1{"GATE 1<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    IMPL --> G2{"GATE 2<br/>User decides"}
+    G2 -->|Approve| DONE["Done, or next phase"]
+
+    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
-User: "Add a new feature for user authentication"
 
-You: /tandem
-[Check protocol - see we're starting new work]
-[Follow Step 1: Create plan, present to user, get approval]
+#### Pattern 2: Quality Check (Moderate Complexity)
 
-User: "proceed"
+For work requiring validation. Request self-evaluation after completion, then decide whether to approve or request changes.
 
-You: [Follow Step 2: Implement]
-[Follow Step 3: Update evidence]
-[Follow Step 4: Present deliverables and WAIT]
+```mermaid
+flowchart TD
+    START["User: Request work"] --> P1["LLM: Present plan"]
+    P1 --> G1{"GATE 1<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    IMPL --> G2{"GATE 2<br/>User decides"}
+    G2 -->|Approve| DONE["Done, or next phase"]
+    G2 -->|Request grade| GRADE["LLM: Provide grade"]
+    GRADE --> IMP["User: Request changes"]
+    IMP -.-> G2
 
-User: "approved"
-
-You: [Follow Step 5: Log and commit]
+    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style GRADE fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style IMP fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
+
+#### Pattern 3: Enhanced QA (Complex/Critical Work)
+
+For complex or high-stakes work. Request self-evaluation at both plan and completion stages to ensure quality throughout.
+
+```mermaid
+flowchart TD
+    START["User: Request work"] --> P1["LLM: Present plan"]
+    P1 --> G1{"GATE 1<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM: Complete & present"]
+    G1 -->|Request grade| GRADE1["LLM: Provide grade"]
+    GRADE1 --> IMP1["User: Request changes"]
+    IMP1 -.-> G1
+    IMPL --> G2{"GATE 2<br/>User decides"}
+    G2 -->|Approve| DONE["Done, or next phase"]
+    G2 -->|Request grade| GRADE2["LLM: Provide grade"]
+    GRADE2 --> IMP2["User: Request changes"]
+    IMP2 -.-> G2
+
+    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style GRADE1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style GRADE2 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style IMP1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style IMP2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+```
+
+**Multi-phase projects**: For projects with multiple implementation phases, this pattern repeats for each phase (Step 5d loops back to Step 0).
 
 ## The 5 Steps (Quick Reference)
 
@@ -148,7 +219,7 @@ You: [Follow Step 5: Log and commit]
 2. **Implementation** (actual work)
 3. **Checkpoint preparation** (update evidence, add AWAITING footer)
 4. **Present and WAIT** (explicit approval required)
-5. **Post-approval** (evidence → plan-log → commit)
+5. **Post-approval** (evidence → commit)
 
 ## Design Philosophy
 

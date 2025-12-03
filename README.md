@@ -137,14 +137,14 @@ The three patterns below show different levels of quality assurance. Use simpler
 
 ### Understanding Evidence Files
 
-The purple nodes in the diagrams represent **evidence files** (`task-evidence.md`) - working, temporary documentation that tracks each phase and survives compaction.
+**Evidence files** (e.g. `task-evidence.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
 
 **What's the difference between plan and evidence?**
-- **Plan:** "I will do X using approach Y" (Step 1, before work starts)
-- **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (Step 3-5, after work completes)
+- **Plan:** "I will do X using approach Y" (LLM writes this in Step 1, before work starts)
+- **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
 
 **Why use evidence files?**
-They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, then being required to measure their completion by explicitly acknowledging results.  A standard self-evaluation (after work completion) in the evidence file requires genuine LLM engagement as well, reinforcing accountability.
+They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, then being required to measure their completion by explicitly acknowledging results.  A standard self-evaluation (after work completion) in the evidence file requires genuine LLM engagement, reinforcing accountability.
 
 **The evidence file evolves incrementally:**
 1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
@@ -157,12 +157,10 @@ For straightforward work where you trust the approach. Simply approve at both ga
 
 ```mermaid
 flowchart TD
-    START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> EV1(["task-evidence.md<br/>created"])
-    EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
-    IMPL --> EV2(["task-evidence.md<br/>completed"])
-    EV2 --> G2{"GATE 2<br/>User decides"}
+    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
+    P1 --> G1{"PLANNING GATE<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
+    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
 
     style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
@@ -171,8 +169,6 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
-    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 #### Pattern 2: Quality Check (Moderate Complexity)
@@ -181,12 +177,10 @@ For work requiring validation. Request self-evaluation after completion, then de
 
 ```mermaid
 flowchart TD
-    START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> EV1(["task-evidence.md<br/>created"])
-    EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
-    IMPL --> EV2(["task-evidence.md<br/>completed"])
-    EV2 --> G2{"GATE 2<br/>User decides"}
+    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
+    P1 --> G1{"PLANNING GATE<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
+    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
     G2 -->|Request grade| GRADE["LLM: Provide grade"]
     GRADE --> IMP["User: Request changes"]
@@ -200,8 +194,6 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
-    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 #### Pattern 3: Enhanced QA (Complex/Critical Work)
@@ -210,15 +202,13 @@ For complex or high-stakes work. Request self-evaluation at both plan and comple
 
 ```mermaid
 flowchart TD
-    START["User: Request work"] --> P1["LLM: Present plan"]
-    P1 --> EV1(["task-evidence.md<br/>created"])
-    EV1 --> G1{"GATE 1<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM: Implement plan & present work"]
+    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
+    P1 --> G1{"PLANNING GATE<br/>User decides"}
+    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
     G1 -->|Request grade| GRADE1["LLM: Provide grade"]
     GRADE1 --> IMP1["User: Request changes"]
     IMP1 -.-> G1
-    IMPL --> EV2(["task-evidence.md<br/>completed"])
-    EV2 --> G2{"GATE 2<br/>User decides"}
+    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
     G2 -->|Approve| DONE["Done, or next phase"]
     G2 -->|Request grade| GRADE2["LLM: Provide grade"]
     GRADE2 --> IMP2["User: Request changes"]
@@ -234,8 +224,6 @@ flowchart TD
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-    style EV1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
-    style EV2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
 ```
 
 ### Example: Pattern 2 in Action

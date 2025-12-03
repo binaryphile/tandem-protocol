@@ -1,6 +1,6 @@
 # Tandem Protocol
 
-A lightweight protocol reminder system for maintaining multi-phase project discipline across context compactions.
+A lightweight protocol system for maintaining multi-phase project discipline across context compactions.
 
 ## What Is This?
 
@@ -8,14 +8,22 @@ The **Tandem Protocol** is a 5-step workflow for complex, multi-phase projects w
 
 - Plans are validated before implementation
 - Work is documented with evidence files
-- User approval gates critical transitions
+- Gates provide the user the opportunity for feedback at decision points
 - Completion is properly logged and committed
 
 This implementation uses **attention activation** - the protocol is always in context (via CLAUDE.md @reference), and the `/tandem` command serves as a lightweight memory jogger when protocol compliance drifts.
 
 ## Choosing a Version
 
-Two versions are available - choose based on your preference:
+Two versions are available - the concise protocol is recommended, as it is smaller, more recent and is made to be independent of the agent employed (Cursor, Claude, even Web with upload), as well as Ted's other tools, such as `plan-log`.
+
+**Concise Protocol** (`tandem-protocol-concise.md`) -- ~600 lines -- *RECOMMENDED*
+- Mechanically prescriptive quick reference
+- Mermaid flowchart + step-by-step pseudo-code
+- Actual tool syntax (TodoWrite, AskUserQuestion)
+- Verification templates with bash commands
+- Platform-flexible (web UI, CLI tools, non-Claude agents)
+- Best for: Daily use, quick lookups, minimal token usage
 
 **Full Protocol** (`tandem-protocol.md`) - ~1,700 lines
 - Complete explanations of why each step exists
@@ -23,14 +31,6 @@ Two versions are available - choose based on your preference:
 - Common failure modes and how to avoid them
 - Extensive background and design rationale
 - Best for: Learning the protocol, understanding the "why"
-
-**Concise Protocol** (`tandem-protocol-concise.md`) - ~600 lines
-- Mechanically prescriptive quick reference
-- Mermaid flowchart + step-by-step pseudo-code
-- Actual tool syntax (TodoWrite, AskUserQuestion)
-- Verification templates with bash commands
-- Platform-flexible (web UI, CLI tools, non-Claude agents)
-- Best for: Daily use, quick lookups, minimal token usage
 
 Both versions cover the same 5-step workflow. Choose the one that fits your needs, or switch between them anytime.
 
@@ -81,20 +81,8 @@ echo "@~/tandem-protocol/tandem-protocol-concise.md" >> CLAUDE.md
 
 **Verify:** Start Claude Code, then run `/tandem`
 
-### Alternative Installations
-
-**For teams** (version-controlled with project):
-```bash
-git submodule add https://github.com/YOUR_ORG/tandem-protocol.git vendor/tandem-protocol
-
-# Choose one version in CLAUDE.md:
-echo "@vendor/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
-# OR
-echo "@vendor/tandem-protocol/tandem-protocol-concise.md" >> CLAUDE.md
-```
-
 **For custom locations:**
-Install anywhere, then reference with tilde or absolute path in CLAUDE.md:
+Install anywhere, then reference with tilde or absolute path in your project's CLAUDE.md:
 - Full: `@~/your/path/tandem-protocol.md`
 - Concise: `@~/your/path/tandem-protocol-concise.md`
 
@@ -107,14 +95,14 @@ Install anywhere, then reference with tilde or absolute path in CLAUDE.md:
 Invoke 1-2 times early in your session, or whenever you notice protocol drift:
 
 - At session start (before planning)
-- When about to implement without approval
-- When uncertain about current step
+- When the LLM skips steps or doesn't adhere to the presentation formats (e.g., doesn't specifically ask "May I proceed?")
+- When you have lost track of the current step
 - After context compaction
 - When approaching approval boundaries
 
 ### How it works
 
-The command doesn't reproduce the protocol - it **activates your attention** to the protocol already in context:
+The command doesn't reproduce the protocol - it **activates the LLM's attention** to the protocol already in context.  This takes up less context than reinserting the full protocol details.
 
 1. Full protocol is in CLAUDE.md (via @reference)
 2. CLAUDE.md doesn't get compacted (always available)
@@ -137,14 +125,16 @@ The three patterns below show different levels of quality assurance. Use simpler
 
 ### Understanding Evidence Files
 
-**Evidence files** (e.g. `task-evidence.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
+**Evidence files** (e.g. `[phase]-evidence.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
 
 **What's the difference between plan and evidence?**
 - **Plan:** "I will do X using approach Y" (LLM writes this in Step 1, before work starts)
 - **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
 
 **Why use evidence files?**
-They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, then being required to measure their completion by explicitly acknowledging results.  A standard self-evaluation (after work completion) in the evidence file requires genuine LLM engagement, reinforcing accountability.
+They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, and are then required to measure their completion by explicitly acknowledging *individualized* results.
+
+In addition, the protocol's built-in self-evaluation request as part of generating the evidence file requires genuine LLM engagement, reinforcing accountability.
 
 **The evidence file evolves incrementally:**
 1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
@@ -155,13 +145,15 @@ They create an audit trail showing what was promised vs. delivered, force explic
 
 For straightforward work where you trust the approach. Simply approve at both gates.  Even though these approvals may seem like no-ops, as complexity rises, the simple act of generating a plan and evidence files results in higher quality outcomes and fewer planning gaps than with a non-planned work session.
 
+Note: this is a simplified view of the protocol.
+
 ```mermaid
 flowchart TD
-    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
-    P1 --> G1{"PLANNING GATE<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
-    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
-    G2 -->|Approve| DONE["Done, or next phase"]
+    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-evidence.md</i>"]
+    P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
+    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-evidence.md</i><br/>• presents results"]
+    IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
+    G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
 
     style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
@@ -171,60 +163,48 @@ flowchart TD
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
 
-#### Pattern 2: Quality Check (Moderate Complexity)
+#### The Grading Cycle
+
+At any gate, instead of approving immediately, you can ask the LLM to grade its own work and improve it. This creates a feedback loop that catches issues before they compound. The LLM provides a letter grade with specific deductions, then automatically addresses those gaps.
+
+Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after it responds.
+
+```mermaid
+flowchart LR
+    GATE{"GATE<br/>LLM: &quot;May I proceed?&quot;"} -->|"User: &quot;Grade your work, then improve it.&quot;"| GRADE["LLM: &quot;GRADE: A- (93/100)&quot;<br/>• deduction 1<br/>• deduction 2<br/><i>Makes improvements...</i>"]
+    GRADE -.-> GATE
+
+    style GATE fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style GRADE fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+```
+
+This works at both the Planning Gate (to refine the plan) and the Completion Gate (to polish the deliverable).
+
+You can repeat this cycle, although it's usually better to add a grading cycle at the other gate instead, if you haven't already.  It is subject to strongly diminishing returns on the same gate, usually, although occasionally multiple grading cycles can reveal cracks in the plan if the LLM doesn't come to equilibrium on its grading (bounces between grades forever).  Usually that only happens with complex issues that have different approaches where none are easy or ideal.
+#### Pattern 2: With Grading Cycle
 
 For work requiring validation. Request self-evaluation after completion, then decide whether to approve or request changes.
 
 ```mermaid
 flowchart TD
-    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
-    P1 --> G1{"PLANNING GATE<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
-    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
-    G2 -->|Approve| DONE["Done, or next phase"]
-    G2 -->|Request grade| GRADE["LLM: Provide grade"]
-    GRADE --> IMP["User: Request changes"]
-    IMP -.-> G2
+    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-evidence.md</i>"]
+    P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
+    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-evidence.md</i><br/>• presents results"]
+    IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
+    G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
+    G2 -->|"User: &quot;Grade your work, then improve it.&quot;"| GRADE["LLM: &quot;GRADE: A- (93/100)...&quot;"]
+    GRADE -.-> G2
 
     style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
     style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
     style GRADE fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style IMP fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
 
-#### Pattern 3: Enhanced QA (Complex/Critical Work)
-
-For complex or high-stakes work. Request self-evaluation at both plan and completion stages to ensure quality throughout.
-
-```mermaid
-flowchart TD
-    START["User: request work plan"] --> P1["LLM:<br/>• present plan<br/>• ask clarifying questions<br/>• create <i>task-evidence.md</i>"]
-    P1 --> G1{"PLANNING GATE<br/>User decides"}
-    G1 -->|Approve| IMPL["LLM:<br/>• track evidence while implementing plan<br/>• present results<br/>• complete <i>task-evidence.md</i>"]
-    G1 -->|Request grade| GRADE1["LLM: Provide grade"]
-    GRADE1 --> IMP1["User: Request changes"]
-    IMP1 -.-> G1
-    IMPL --> G2{"COMPLETION GATE<br/>User decides"}
-    G2 -->|Approve| DONE["Done, or next phase"]
-    G2 -->|Request grade| GRADE2["LLM: Provide grade"]
-    GRADE2 --> IMP2["User: Request changes"]
-    IMP2 -.-> G2
-
-    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style GRADE1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style GRADE2 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style IMP1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style IMP2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-```
+**Pattern 3 (Enhanced QA)** would be to add a grading cycle at the Planning Gate as well—useful for complex or high-stakes work where you want to validate the approach before implementation begins. This is generally preferable to multiple grading cycles on a single gate.
 
 ### Example: Pattern 2 in Action
 
@@ -253,7 +233,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 >
 > May I proceed?
 >
-> **You:** Throw exceptions, yes 0-100 is correct, and validate strictly. Proceed.
+> **You:** Answers: Throw exceptions, yes 0-100 is correct, and validate strictly. Proceed.
 >
 > **Claude:** *[Implements validation, updates evidence]*
 >

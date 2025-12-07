@@ -132,9 +132,9 @@ The three patterns below show different levels of quality assurance. Use simpler
 - **Contract:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
 
 **Why use deliverable contracts?**
-They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, and are then required to measure their completion by explicitly acknowledging *individualized* results.
+They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first name their deliverables, and are then required to measure their completion by acknowledging each result explicitly and individually.
 
-In addition, the protocol's built-in self-evaluation request as part of generating the contract requires genuine LLM engagement, reinforcing accountability.
+The protocol's built-in self-evaluation as part of the contract generation process requires genuine LLM engagement, reinforcing accountability.
 
 **The deliverable contract evolves incrementally:**
 1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
@@ -167,7 +167,7 @@ flowchart TD
 
 At any gate, instead of approving immediately, you can ask the LLM to grade its own work and improve it. This creates a feedback loop that catches issues before they compound. The LLM provides a letter grade with specific deductions, then automatically addresses those gaps.
 
-Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after it responds.
+Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after getting a response.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ flowchart LR
 
 This works at both the Planning Gate (to refine the plan) and the Completion Gate (to polish the deliverable).
 
-You can repeat this cycle, although it's usually better to add a grading cycle at the other gate instead, if you haven't already.  It is subject to strongly diminishing returns on the same gate, usually, although occasionally multiple grading cycles can reveal cracks in the plan if the LLM doesn't come to equilibrium on its grading (bounces between grades forever).  Usually that only happens with complex issues that have different approaches where none are easy or ideal.
+You can repeat this cycle, although you'll usually get better quality by add a grading cycle at the other gate instead, if you haven't already.  It is subject to strongly diminishing returns on the same gate, usually, although occasionally multiple grading cycles can reveal cracks in the plan if the LLM doesn't come to equilibrium on its grading (bounces between grades forever).  Usually that only happens with complex issues.
 #### Pattern 2: With Grading Cycle
 
 For work requiring validation. Request self-evaluation after completion, then decide whether to approve or request changes.

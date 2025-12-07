@@ -4,14 +4,14 @@
 
 ```mermaid
 flowchart TD
-    S0[● Step 0: Check Evidence Files] --> E0{Evidence exists?<br/>Check for incomplete work}
+    S0[● Step 0: Check Contract Files] --> E0{Contract exists?<br/>Check for incomplete work}
 
     E0 -->|"None - Clean slate"| S1[▶ Step 1: Plan Validation]
     E0 -->|"Found - Protocol violation"| R0{Recovery Options<br/>Complete/Abandon/Investigate}
 
-    R0 -->|"Complete previous work"| S5C[Append evidence to log]
-    R0 -->|"Abandon previous work"| DEL[Delete evidence file]
-    R0 -->|"Investigate first"| READ[Read evidence file]
+    R0 -->|"Complete previous work"| S5C[Append contract to log]
+    R0 -->|"Abandon previous work"| DEL[Delete contract file]
+    R0 -->|"Investigate first"| READ[Read contract file]
 
     S5C --> S1
     DEL --> S1
@@ -25,18 +25,19 @@ flowchart TD
     S2 --> CX{Complex with<br/>sub-phases?}
     CX -->|"Simple task"| S3
     CX -->|"Multiple sub-phases"| SUB[Complete one sub-phase]
-    SUB --> BLK[⛔ BLOCKING: Update evidence<br/>Cannot proceed without this]
+    SUB --> BLK[⛔ BLOCKING: Update contract<br/>Cannot proceed without this]
     BLK --> MORE{More sub-phases<br/>remaining?}
     MORE -->|"Yes - continue"| SUB
     MORE -->|"No - all done"| S3
 
-    S3[▶ Step 3: Update Evidence] --> S4[▶ Step 4: Present to User]
+    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present to User]
 
     S4 --> A4{User response?<br/>GATE 2}
     A4 -->|"Approve - finalize"| S5[▶ Step 5: Post-Approval]
     A4 -->|"Grade first"| GR[Provide honest grade]
     A4 -->|"Improve work"| IMP[Make improvements]
     A4 -->|"Address feedback"| FB[Respond to comments]
+    A4 -->|"Change plan"| S1
 
     GR --> S4
     IMP --> S4
@@ -44,7 +45,7 @@ flowchart TD
 
     S5 --> S5A[5a: Mark APPROVED]
     S5A --> S5B[5b: Commit deliverable]
-    S5B --> S5C2[5c: Append/output evidence]
+    S5B --> S5C2[5c: Append/output contract]
     S5C2 --> S5D[5d: Setup next phase]
     S5D --> S0
 
@@ -61,17 +62,17 @@ flowchart TD
 
 ---
 
-## Step 0: Check Evidence Files
+## Step 0: Check Contract Files
 **Only required for persistent filesystem (Claude Code, Cursor, etc.) - skip for web UI**
 
 ```python
-# Check for leftover evidence from previous incomplete work
-evidence_files = ls("*-evidence.md", "*-completion-evidence.md")
+# Check for leftover contracts from previous incomplete work
+contract_files = ls("*-contract.md", "*-completion-contract.md")
 
-if len(evidence_files) > 0:
+if len(contract_files) > 0:
     # Protocol violation detected - previous work incomplete
-    print(f"Found {len(evidence_files)} evidence files from incomplete work:")
-    print(evidence_files)
+    print(f"Found {len(contract_files)} contract files from incomplete work:")
+    print(contract_files)
 
     response = AskUserQuestion({
         "questions": [{
@@ -84,11 +85,11 @@ if len(evidence_files) > 0:
                 },
                 {
                     "label": "Abandon",
-                    "description": "Delete evidence and start fresh"
+                    "description": "Delete contract and start fresh"
                 },
                 {
                     "label": "Investigate",
-                    "description": "Read evidence file first"
+                    "description": "Read contract file first"
                 }
             ],
             "multiSelect": false
@@ -97,20 +98,20 @@ if len(evidence_files) > 0:
     choice = response["Recovery"].lower()
 
     if choice == "complete":
-        # Review evidence, verify APPROVED status
-        review(evidence_file)
+        # Review contract, verify APPROVED status
+        review(contract_file)
         if approved:
-            commit_to_git(evidence_file)  # or output to chat
-            rm(evidence_file)
+            commit_to_git(contract_file)  # or output to chat
+            rm(contract_file)
         proceed_to_step_1()
 
     elif choice == "abandon":
-        rm(evidence_file)
-        print("Evidence deleted. Previous work abandoned.")
+        rm(contract_file)
+        print("Contract deleted. Previous work abandoned.")
         proceed_to_step_1()
 
     elif choice == "investigate":
-        read(evidence_file)
+        read(contract_file)
         # Loop back to options after investigation
 
 else:
@@ -128,12 +129,22 @@ present("I understand the plan as: [summary]")
 present("Target files: [paths with line numbers]")
 present("Approach: [specific actions]")
 
-# Create evidence file
-evidence_file = create_file("phase-X-evidence.md")
+# Present clarifying questions (CRITICAL - ask before creating contract)
+questions = identify_ambiguities()  # Assumptions, alternatives, edge cases
+if questions:
+    present(f"""
+**Clarifying Questions:**
+{format_questions(questions)}
+""")
+    wait_for_answers()
+    update_understanding_with_answers()
 
-# Write initial evidence structure
-write_to_evidence("""
-# Phase X Evidence
+# Create contract file
+contract_file = create_file("phase-X-contract.md")
+
+# Write initial contract structure
+write_to_contract("""
+# Phase X Contract
 
 ## Success Criteria
 - [ ] Criterion 1
@@ -166,9 +177,9 @@ if tool_available("TodoWrite"):
                 "activeForm": "Completing deliverable for Phase X"
             },
             {
-                "content": "Phase X Step 3: Update evidence",
+                "content": "Phase X Step 3: Update contract",
                 "status": "pending",
-                "activeForm": "Updating evidence for Phase X"
+                "activeForm": "Updating contract for Phase X"
             },
             {
                 "content": "Phase X Step 4: Present and await approval",
@@ -187,15 +198,15 @@ if tool_available("TodoWrite"):
 present(f"""
 ## Plan Ready for Approval
 
-**Evidence file created:** {evidence_file}
-**Success criteria:** [X items from evidence file]
+**Contract file created:** {contract_file}
+**Success criteria:** [X items from contract file]
 **Estimated effort:** XX-XXK tokens
 
 ### Approach Summary
-[Brief summary of implementation approach from evidence file]
+[Brief summary of implementation approach from contract file]
 
 **Upon your approval, I will:**
-1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from evidence
+1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from contract
 2. Proceed to Step 2 (Complete deliverable)
 3. Update TodoWrite to mark Step 1 complete, Step 2 in_progress
 
@@ -205,8 +216,8 @@ present(f"""
 # Wait for explicit approval
 wait_for("proceed", "yes", "approved")
 
-# After approval, update evidence
-update_evidence_footer("⏸️ AWAITING STEP 1 APPROVAL", "")
+# After approval, update contract
+update_contract_footer("⏸️ AWAITING STEP 1 APPROVAL", "")
 proceed_to_step_2()
 ```
 
@@ -223,12 +234,12 @@ if has_sub_phases:
     for sub_phase in sub_phases:
         complete_sub_phase(sub_phase)
 
-        # BLOCKING: Must update evidence after each sub-phase
-        update_evidence_checkboxes(sub_phase)
-        present_progress(f"Completed {sub_phase}. Evidence updated.")
+        # BLOCKING: Must update contract after each sub-phase
+        update_contract_checkboxes(sub_phase)
+        present_progress(f"Completed {sub_phase}. Contract updated.")
 
-        # Cannot proceed without completing evidence update
-        wait_for_evidence_confirmation()
+        # Cannot proceed without completing contract update
+        wait_for_contract_confirmation()
 
 # For simple tasks
 else:
@@ -239,19 +250,19 @@ proceed_to_step_3()
 
 ---
 
-## Step 3: Update Evidence
+## Step 3: Update Contract
 
 ```python
-# Update evidence file with actual results
-update_evidence("""
+# Update contract file with actual results
+update_contract("""
 ## Actual Results
 
 **Deliverable:** [filename] ([size])
 **Completed:** [date]
 
 ### Success Criteria Status
-- [x] Criterion 1 - COMPLETE (evidence: lines X-Y)
-- [x] Criterion 2 - COMPLETE (evidence: specific details)
+- [x] Criterion 1 - COMPLETE (reference: lines X-Y)
+- [x] Criterion 2 - COMPLETE (reference: specific details)
 ...
 
 ### Deliverable Details
@@ -272,10 +283,10 @@ task_types = [
 if task_type in task_types:
     template = select_template_from_appendix(task_type)
     verification_results = run_template_commands(template)
-    append_to_evidence(verification_results)
+    append_to_contract(verification_results)
 
 # Add quality verification section
-append_to_evidence("""
+append_to_contract("""
 ### Quality Verification
 [Spot-check results]
 [Error pattern checks]
@@ -283,7 +294,7 @@ append_to_evidence("""
 """)
 
 # Add self-assessment
-append_to_evidence("""
+append_to_contract("""
 ### Self-Assessment
 Grade: [A-F] ([score]/100)
 
@@ -295,7 +306,7 @@ Deductions:
 """)
 
 # Update footer
-update_evidence_footer("", "# ⏸️ AWAITING USER APPROVAL")
+update_contract_footer("", "# ⏸️ AWAITING USER APPROVAL")
 
 proceed_to_step_4()
 ```
@@ -310,15 +321,15 @@ present(f"""
 ## Phase X Complete
 
 **Deliverable:** [filename] ([size])
-**Evidence:** [evidence filename]
+**Contract:** [contract filename]
 
 ### Key Highlights
-1. [Major accomplishment with evidence]
+1. [Major accomplishment with reference]
 2. [Critical insight]
 3. [Notable outcome]
 
 **Upon your approval, I will:**
-1. Mark evidence as APPROVED
+1. Mark contract as APPROVED
 2. Commit to git (or output to chat if web UI)
 3. Setup next phase
 
@@ -337,13 +348,13 @@ elif user_response == "grade":
 
 elif user_response == "improve":
     make_improvements()
-    update_evidence()
+    update_contract()
     re_present()
     # Loop back to wait for approval
 
 elif user_response == "feedback":
     address_feedback()
-    update_evidence()
+    update_contract()
     re_present()
     # Loop back to wait for approval
 ```
@@ -353,13 +364,13 @@ elif user_response == "feedback":
 ## Step 5: Post-Approval Actions
 
 ```python
-# 5a: Mark evidence as APPROVED
-update_evidence_footer(
+# 5a: Mark contract as APPROVED
+update_contract_footer(
     "# ⏸️ AWAITING USER APPROVAL",
     f"# ✅ APPROVED BY USER - {date}"
 )
 
-append_to_evidence(f"""
+append_to_contract(f"""
 User approved on {date}.
 Final results: [summary]
 """)
@@ -372,19 +383,19 @@ if has_git:
 [Summary of work]
 [Key results]
 
-Evidence: {evidence_filename}
+Contract: {contract_filename}
 
 🤖 Generated with AI assistance
 """)
 
-# 5c: Commit evidence file or output to chat
+# 5c: Commit contract file or output to chat
 if web_ui:
-    # For web UI: output evidence to chat
-    output_to_chat(evidence_file_contents)
+    # For web UI: output contract to chat
+    output_to_chat(contract_file_contents)
 else:
-    # For git environments: commit evidence file
-    git_add(evidence_file)
-    git_commit("Add Phase X evidence")
+    # For git environments: commit contract file
+    git_add(contract_file)
+    git_commit("Add Phase X contract")
 
 # 5d: Setup next phase
 if tool_available("TodoWrite"):
@@ -406,9 +417,9 @@ if tool_available("TodoWrite"):
                 "activeForm": "Completing deliverable for Phase X+1"
             },
             {
-                "content": "Phase X+1 Step 3: Update evidence",
+                "content": "Phase X+1 Step 3: Update contract",
                 "status": "pending",
-                "activeForm": "Updating evidence for Phase X+1"
+                "activeForm": "Updating contract for Phase X+1"
             },
             {
                 "content": "Phase X+1 Step 4: Present and await approval",
@@ -609,7 +620,7 @@ npm test 2>&1 | grep "Time:"
 
 ## Protocol Principles
 
-**Evidence documents are the primary artifact:**
+**Deliverable contracts are the primary artifact:**
 - Create at Step 1, update at Step 3, finalize at Step 5
 - Commit to git or output to chat (for web UI)
 - Serves as phase completion history
@@ -619,9 +630,14 @@ npm test 2>&1 | grep "Time:"
 - Step 4: Approve results before finalizing
 - Never proceed without explicit "yes"/"approved"/"proceed"
 
+**Feedback = Plan Change = Return to Step 1:**
+- User feedback that changes scope, approach, or requirements = plan change
+- Plan changes require returning to Step 1 for re-validation
+- Distinguish: "fix this bug in my implementation" (stay at Step 4) vs "also add feature X" (return to Step 1)
+
 **BLOCKING checkpoints:**
-- Multi-phase tasks: Update evidence after EACH sub-phase
-- Cannot proceed without evidence update + user confirmation
+- Multi-phase tasks: Update contract after EACH sub-phase
+- Cannot proceed without contract update + user confirmation
 
 **Platform flexibility:**
 - Works with or without git

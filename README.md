@@ -7,7 +7,7 @@ A lightweight protocol system for maintaining multi-phase project discipline acr
 The **Tandem Protocol** is a 5-step workflow for complex, multi-phase projects with approval checkpoints. It ensures:
 
 - Plans are validated before implementation
-- Work is documented with evidence files
+- Work is documented with deliverable contracts
 - Gates provide the user the opportunity for feedback at decision points
 - Completion is properly logged and committed
 
@@ -123,35 +123,35 @@ At each gate, you can:
 **Choose your thoroughness level based on task complexity:**
 The three patterns below show different levels of quality assurance. Use simpler patterns for straightforward tasks, more thorough patterns for complex or critical work.
 
-### Understanding Evidence Files
+### Understanding Deliverable Contracts
 
-**Evidence files** (e.g. `[phase]-evidence.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
+**Deliverable contracts** (e.g. `[phase]-contract.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
 
-**What's the difference between plan and evidence?**
+**What's the difference between plan and contract?**
 - **Plan:** "I will do X using approach Y" (LLM writes this in Step 1, before work starts)
-- **Evidence:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
+- **Contract:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
 
-**Why use evidence files?**
+**Why use deliverable contracts?**
 They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first call their shots, and are then required to measure their completion by explicitly acknowledging *individualized* results.
 
-In addition, the protocol's built-in self-evaluation request as part of generating the evidence file requires genuine LLM engagement, reinforcing accountability.
+In addition, the protocol's built-in self-evaluation request as part of generating the contract requires genuine LLM engagement, reinforcing accountability.
 
-**The evidence file evolves incrementally:**
+**The deliverable contract evolves incrementally:**
 1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
 2. **Completed** (Step 3): Actual results and self-assessment added, then frozen pending approval
 3. **Finalized** (Step 5): Marked approved and committed to git
 
 #### Pattern 1: Happy Path (Simple Tasks)
 
-For straightforward work where you trust the approach. Simply approve at both gates.  Even though these approvals may seem like no-ops, as complexity rises, the simple act of generating a plan and evidence files results in higher quality outcomes and fewer planning gaps than with a non-planned work session.
+For straightforward work where you trust the approach. Simply approve at both gates.  Even though these approvals may seem like no-ops, as complexity rises, the simple act of generating a plan and deliverable contracts results in higher quality outcomes and fewer planning gaps than with a non-planned work session.
 
 Note: this is a simplified view of the protocol.
 
 ```mermaid
 flowchart TD
-    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-evidence.md</i>"]
+    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-contract.md</i>"]
     P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-evidence.md</i><br/>• presents results"]
+    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-contract.md</i><br/>• presents results"]
     IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
     G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
 
@@ -187,9 +187,9 @@ For work requiring validation. Request self-evaluation after completion, then de
 
 ```mermaid
 flowchart TD
-    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-evidence.md</i>"]
+    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-contract.md</i>"]
     P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-evidence.md</i><br/>• presents results"]
+    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-contract.md</i><br/>• presents results"]
     IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
     G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
     G2 -->|"User: &quot;Grade your work, then improve it.&quot;"| GRADE["LLM: &quot;GRADE: A- (93/100)...&quot;"]
@@ -217,7 +217,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > Target file: `src/pricing.py` (line 45)
 > Approach: Add type checking and range validation before calculation logic
 >
-> Evidence file created: `validation-evidence.md`
+> Deliverable contract created: `validation-contract.md`
 > Success criteria: 3 items
 > Estimated effort: 500-700 tokens
 >
@@ -227,7 +227,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > - Should we validate data types strictly or coerce when possible?
 >
 > **Upon your approval, I will:**
-> 1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from evidence
+> 1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from contract
 > 2. Proceed to Step 2 (implement validation)
 > 3. Update TodoWrite
 >
@@ -235,12 +235,12 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 >
 > **You:** Answers: Throw exceptions, yes 0-100 is correct, and validate strictly. Proceed.
 >
-> **Claude:** *[Implements validation, updates evidence]*
+> **Claude:** *[Implements validation, updates contract]*
 >
 > ## Validation Implementation Complete
 >
 > **Deliverable:** Updated `calculate_discount` function with input validation
-> **Evidence:** validation-evidence.md
+> **Deliverable contract:** validation-contract.md
 >
 > Key highlights:
 > - Added type checking for amount and percentage parameters
@@ -248,7 +248,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > - Added error messages for invalid inputs
 >
 > **Upon your approval, I will:**
-> 1. Mark evidence as APPROVED
+> 1. Mark contract as APPROVED
 > 2. Commit changes to git
 > 3. Update TodoWrite
 >
@@ -268,12 +268,12 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 >
 > **You:** improve your work
 >
-> **Claude:** *[Adds negative amount check, updates evidence]*
+> **Claude:** *[Adds negative amount check, updates contract]*
 >
 > Updated validation to reject negative amounts. Re-presenting:
 >
 > **Upon your approval, I will:**
-> 1. Mark evidence as APPROVED
+> 1. Mark contract as APPROVED
 > 2. Commit changes to git
 > 3. Update TodoWrite
 >
@@ -289,12 +289,12 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 
 ## The 5 Steps (Quick Reference)
 
-0. **Evidence cleanup** (new planning sessions only)
+0. **Contract cleanup** (new planning sessions only)
 1. **Plan validation + approval** (never skip!)
 2. **Implementation** (actual work)
-3. **Checkpoint preparation** (update evidence, add AWAITING footer)
+3. **Checkpoint preparation** (update contract, add AWAITING footer)
 4. **Present and WAIT** (explicit approval required)
-5. **Post-approval** (evidence → commit)
+5. **Post-approval** (contract → commit)
 
 ## Design Philosophy
 

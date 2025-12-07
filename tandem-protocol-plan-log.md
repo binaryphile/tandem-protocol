@@ -2533,3 +2533,60 @@ User approved on 2025-12-02 after requesting improvements.
 ## Plan
 
 Next phase: No additional phases planned. Concise protocol is complete.
+---
+
+2025-12-07T02:11:49Z | Plan: Empirical Validation of Tandem Protocol Weaknesses
+
+# Plan: Empirical Validation of Tandem Protocol Weaknesses
+
+## Context
+
+Analyzing a failed interaction where another Claude Code instance repeatedly skipped checkpoints and failed to ask clarifying questions despite having the Tandem Protocol in context. Root cause analysis identified 6 theories about protocol weaknesses.
+
+## Phases
+
+### Phase 1: Execute 6 Theory Validations
+
+**Document-based validations (T1, T2, T4, T5):**
+- T1: Search concise protocol for "clarif|question" in Step 1 context
+- T2: Search for "plan change|feedback.*step|return.*step 1" and examine flowchart
+- T4: Extract Step 1 template, check for questions placeholder
+- T5: Trace flowchart edges, look for S2→S1 path
+
+**Behavioral validations (T3, T6):**
+- T3: Read tandem.md, identify gaps in /tandem command guidance
+- T6: Check if /tandem instructs to use in-context protocol vs re-searching
+
+### Phase 2: Implement Validated Fixes to Concise Protocol
+
+Based on validated findings only:
+- Template structure changes (add clarifying questions section)
+- Flowchart edge additions (feedback→Step 1 path)
+- New protocol text (explicit feedback = checkpoint rule)
+- /tandem command improvements
+
+### Phase 3: Rename "Evidence Files" to "Deliverable Contracts"
+
+Global rename across project:
+- tandem-protocol-concise.md
+- README.md
+- tandem.md
+- File naming convention references
+
+## Testing Methodology
+
+Per testing-claude-code-behavior.md v2.3:
+- Use stdin piping to simulate CLAUDE.md behavior
+- PreToolUse hook for bash command verification
+- n≥10 trials for behavioral tests
+- Transcript analysis for protocol compliance
+
+## Evidence File
+
+protocol-validation-evidence.md created with success criteria and null hypotheses.
+
+## References
+
+- testing-claude-code-behavior.md v2.3 (~/projects/urma-next-obsidian/guides/)
+- GitHub Issue #6973: CLAUDE.md vs --append-system-prompt clarification
+- CLI reference: https://docs.claude.com/en/docs/claude-code/cli-reference

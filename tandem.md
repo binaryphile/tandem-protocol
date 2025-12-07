@@ -20,7 +20,7 @@ The Tandem Protocol is loaded in context via CLAUDE.md:
 @~/tandem-protocol/tandem-protocol-concise.md
 ```
 
-**You already have the protocol in context.** This command is just a memory jogger.
+**You already have the protocol in context.** Do NOT re-read tandem-protocol-concise.md or tandem-protocol.md - use what's in your context window. This command is just a memory jogger.
 
 ## Quick 5-Step Reference
 
@@ -28,7 +28,7 @@ The Tandem Protocol is loaded in context via CLAUDE.md:
 
 **Step 1:** Plan validation + approval
 - Present plan understanding
-- **Ask clarifying questions** (assumptions, alternatives, edge cases)
+- **⛔ BLOCKING: Ask clarifying questions** (assumptions, alternatives, edge cases)
 - Get explicit user approval ("proceed")
 - Create deliverable contract
 - Create TodoWrite structure

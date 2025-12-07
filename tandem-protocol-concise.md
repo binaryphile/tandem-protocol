@@ -18,7 +18,8 @@ flowchart TD
     READ --> R0
 
     S1 --> P1[Present understanding to user]
-    P1 --> A1{User approves plan?<br/>GATE 1}
+    P1 --> Q1[⛔ BLOCKING: Ask clarifying questions<br/>before creating contract]
+    Q1 --> A1{User approves plan?<br/>GATE 1}
     A1 -->|"Yes - proceed"| S2[▶ Step 2: Complete Deliverable]
     A1 -->|"Correct understanding"| P1
 
@@ -52,6 +53,7 @@ flowchart TD
     style S0 stroke:#4caf50,stroke-width:3px
     style S5D stroke:#4caf50,stroke-width:3px
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style Q1 fill:#ffebee,stroke:#f44336,stroke-width:3px
     style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style A4 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style E0 fill:#fff3e0
@@ -129,7 +131,7 @@ present("I understand the plan as: [summary]")
 present("Target files: [paths with line numbers]")
 present("Approach: [specific actions]")
 
-# Present clarifying questions (CRITICAL - ask before creating contract)
+# ⛔ BLOCKING: Ask clarifying questions before creating contract
 questions = identify_ambiguities()  # Assumptions, alternatives, edge cases
 if questions:
     present(f"""

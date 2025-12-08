@@ -17,11 +17,15 @@ flowchart TD
     DEL --> S1
     READ --> R0
 
-    S1 --> P1[Present understanding to user]
-    P1 --> Q1[⛔ BLOCKING: Ask clarifying questions<br/>before creating contract]
-    Q1 --> A1{User approves plan?<br/>GATE 1}
+    S1 --> S1a[Step 1a: Present understanding]
+    S1a --> S1b[⛔ Step 1b: Clarifying questions<br/>BLOCKING - must ask]
+    S1b --> S1bw{Answers received?}
+    S1bw -->|"No - wait"| S1b
+    S1bw -->|"Yes"| S1c[Step 1c: Create contract]
+    S1c --> S1d[Step 1d: Request approval]
+    S1d --> A1{User approves?<br/>GATE 1}
     A1 -->|"Yes - proceed"| S2[▶ Step 2: Complete Deliverable]
-    A1 -->|"Correct understanding"| P1
+    A1 -->|"Correct understanding"| S1a
 
     S2 --> CX{Complex with<br/>sub-phases?}
     CX -->|"Simple task"| S3
@@ -31,18 +35,20 @@ flowchart TD
     MORE -->|"Yes - continue"| SUB
     MORE -->|"No - all done"| S3
 
-    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present to User]
+    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present and Await]
 
-    S4 --> A4{User response?<br/>GATE 2}
+    S4 --> S4a[Step 4a: Present results]
+    S4a --> S4b[⛔ Step 4b: Await approval<br/>BLOCKING]
+    S4b --> A4{User response?<br/>GATE 2}
     A4 -->|"Approve - finalize"| S5[▶ Step 5: Post-Approval]
     A4 -->|"Grade first"| GR[Provide honest grade]
     A4 -->|"Improve work"| IMP[Make improvements]
     A4 -->|"Address feedback"| FB[Respond to comments]
     A4 -->|"Change plan"| S1
 
-    GR --> S4
-    IMP --> S4
-    FB --> S4
+    GR --> S4a
+    IMP --> S4a
+    FB --> S4a
 
     S5 --> S5A[5a: Mark APPROVED]
     S5A --> S5B[5b: Commit deliverable]
@@ -53,11 +59,13 @@ flowchart TD
     style S0 stroke:#4caf50,stroke-width:3px
     style S5D stroke:#4caf50,stroke-width:3px
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style Q1 fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style S4b fill:#ffebee,stroke:#f44336,stroke-width:3px
     style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style A4 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style E0 fill:#fff3e0
     style R0 fill:#fff3e0
+    style S1bw fill:#fff3e0
     style CX fill:#fff3e0
     style MORE fill:#fff3e0
 ```
@@ -125,103 +133,124 @@ else:
 
 ## Step 1: Plan Validation
 
+Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
+
+---
+
+### Step 1a: Present Understanding
+
 ```python
 # Present understanding to user
 present("I understand the plan as: [summary]")
 present("Target files: [paths with line numbers]")
 present("Approach: [specific actions]")
+```
 
+**NEXT ACTION:** Proceed to Step 1b (Clarifying Questions)
+
+---
+
+### Step 1b: Clarifying Questions ⛔ BLOCKING
+
+```python
 # ⛔ BLOCKING: Ask clarifying questions before creating contract
 questions = identify_ambiguities()  # Assumptions, alternatives, edge cases
-if questions:
-    present(f"""
+
+# Always ask at least one question - if no ambiguities, ask about:
+# - Scope boundaries ("Should X be included or excluded?")
+# - Success criteria ("How will we verify completion?")
+# - Edge cases ("What happens if Y?")
+
+present(f"""
 **Clarifying Questions:**
 {format_questions(questions)}
 """)
-    wait_for_answers()
-    update_understanding_with_answers()
 
-# Create contract file
+# WAIT - do not proceed until user answers
+wait_for_answers()
+update_understanding_with_answers()
+```
+
+**NEXT ACTION:** After receiving answers, proceed to Step 1c (Create Contract)
+
+---
+
+### Step 1c: Create Contract
+
+```python
+# Create contract file with embedded Step 1 checklist
 contract_file = create_file("phase-X-contract.md")
 
-# Write initial contract structure
 write_to_contract("""
 # Phase X Contract
+
+**Created:** [date]
+
+## Step 1 Checklist
+- [x] 1a: Presented understanding
+- [x] 1b: Asked clarifying questions
+- [x] 1b-answer: Received answers
+- [x] 1c: Contract created (this file)
+- [ ] 1d: Approval received
+
+## Objective
+[What this phase accomplishes]
 
 ## Success Criteria
 - [ ] Criterion 1
 - [ ] Criterion 2
-...
 
-## Implementation Approach
-Step 1: [action] (estimated tokens, time)
-Step 2: [action] (estimated tokens, time)
-...
+## Approach
+[Specific implementation steps]
 
 ## Token Budget
 Estimated: XX-XXK tokens
-
-# ⏸️ AWAITING STEP 1 APPROVAL
 """)
 
-# Optional: Create TodoWrite structure (if tool available)
+# Optional: Create TodoWrite structure
 if tool_available("TodoWrite"):
     TodoWrite({
         "todos": [
-            {
-                "content": "Phase X Step 1: Validate plan",
-                "status": "in_progress",
-                "activeForm": "Validating plan for Phase X"
-            },
-            {
-                "content": "Phase X Step 2: Complete deliverable",
-                "status": "pending",
-                "activeForm": "Completing deliverable for Phase X"
-            },
-            {
-                "content": "Phase X Step 3: Update contract",
-                "status": "pending",
-                "activeForm": "Updating contract for Phase X"
-            },
-            {
-                "content": "Phase X Step 4: Present and await approval",
-                "status": "pending",
-                "activeForm": "Presenting Phase X for approval"
-            },
-            {
-                "content": "Phase X Step 5: Post-approval actions",
-                "status": "pending",
-                "activeForm": "Completing post-approval actions for Phase X"
-            }
+            {"content": "Phase X Step 1: Validate plan", "status": "in_progress", "activeForm": "Validating plan"},
+            {"content": "Phase X Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
+            {"content": "Phase X Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
+            {"content": "Phase X Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
+            {"content": "Phase X Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
         ]
     })
+```
 
-# Present plan and next steps to user
+**NEXT ACTION:** Proceed to Step 1d (Request Approval)
+
+---
+
+### Step 1d: Request Approval
+
+```python
+# Present plan summary
 present(f"""
 ## Plan Ready for Approval
 
-**Contract file created:** {contract_file}
-**Success criteria:** [X items from contract file]
-**Estimated effort:** XX-XXK tokens
-
-### Approach Summary
-[Brief summary of implementation approach from contract file]
+**Contract:** {contract_file}
+**Objective:** [from contract]
+**Success criteria:** [count] items
 
 **Upon your approval, I will:**
-1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from contract
-2. Proceed to Step 2 (Complete deliverable)
-3. Update TodoWrite to mark Step 1 complete, Step 2 in_progress
+1. Mark Step 1 checklist complete (1d checked)
+2. Proceed to Step 2 (implementation)
 
 **May I proceed?**
 """)
 
-# Wait for explicit approval
+# WAIT for explicit approval
 wait_for("proceed", "yes", "approved")
 
-# After approval, update contract
-update_contract_footer("⏸️ AWAITING STEP 1 APPROVAL", "")
+# After approval
+update_contract_checklist("1d: Approval received", checked=True)
 proceed_to_step_2()
 ```
+
+**NEXT ACTION:** After receiving "proceed"/"yes"/"approved", go to Step 2
 
 ---
 
@@ -307,8 +336,12 @@ Deductions:
 - [issue]: -X points
 """)
 
-# Update footer
-update_contract_footer("", "# ⏸️ AWAITING USER APPROVAL")
+# Add Step 4 Checklist (tracks approval state)
+append_to_contract("""
+## Step 4 Checklist
+- [ ] 4a: Results presented to user
+- [ ] 4b: Approval received
+""")
 
 proceed_to_step_4()
 ```
@@ -317,7 +350,16 @@ proceed_to_step_4()
 
 ## Step 4: Present and Await Approval
 
+Step 4 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
+
+---
+
+### Step 4a: Present Results
+
 ```python
+# Mark checklist item
+update_contract_checklist("4a: Results presented to user", checked=True)
+
 # Present completion to user
 present(f"""
 ## Phase X Complete
@@ -331,53 +373,71 @@ present(f"""
 3. [Notable outcome]
 
 **Upon your approval, I will:**
-1. Mark contract as APPROVED
-2. Commit to git (or output to chat if web UI)
-3. Setup next phase
+1. Mark Step 4 checklist complete (4b checked)
+2. Proceed to Step 5 (commit and finalize)
 
 **May I proceed?**
 """)
+```
 
-# Wait for user review
+**NEXT ACTION:** Wait for user response, then proceed to Step 4b or handle feedback
+
+---
+
+### Step 4b: Await Approval ⛔ BLOCKING
+
+```python
+# WAIT for user response
 user_response = wait_for_response()
 
-if user_response == "approve":
+if user_response in ["approve", "proceed", "yes"]:
+    update_contract_checklist("4b: Approval received", checked=True)
     proceed_to_step_5()
 
 elif user_response == "grade":
     provide_grade_assessment()
-    # Loop back to wait for approval
+    # Loop back to Step 4a (re-present)
 
 elif user_response == "improve":
     make_improvements()
     update_contract()
-    re_present()
-    # Loop back to wait for approval
+    # Loop back to Step 4a (re-present)
 
 elif user_response == "feedback":
     address_feedback()
     update_contract()
-    re_present()
-    # Loop back to wait for approval
+    # Loop back to Step 4a (re-present)
 ```
+
+**NEXT ACTION:** After receiving "proceed"/"yes"/"approved", go to Step 5
 
 ---
 
 ## Step 5: Post-Approval Actions
 
-```python
-# 5a: Mark contract as APPROVED
-update_contract_footer(
-    "# ⏸️ AWAITING USER APPROVAL",
-    f"# ✅ APPROVED BY USER - {date}"
-)
+Step 5 has sub-steps (5a-5d) shown in the mermaid diagram. Execute sequentially.
 
+---
+
+### Step 5a: Mark Approved
+
+```python
+# Add approval record to contract
 append_to_contract(f"""
-User approved on {date}.
+## Approval
+✅ APPROVED BY USER - {date}
 Final results: [summary]
 """)
+```
 
-# 5b: Commit to version control (if available)
+**NEXT ACTION:** Proceed to Step 5b (Commit deliverable)
+
+---
+
+### Step 5b: Commit Deliverable
+
+```python
+# Commit to version control (if available)
 if has_git:
     git_add(deliverable_file)
     git_commit(f"""Phase X complete: [title]
@@ -389,55 +449,46 @@ Contract: {contract_filename}
 
 🤖 Generated with AI assistance
 """)
+```
 
-# 5c: Commit contract file or output to chat
+**NEXT ACTION:** Proceed to Step 5c (Handle contract)
+
+---
+
+### Step 5c: Handle Contract
+
+```python
 if web_ui:
     # For web UI: output contract to chat
     output_to_chat(contract_file_contents)
 else:
-    # For git environments: commit contract file
-    git_add(contract_file)
-    git_commit("Add Phase X contract")
+    # For git environments: delete contract file (it's been committed with deliverable)
+    rm(contract_file)
+```
 
-# 5d: Setup next phase
+**NEXT ACTION:** Proceed to Step 5d (Setup next phase)
+
+---
+
+### Step 5d: Setup Next Phase
+
+```python
+# Update TodoWrite for next phase
 if tool_available("TodoWrite"):
     TodoWrite({
         "todos": [
-            {
-                "content": "Phase X Step 5: Post-approval actions",
-                "status": "completed",
-                "activeForm": "Completing post-approval actions for Phase X"
-            },
-            {
-                "content": "Phase X+1 Step 1: Validate plan",
-                "status": "in_progress",
-                "activeForm": "Validating plan for Phase X+1"
-            },
-            {
-                "content": "Phase X+1 Step 2: Complete deliverable",
-                "status": "pending",
-                "activeForm": "Completing deliverable for Phase X+1"
-            },
-            {
-                "content": "Phase X+1 Step 3: Update contract",
-                "status": "pending",
-                "activeForm": "Updating contract for Phase X+1"
-            },
-            {
-                "content": "Phase X+1 Step 4: Present and await approval",
-                "status": "pending",
-                "activeForm": "Presenting Phase X+1 for approval"
-            },
-            {
-                "content": "Phase X+1 Step 5: Post-approval actions",
-                "status": "pending",
-                "activeForm": "Completing post-approval actions for Phase X+1"
-            }
+            {"content": "Phase X+1 Step 1: Validate plan", "status": "in_progress", "activeForm": "Validating plan"},
+            {"content": "Phase X+1 Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
+            {"content": "Phase X+1 Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
+            {"content": "Phase X+1 Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
+            {"content": "Phase X+1 Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
         ]
     })
 
 proceed_to_step_0()  # For next phase
 ```
+
+**NEXT ACTION:** Return to Step 0 for next phase
 
 ---
 

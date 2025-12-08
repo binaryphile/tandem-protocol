@@ -135,6 +135,12 @@ else:
 
 Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
 
+**Sub-steps:**
+- **1a:** Present plan understanding
+- **1b:** ⛔ BLOCKING: Ask clarifying questions (wait for answers)
+- **1c:** Create contract file → `phase-N-contract.md` in working directory
+- **1d:** Request approval (wait for "proceed")
+
 ---
 
 ### Step 1a: Present Understanding
@@ -177,9 +183,12 @@ update_understanding_with_answers()
 
 ### Step 1c: Create Contract
 
+**Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
+**Location:** Working directory (not a subdirectory)
+
 ```python
 # Create contract file with embedded Step 1 checklist
-contract_file = create_file("phase-X-contract.md")
+contract_file = create_file("phase-1-contract.md")  # phase-N-contract.md
 
 write_to_contract("""
 # Phase X Contract

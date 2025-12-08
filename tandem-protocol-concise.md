@@ -709,3 +709,7 @@ npm test 2>&1 | grep "Time:"
 - Works with or without plan-log (optional contract archiving)
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
+
+**Protocol modification consistency:**
+- When adding/changing a pattern in one step, review ALL steps for consistent application
+- Example: Adding sub-steps to Step 1 → check if Steps 2-5 need similar treatment

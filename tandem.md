@@ -44,7 +44,7 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 **Step 5:** Post-approval (4 sub-steps)
 - **5a:** Mark approved in contract
 - **5b:** Commit deliverable to git
-- **5c:** Delete contract file (or output to chat)
+- **5c:** Log contract to plan-log (if available), then delete
 - **5d:** Setup next phase
 
 ## Check Your Current Step

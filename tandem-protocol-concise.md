@@ -458,11 +458,15 @@ Contract: {contract_filename}
 ### Step 5c: Handle Contract
 
 ```python
+# Optional: Log contract to plan-log for history (if plan-log available)
+if plan_log_available:
+    plan_log(contract_file_contents)
+
 if web_ui:
     # For web UI: output contract to chat
     output_to_chat(contract_file_contents)
 else:
-    # For git environments: delete contract file (it's been committed with deliverable)
+    # For git environments: delete contract file
     rm(contract_file)
 ```
 
@@ -702,5 +706,6 @@ npm test 2>&1 | grep "Time:"
 **Platform flexibility:**
 - Works with or without git
 - Works with or without TodoWrite
+- Works with or without plan-log (optional contract archiving)
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools

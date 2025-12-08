@@ -3,24 +3,20 @@ description: "Tandem Protocol reminder - check current step and ensure complianc
 ---
 
 <system-reminder>
-After reading this, check your current step in the Tandem Protocol and ensure compliance with the 5-step workflow.
+Your mental model of the Tandem Protocol may not match the actual spec. Refresh your understanding by finding and reading the relevant step from the protocol text already in your context.
+
+**REQUIRED:** Before taking any action, find the relevant step section in your context (from ~/projects/share/tandem-protocol/tandem-protocol-concise.md) and quote it. Do NOT use the Read tool - the file is already loaded.
 </system-reminder>
 
 # Tandem Protocol Reminder
 
-## Protocol Location
+## Refresh Your Mental Model
 
-The Tandem Protocol is loaded in context via CLAUDE.md:
+You have a mental model of the protocol, but if you're seeing this reminder, the model isn't being followed correctly. **Find and read the actual protocol text in your context window.**
 
-```
-# Full version (with background & examples):
-@~/tandem-protocol/tandem-protocol.md
+**Protocol file:** `~/projects/share/tandem-protocol/tandem-protocol-concise.md` (already in context - do NOT re-read with Read tool)
 
-# OR Concise version (mechanics only):
-@~/tandem-protocol/tandem-protocol-concise.md
-```
-
-**You already have the protocol in context.** Do NOT re-read tandem-protocol-concise.md or tandem-protocol.md - use what's in your context window. This command is just a memory jogger.
+**Before proceeding:** Find the section for your current step in context and quote it in your response. This ensures you're working from the spec, not from memory.
 
 ## Quick 5-Step Reference
 
@@ -67,3 +63,4 @@ The Tandem Protocol is loaded in context via CLAUDE.md:
 - **Step 4→5 violations:** Never proceed to logging/committing without "yes"/"approved"/"proceed"
 - **Feedback = Plan Change:** User feedback that changes scope/approach → return to Step 1
 - **TodoWrite sync:** Keep TodoWrite updated in real-time
+- **Mental model drift:** Don't assume you know the protocol - read the actual text

@@ -622,6 +622,13 @@ npm test 2>&1 | grep "Time:"
 
 ## Protocol Principles
 
+**Contracts are single-phase scoped:**
+- Each contract covers ONE phase only
+- Planning for subsequent phases is deferred until the current phase is approved
+- This structurally prevents skipping checkpoints between phases
+- After Phase N approval → Step 1 for Phase N+1 (plan, clarify, get approval)
+- Never pre-plan multiple phases in one contract
+
 **Deliverable contracts are the primary artifact:**
 - Create at Step 1, update at Step 3, finalize at Step 5
 - Commit to git or output to chat (for web UI)

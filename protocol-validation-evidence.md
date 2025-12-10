@@ -46,7 +46,7 @@
 - [x] Fix 3+6 (T3+T6): Update /tandem command with questions prompt + feedback rule (lines 31, 65, 68)
 
 ## Phase 3: Rename Evidence → Deliverable Contracts
-- [x] Update tandem-protocol-concise.md (all references changed)
+- [x] Update tandem-protocol.md (all references changed)
 - [x] Update README.md (all references changed)
 - [x] Update tandem.md (all references changed)
 - [x] Update file naming convention references (*-contract.md pattern)

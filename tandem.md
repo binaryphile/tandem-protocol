@@ -5,7 +5,7 @@ description: "Tandem Protocol reminder - check current step and ensure complianc
 <system-reminder>
 Your mental model of the Tandem Protocol may not match the actual spec. Refresh your understanding by finding and reading the relevant step from the protocol text already in your context.
 
-**REQUIRED:** Before taking any action, find the relevant step section in your context (from ~/projects/share/tandem-protocol/tandem-protocol-concise.md) and quote it. Do NOT use the Read tool - the file is already loaded.
+**REQUIRED:** Before taking any action, find the relevant step section in your context (from ~/projects/share/tandem-protocol/tandem-protocol.md) and quote it. Do NOT use the Read tool - the file is already loaded.
 </system-reminder>
 
 # Tandem Protocol Reminder
@@ -14,7 +14,7 @@ Your mental model of the Tandem Protocol may not match the actual spec. Refresh 
 
 You have a mental model of the protocol, but if you're seeing this reminder, the model isn't being followed correctly. **Find and read the actual protocol text in your context window.**
 
-**Protocol file:** `~/projects/share/tandem-protocol/tandem-protocol-concise.md` (already in context - do NOT re-read with Read tool)
+**Protocol file:** `~/projects/share/tandem-protocol/tandem-protocol.md` (already in context - do NOT re-read with Read tool)
 
 **Before proceeding:** Find the section for your current step in context and quote it in your response. This ensures you're working from the spec, not from memory.
 

@@ -77,6 +77,7 @@ flowchart TD
 
 ```python
 # Check for leftover contracts from previous incomplete work
+# Look in the current project directory (where deliverables will be created)
 contract_files = ls("*-contract.md", "*-completion-contract.md")
 
 if len(contract_files) > 0:
@@ -184,11 +185,12 @@ update_understanding_with_answers()
 ### Step 1c: Create Contract
 
 **Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
-**Location:** Working directory (not a subdirectory)
+**Location:** Project directory (where the deliverable will be created, to make it git-able)
 
 ```python
-# Create contract file with embedded Step 1 checklist
-contract_file = create_file("phase-1-contract.md")  # phase-N-contract.md
+# Create contract file in project directory (where deliverables will be created)
+# This makes it git-able and collocated with the work
+contract_file = create_file("phase-1-contract.md")  # phase-N-contract.md in project dir
 
 write_to_contract("""
 # Phase X Contract
@@ -216,17 +218,23 @@ write_to_contract("""
 Estimated: XX-XXK tokens
 """)
 
-# Optional: Create TodoWrite structure
+# Create TodoWrite with hierarchical structure: current substeps + remaining steps
 if tool_available("TodoWrite"):
     TodoWrite({
         "todos": [
-            {"content": "Phase X Step 1: Validate plan", "status": "in_progress", "activeForm": "Validating plan"},
-            {"content": "Phase X Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
-            {"content": "Phase X Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
-            {"content": "Phase X Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
-            {"content": "Phase X Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
+            # Current step (Step 1) blown out to substeps
+            {"content": "Step 1a: Present plan understanding", "status": "completed", "activeForm": "Presenting plan understanding"},
+            {"content": "Step 1b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
+            {"content": "Step 1c: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
+            {"content": "Step 1d: Request approval to proceed", "status": "pending", "activeForm": "Requesting approval to proceed"},
+            # Remaining steps (collapsed)
+            {"content": "Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
+            {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
+            {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
+            {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
         ]
     })
+    # After Step 1 complete: telescope (remove substeps, mark Step 1 complete, blow out Step 2)
 ```
 
 **NEXT ACTION:** Proceed to Step 1d (Request Approval)
@@ -486,17 +494,13 @@ else:
 ### Step 5d: Setup Next Phase
 
 ```python
-# Update TodoWrite for next phase
+# Clear Step 5 sub-steps, prepare for next phase
 if tool_available("TodoWrite"):
+    # Clear current phase todos, start Step 0/1 for next phase
     TodoWrite({
-        "todos": [
-            {"content": "Phase X+1 Step 1: Validate plan", "status": "in_progress", "activeForm": "Validating plan"},
-            {"content": "Phase X+1 Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
-            {"content": "Phase X+1 Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
-            {"content": "Phase X+1 Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
-            {"content": "Phase X+1 Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
-        ]
+        "todos": []  # Empty - will be populated at Step 1 of next phase
     })
+    # Note: Next phase will blow out Step 1's sub-steps (1a, 1b, 1c, 1d)
 
 proceed_to_step_0()  # For next phase
 ```
@@ -711,6 +715,59 @@ npm test 2>&1 | grep "Time:"
 **BLOCKING checkpoints:**
 - Multi-phase tasks: Update contract after EACH sub-phase
 - Cannot proceed without contract update + user confirmation
+
+**TodoWrite hierarchical telescoping pattern:**
+- Always show the full hierarchy: remaining phases → remaining steps → current substeps
+- Blow out children at each level as you enter it
+- Telescope up (remove children, mark parent complete) when a level finishes
+- This maintains context of the overall plan while focusing on current atomic work
+
+**Example: 2 phases, 2 steps/phase, 2 substeps/step**
+
+Phase 1, Step 1 start (blow out substeps):
+```
+[ ] Phase 1, Step 1, Substep 1a  ← in_progress
+[ ] Phase 1, Step 1, Substep 1b
+[ ] Phase 1, Step 2
+[ ] Phase 2
+```
+
+After completing 1a:
+```
+[x] Phase 1, Step 1, Substep 1a
+[ ] Phase 1, Step 1, Substep 1b  ← in_progress
+[ ] Phase 1, Step 2
+[ ] Phase 2
+```
+
+After completing Step 1 (telescope: remove substeps, mark Step 1 complete):
+```
+[x] Phase 1, Step 1
+[ ] Phase 1, Step 2  ← in_progress
+[ ] Phase 2
+```
+
+Phase 1, Step 2 start (blow out substeps):
+```
+[x] Phase 1, Step 1
+[ ] Phase 1, Step 2, Substep 2a  ← in_progress
+[ ] Phase 1, Step 2, Substep 2b
+[ ] Phase 2
+```
+
+After completing Phase 1 (telescope: remove steps, mark Phase 1 complete):
+```
+[x] Phase 1
+[ ] Phase 2  ← in_progress
+```
+
+Phase 2 start (blow out steps and substeps):
+```
+[x] Phase 1
+[ ] Phase 2, Step 1, Substep 1a  ← in_progress
+[ ] Phase 2, Step 1, Substep 1b
+[ ] Phase 2, Step 2
+```
 
 **Platform flexibility:**
 - Works with or without git

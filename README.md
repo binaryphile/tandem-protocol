@@ -60,7 +60,7 @@ Install anywhere, then reference with tilde or absolute path in your project's C
 
 Invoke 1-2 times early in your session, or whenever you notice protocol drift:
 
-- At session start (before planning)
+- At session start (before planning): `/tandem make a plan to...` (arguments to the command are just taken as regular prompts by the LLM, so you're just tacking a protocol reminder onto your request)
 - When the LLM skips steps or doesn't adhere to the presentation formats (e.g., doesn't specifically ask "May I proceed?")
 - When you have lost track of the current step
 - After context compaction
@@ -95,7 +95,7 @@ The three patterns below show different levels of quality assurance. Use simpler
 
 **What's the difference between plan and contract?**
 - **Plan:** "I will do X using approach Y" (LLM writes this in Step 1, before work starts)
-- **Contract:** "I did X using approach Y, results were A/B/C, grade: B+" (LLM updates this in Step 3-5, after work completes)
+- **Contract:** "[ ] I did X using approach Y, results were A/B/C, grade: B+" (LLM checks the box in Step 3-5, after work completes)
 
 **Why use deliverable contracts?**
 They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first name their deliverables, and are then required to measure their completion by acknowledging each result explicitly and individually.
@@ -133,7 +133,7 @@ flowchart TD
 
 At any gate, instead of approving immediately, you can ask the LLM to grade its own work and improve it. This creates a feedback loop that catches issues before they compound. The LLM provides a letter grade with specific deductions, then automatically addresses those gaps.
 
-Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after getting a response.
+Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after getting a response.  *Always prompt "grade your work" separately from the request you are grading*.  For example, don't prompt "do X and grade your work".  Bundled grading requests are almost always more forgiving ("perfect A!") than a separate prompt.
 
 ```mermaid
 flowchart LR
@@ -170,7 +170,7 @@ flowchart TD
     style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
 ```
 
-**Pattern 3 (Enhanced QA)** would be to add a grading cycle at the Planning Gate as well—useful for complex or high-stakes work where you want to validate the approach before implementation begins. This is generally preferable to multiple grading cycles on a single gate.
+**Pattern 3 (Enhanced QA)** would be to add a grading cycle at the Planning Gate as well—useful for complex or high-stakes work where you want to validate the approach before implementation begins. Covering both gates is generally preferable to multiple grading cycles on one of the gates without any on the other.
 
 ### Example: Pattern 2 in Action
 

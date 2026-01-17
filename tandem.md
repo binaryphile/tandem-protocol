@@ -34,3 +34,12 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 - **Feedback = Plan Change:** User feedback that changes scope/approach → return to Step 1
 - **TodoWrite drift:** Keep TodoWrite updated in real-time
 - **Mental model drift:** Don't assume you know the protocol - quote the actual sub-step text
+
+## Step 5c Reminder
+
+Archive the contract before deleting:
+```bash
+echo -e "\n---\n## Archived: $(date -I)\n" >> plan-history.md
+cat phase-N-contract.md >> plan-history.md
+rm phase-N-contract.md
+```

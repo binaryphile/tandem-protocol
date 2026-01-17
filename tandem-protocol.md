@@ -52,7 +52,7 @@ flowchart TD
 
     S5 --> S5A[5a: Mark APPROVED]
     S5A --> S5B[5b: Commit deliverable]
-    S5B --> S5C2[5c: Append/output contract]
+    S5B --> S5C2[5c: Archive to plan-history.md]
     S5C2 --> S5D[5d: Setup next phase]
     S5D --> S0
 
@@ -475,16 +475,22 @@ Contract: {contract_filename}
 ### Step 5c: Handle Contract
 
 ```python
-# Optional: Log contract to plan-log for history (if plan-log available)
-if plan_log_available:
-    plan_log(contract_file_contents)
-
+# Archive contract to plan history, then delete
 if web_ui:
-    # For web UI: output contract to chat
     output_to_chat(contract_file_contents)
 else:
-    # For git environments: delete contract file
+    # Append separator + timestamp + contract to history file
+    echo("\n---\n")              >> "plan-history.md"
+    echo(f"## Archived: {date}") >> "plan-history.md"
+    cat(contract_file)           >> "plan-history.md"
     rm(contract_file)
+```
+
+**Bash equivalent:**
+```bash
+echo -e "\n---\n## Archived: $(date -I)\n" >> plan-history.md
+cat phase-N-contract.md >> plan-history.md
+rm phase-N-contract.md
 ```
 
 **NEXT ACTION:** Proceed to Step 5d (Setup next phase)
@@ -772,7 +778,7 @@ Phase 2 start (blow out steps and substeps):
 **Platform flexibility:**
 - Works with or without git
 - Works with or without TodoWrite
-- Works with or without plan-log (optional contract archiving)
+- Contract history appended to `plan-history.md` at Step 5c
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
 

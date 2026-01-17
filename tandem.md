@@ -35,11 +35,13 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 - **TodoWrite drift:** Keep TodoWrite updated in real-time
 - **Mental model drift:** Don't assume you know the protocol - quote the actual sub-step text
 
-## Step 5c Reminder
+## Step 5b/5c Reminder
 
-Archive the contract before deleting:
+**5b: Archive** (before commit so history is included):
 ```bash
 echo -e "\n---\n## Archived: $(date -I)\n" >> plan-history.md
 cat phase-N-contract.md >> plan-history.md
 rm phase-N-contract.md
 ```
+
+**5c: Commit** deliverable AND plan-history.md together.

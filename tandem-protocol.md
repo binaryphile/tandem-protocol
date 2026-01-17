@@ -9,11 +9,12 @@ flowchart TD
     E0 -->|"None - Clean slate"| S1[▶ Step 1: Plan Validation]
     E0 -->|"Found - Protocol violation"| R0{Recovery Options<br/>Complete/Abandon/Investigate}
 
-    R0 -->|"Complete previous work"| S5C[Append contract to log]
+    %% ARC does same operation as S5B (archive) but for recovery path
+    R0 -->|"Complete previous work"| ARC[Archive contract to log]
     R0 -->|"Abandon previous work"| DEL[Delete contract file]
     R0 -->|"Investigate first"| READ[Read contract file]
 
-    S5C --> S1
+    ARC --> S1
     DEL --> S1
     READ --> R0
 
@@ -51,9 +52,9 @@ flowchart TD
     FB --> S4a
 
     S5 --> S5A[5a: Mark APPROVED]
-    S5A --> S5B[5b: Commit deliverable]
-    S5B --> S5C2[5c: Archive to plan-history.md]
-    S5C2 --> S5D[5d: Setup next phase]
+    S5A --> S5B[5b: Archive to plan-history.md]
+    S5B --> S5C[5c: Commit deliverable + archive]
+    S5C --> S5D[5d: Setup next phase]
     S5D --> S0
 
     style S0 stroke:#4caf50,stroke-width:3px
@@ -447,32 +448,13 @@ Final results: [summary]
 """)
 ```
 
-**NEXT ACTION:** Proceed to Step 5b (Commit deliverable)
+**NEXT ACTION:** Proceed to Step 5b (Archive contract)
 
 ---
 
-### Step 5b: Commit Deliverable
+### Step 5b: Archive Contract
 
-```python
-# Commit to version control (if available)
-if has_git:
-    git_add(deliverable_file)
-    git_commit(f"""Phase X complete: [title]
-
-[Summary of work]
-[Key results]
-
-Contract: {contract_filename}
-
-🤖 Generated with AI assistance
-""")
-```
-
-**NEXT ACTION:** Proceed to Step 5c (Handle contract)
-
----
-
-### Step 5c: Handle Contract
+Archive the contract BEFORE committing so the history is included in the commit.
 
 ```python
 # Archive contract to plan history, then delete
@@ -491,6 +473,30 @@ else:
 echo -e "\n---\n## Archived: $(date -I)\n" >> plan-history.md
 cat phase-N-contract.md >> plan-history.md
 rm phase-N-contract.md
+```
+
+**NEXT ACTION:** Proceed to Step 5c (Commit deliverable)
+
+---
+
+### Step 5c: Commit Deliverable
+
+Commit deliverable AND the updated plan-history.md together.
+
+```python
+# Commit to version control (if available)
+if has_git:
+    git_add(deliverable_file)
+    git_add("plan-history.md")  # Include archived contract
+    git_commit(f"""Phase X complete: [title]
+
+[Summary of work]
+[Key results]
+
+Contract: archived to plan-history.md
+
+🤖 Generated with AI assistance
+""")
 ```
 
 **NEXT ACTION:** Proceed to Step 5d (Setup next phase)
@@ -778,7 +784,7 @@ Phase 2 start (blow out steps and substeps):
 **Platform flexibility:**
 - Works with or without git
 - Works with or without TodoWrite
-- Contract history appended to `plan-history.md` at Step 5c
+- Contract history appended to `plan-history.md` at Step 5b
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
 

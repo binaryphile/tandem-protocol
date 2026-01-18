@@ -25,7 +25,8 @@ flowchart TD
     S1bw -->|"Yes"| S1c[Step 1c: Create contract]
     S1c --> S1d[Step 1d: Request approval]
     S1d --> A1{User approves?<br/>GATE 1}
-    A1 -->|"Yes - proceed"| S2[▶ Step 2: Complete Deliverable]
+    A1 -->|"Yes - proceed"| S1e[Step 1e: Archive plan + contract]
+    S1e --> S2[▶ Step 2: Complete Deliverable]
     A1 -->|"Correct understanding"| S1a
 
     S2 --> CX{Complex with<br/>sub-phases?}
@@ -52,13 +53,14 @@ flowchart TD
     FB --> S4a
 
     S5 --> S5A[5a: Mark APPROVED]
-    S5A --> S5B[5b: Archive to plan-history.md]
+    S5A --> S5B[5b: Archive to plan-log.md]
     S5B --> S5C[5c: Commit deliverable + archive]
     S5C --> S5D[5d: Setup next phase]
     S5D --> S0
 
     style S0 stroke:#4caf50,stroke-width:3px
     style S5D stroke:#4caf50,stroke-width:3px
+    style S1e fill:#e8f5e9,stroke:#4caf50
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
     style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
     style S4b fill:#ffebee,stroke:#f44336,stroke-width:3px
@@ -115,20 +117,16 @@ if len(contract_files) > 0:
         if approved:
             commit_to_git(contract_file)  # or output to chat
             rm(contract_file)
-        proceed_to_step_1()
 
     elif choice == "abandon":
         rm(contract_file)
         print("Contract deleted. Previous work abandoned.")
-        proceed_to_step_1()
 
     elif choice == "investigate":
         read(contract_file)
         # Loop back to options after investigation
 
-else:
-    # Clean slate - proceed normally
-    proceed_to_step_1()
+# Clean slate or recovery complete - see diagram for next step
 ```
 
 ---
@@ -142,6 +140,7 @@ Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-ste
 - **1b:** ⛔ BLOCKING: Ask clarifying questions (wait for answers)
 - **1c:** Create contract file → `phase-N-contract.md` in working directory
 - **1d:** Request approval (wait for "proceed")
+- **1e:** Archive approved plan + contract to plan-log.md
 
 ---
 
@@ -153,8 +152,6 @@ present("I understand the plan as: [summary]")
 present("Target files: [paths with line numbers]")
 present("Approach: [specific actions]")
 ```
-
-**NEXT ACTION:** Proceed to Step 1b (Clarifying Questions)
 
 ---
 
@@ -179,8 +176,6 @@ wait_for_answers()
 update_understanding_with_answers()
 ```
 
-**NEXT ACTION:** After receiving answers, proceed to Step 1c (Create Contract)
-
 ---
 
 ### Step 1c: Create Contract
@@ -204,6 +199,7 @@ write_to_contract("""
 - [x] 1b-answer: Received answers
 - [x] 1c: Contract created (this file)
 - [ ] 1d: Approval received
+- [ ] 1e: Plan + contract archived
 
 ## Objective
 [What this phase accomplishes]
@@ -228,6 +224,7 @@ if tool_available("TodoWrite"):
             {"content": "Step 1b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
             {"content": "Step 1c: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
             {"content": "Step 1d: Request approval to proceed", "status": "pending", "activeForm": "Requesting approval to proceed"},
+            {"content": "Step 1e: Archive plan + contract", "status": "pending", "activeForm": "Archiving plan and contract"},
             # Remaining steps (collapsed)
             {"content": "Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
             {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
@@ -237,8 +234,6 @@ if tool_available("TodoWrite"):
     })
     # After Step 1 complete: telescope (remove substeps, mark Step 1 complete, blow out Step 2)
 ```
-
-**NEXT ACTION:** Proceed to Step 1d (Request Approval)
 
 ---
 
@@ -262,13 +257,44 @@ present(f"""
 
 # WAIT for explicit approval
 wait_for("proceed", "yes", "approved")
-
-# After approval
-update_contract_checklist("1d: Approval received", checked=True)
-proceed_to_step_2()
 ```
 
-**NEXT ACTION:** After receiving "proceed"/"yes"/"approved", go to Step 2
+---
+
+### Step 1e: Archive Approved Plan + Contract
+
+Archive the approved plan and contract BEFORE starting implementation. This captures "what we agreed to."
+
+```python
+# After approval received
+update_contract_checklist("1d: Approval received", checked=True)
+
+# Archive approved plan + contract (COPY, don't delete)
+if plan_mode_file_exists:
+    echo("\n---\n")                      >> "plan-log.md"
+    echo(f"## Approved Plan: {date}\n")  >> "plan-log.md"
+    cat(plan_file)                       >> "plan-log.md"
+    # Don't delete - Claude Code manages plan file automatically
+
+echo("\n---\n")                          >> "plan-log.md"
+echo(f"## Approved Contract: {date}\n")  >> "plan-log.md"
+cat(contract_file)                       >> "plan-log.md"
+# Don't delete - contract is working document for Steps 2-4
+
+update_contract_checklist("1e: Plan + contract archived", checked=True)
+```
+
+**Bash equivalent:**
+```bash
+# If plan file exists (from plan mode)
+if [ -f "$PLAN_FILE" ]; then
+    echo -e "\n---\n## Approved Plan: $(date -I)\n" >> plan-log.md
+    cat "$PLAN_FILE" >> plan-log.md
+fi
+
+echo -e "\n---\n## Approved Contract: $(date -I)\n" >> plan-log.md
+cat phase-N-contract.md >> plan-log.md
+```
 
 ---
 
@@ -293,8 +319,6 @@ if has_sub_phases:
 # For simple tasks
 else:
     complete_task()
-
-proceed_to_step_3()
 ```
 
 ---
@@ -360,8 +384,6 @@ append_to_contract("""
 - [ ] 4a: Results presented to user
 - [ ] 4b: Approval received
 """)
-
-proceed_to_step_4()
 ```
 
 ---
@@ -398,8 +420,6 @@ present(f"""
 """)
 ```
 
-**NEXT ACTION:** Wait for user response, then proceed to Step 4b or handle feedback
-
 ---
 
 ### Step 4b: Await Approval ⛔ BLOCKING
@@ -410,7 +430,6 @@ user_response = wait_for_response()
 
 if user_response in ["approve", "proceed", "yes"]:
     update_contract_checklist("4b: Approval received", checked=True)
-    proceed_to_step_5()
 
 elif user_response == "grade":
     provide_grade_assessment()
@@ -426,8 +445,6 @@ elif user_response == "feedback":
     update_contract()
     # Loop back to Step 4a (re-present)
 ```
-
-**NEXT ACTION:** After receiving "proceed"/"yes"/"approved", go to Step 5
 
 ---
 
@@ -448,13 +465,11 @@ Final results: [summary]
 """)
 ```
 
-**NEXT ACTION:** Proceed to Step 5b (Archive contract)
-
 ---
 
-### Step 5b: Archive Contract
+### Step 5b: Archive Contract + Write Log Entry
 
-Archive the contract BEFORE committing so the history is included in the commit.
+Archive the contract BEFORE committing so the history is included in the commit. Also write a standalone log entry for readers unfamiliar with the conversation.
 
 ```python
 # Archive contract to plan history, then delete
@@ -462,44 +477,76 @@ if web_ui:
     output_to_chat(contract_file_contents)
 else:
     # Append separator + timestamp + contract to history file
-    echo("\n---\n")              >> "plan-history.md"
-    echo(f"## Archived: {date}") >> "plan-history.md"
-    cat(contract_file)           >> "plan-history.md"
+    echo("\n---\n")              >> "plan-log.md"
+    echo(f"## Archived: {date}") >> "plan-log.md"
+    cat(contract_file)           >> "plan-log.md"
     rm(contract_file)
+
+# Write standalone log entry for external readers (same file, after contract)
+log_entry = f"""
+---
+
+## Log: {date} - [Phase title]
+
+**What was done:**
+[1-3 sentence summary for someone unfamiliar with the conversation]
+
+**Key files changed:**
+- [file1]: [brief description]
+- [file2]: [brief description]
+
+**Why it matters:**
+[1 sentence on purpose/impact]
+"""
+echo(log_entry) >> "plan-log.md"
 ```
 
 **Bash equivalent:**
 ```bash
-echo -e "\n---\n## Archived: $(date -I)\n" >> plan-history.md
-cat phase-N-contract.md >> plan-history.md
+echo -e "\n---\n## Archived: $(date -I)\n" >> plan-log.md
+cat phase-N-contract.md >> plan-log.md
 rm phase-N-contract.md
-```
 
-**NEXT ACTION:** Proceed to Step 5c (Commit deliverable)
+# Log entry for external readers
+cat >> plan-log.md << 'EOF'
+
+---
+
+## Log: YYYY-MM-DD - Phase title
+
+**What was done:**
+[Summary for unfamiliar readers]
+
+**Key files changed:**
+- file1: changes
+- file2: changes
+
+**Why it matters:**
+[Purpose/impact]
+EOF
+```
 
 ---
 
 ### Step 5c: Commit Deliverable
 
-Commit deliverable AND the updated plan-history.md together.
+Commit deliverable AND the updated plan-log.md together.
 
 ```python
 # Commit to version control (if available)
 if has_git:
     git_add(deliverable_file)
-    git_add("plan-history.md")  # Include archived contract
+    git_add("plan-log.md")  # Contains archived contract + log entry
     git_commit(f"""Phase X complete: [title]
 
 [Summary of work]
 [Key results]
 
-Contract: archived to plan-history.md
+Contract: archived to plan-log.md
 
 🤖 Generated with AI assistance
 """)
 ```
-
-**NEXT ACTION:** Proceed to Step 5d (Setup next phase)
 
 ---
 
@@ -513,11 +560,7 @@ if tool_available("TodoWrite"):
         "todos": []  # Empty - will be populated at Step 1 of next phase
     })
     # Note: Next phase will blow out Step 1's sub-steps (1a, 1b, 1c, 1d)
-
-proceed_to_step_0()  # For next phase
 ```
-
-**NEXT ACTION:** Return to Step 0 for next phase
 
 ---
 
@@ -784,10 +827,21 @@ Phase 2 start (blow out steps and substeps):
 **Platform flexibility:**
 - Works with or without git
 - Works with or without TodoWrite
-- Contract history appended to `plan-history.md` at Step 5b
+- Contract history appended to `plan-log.md` at Step 5b
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
 
 **Protocol modification consistency:**
 - When adding/changing a pattern in one step, review ALL steps for consistent application
 - Example: Adding sub-steps to Step 1 → check if Steps 2-5 need similar treatment
+
+**Diagram is source of truth for transitions:**
+- The mermaid flowchart defines all step transitions
+- Do not duplicate transition info in prose or code blocks
+- Refer to diagram for "what comes next"
+
+**Two-checkpoint archiving:**
+- Checkpoint 1 (Step 1e): Copies approved plan + contract as "what we agreed to"
+- Checkpoint 2 (Step 5b): Archives completed contract as "what we delivered", then deletes
+- Plan file: Managed by Claude Code, protocol just copies for history
+- Contract file: Kept as working document until completion

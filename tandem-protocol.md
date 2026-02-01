@@ -22,10 +22,10 @@ flowchart TD
     S1a --> S1b[⛔ Step 1b: Clarifying questions<br/>BLOCKING - must ask]
     S1b --> S1bw{Answers received?}
     S1bw -->|"No - wait"| S1b
-    S1bw -->|"Yes"| S1c[Step 1c: Create contract]
-    S1c --> S1d[Step 1d: Request approval]
-    S1d --> A1{User approves?<br/>GATE 1}
-    A1 -->|"Yes - proceed"| S1e[Step 1e: Archive plan + contract]
+    S1bw -->|"Yes"| S1c[Step 1c: Request approval]
+    S1c --> A1{User approves?<br/>GATE 1}
+    A1 -->|"Yes - proceed"| S1d[Step 1d: Create contract]
+    S1d --> S1e[Step 1e: Archive plan + contract]
     S1e --> S2[▶ Step 2: Complete Deliverable]
     A1 -->|"Correct understanding"| S1a
 
@@ -81,7 +81,7 @@ flowchart TD
 ```python
 # Check for leftover contracts from previous incomplete work
 # Look in the current project directory (where deliverables will be created)
-contract_files = ls("*-contract.md", "*-completion-contract.md")
+contract_files = ls("*-contract.md")
 
 if len(contract_files) > 0:
     # Protocol violation detected - previous work incomplete
@@ -126,6 +126,15 @@ if len(contract_files) > 0:
         read(contract_file)
         # Loop back to options after investigation
 
+# Also clean up plan files for multi-phase work
+if plan_file_exists:
+    # Remove completed phases from plan file (keep only current + future phases)
+    # Completed phases are already archived in plan-log.md
+    completed_phases = find_phases_marked_complete(plan_file)
+    if len(completed_phases) > 0:
+        remove_completed_phases(plan_file)
+        print(f"Removed {len(completed_phases)} completed phases from plan file")
+
 # Clean slate or recovery complete - see diagram for next step
 ```
 
@@ -138,9 +147,15 @@ Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-ste
 **Sub-steps:**
 - **1a:** Present plan understanding
 - **1b:** ⛔ BLOCKING: Ask clarifying questions (wait for answers)
-- **1c:** Create contract file → `phase-N-contract.md` in working directory
-- **1d:** Request approval (wait for "proceed")
+- **1c:** Request approval (wait for "proceed")
+- **1d:** Create contract file → `phase-N-contract.md` in working directory
 - **1e:** Archive approved plan + contract to plan-log.md
+
+**Note:** Contract creation (1d) comes AFTER approval (1c). The two files serve different purposes:
+- **Plan file** (`~/.claude/plans/`): HOW - approach, methodology, research strategy
+- **Contract file** (`project-dir/phase-N-contract.md`): WHAT - scope, deliverables, success criteria
+
+Iterate on the plan until approved, then lock scope into a contract.
 
 ---
 
@@ -178,7 +193,32 @@ update_understanding_with_answers()
 
 ---
 
-### Step 1c: Create Contract
+### Step 1c: Request Approval
+
+```python
+# Present plan summary for approval
+present(f"""
+## Plan Ready for Approval
+
+**Objective:** [from understanding]
+**Success criteria:** [count] items
+**Approach:** [summary]
+
+**Upon your approval, I will:**
+1. Create contract file capturing this scope
+2. Archive plan + contract
+3. Proceed to Step 2 (implementation)
+
+**May I proceed?**
+""")
+
+# WAIT for explicit approval
+wait_for("proceed", "yes", "approved")
+```
+
+---
+
+### Step 1d: Create Contract
 
 **Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
 **Location:** Project directory (where the deliverable will be created, to make it git-able)
@@ -197,8 +237,8 @@ write_to_contract("""
 - [x] 1a: Presented understanding
 - [x] 1b: Asked clarifying questions
 - [x] 1b-answer: Received answers
-- [x] 1c: Contract created (this file)
-- [ ] 1d: Approval received
+- [x] 1c: Approval received
+- [x] 1d: Contract created (this file)
 - [ ] 1e: Plan + contract archived
 
 ## Objective
@@ -222,8 +262,8 @@ if tool_available("TodoWrite"):
             # Current step (Step 1) blown out to substeps
             {"content": "Step 1a: Present plan understanding", "status": "completed", "activeForm": "Presenting plan understanding"},
             {"content": "Step 1b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
-            {"content": "Step 1c: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
-            {"content": "Step 1d: Request approval to proceed", "status": "pending", "activeForm": "Requesting approval to proceed"},
+            {"content": "Step 1c: Request approval", "status": "completed", "activeForm": "Requesting approval"},
+            {"content": "Step 1d: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
             {"content": "Step 1e: Archive plan + contract", "status": "pending", "activeForm": "Archiving plan and contract"},
             # Remaining steps (collapsed)
             {"content": "Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
@@ -237,27 +277,113 @@ if tool_available("TodoWrite"):
 
 ---
 
-### Step 1d: Request Approval
+### Guide Compliance Invariants
+
+When generating a phase plan for code implementation, automatically extract verification invariants from applicable guides and include them as TodoWrite items. This ensures compliance checkpoints are never forgotten.
+
+**Process:**
+1. Identify which guides apply to this phase (Go Dev, FP, ES, Khorikov, etc.)
+2. Read each guide and extract invariants that require verification
+3. Generate TodoWrite items for each invariant at the appropriate step
+4. Insert these as substeps within Step 2 (implementation) or Step 3 (verification)
+
+**Common Guide Invariants (extract when applicable):**
+
+| Guide | Invariant | When | TodoWrite JSON |
+|-------|-----------|------|----------------|
+| Go Dev | Benchmarks for calculations | After implementing calculations | `{"content": "Add benchmarks for new calculation functions", "status": "pending", "activeForm": "Adding benchmarks"}` |
+| Go Dev | Coverage check | Before presenting | `{"content": "Run coverage and document in contract", "status": "pending", "activeForm": "Running coverage"}` |
+| Go Dev | Race detection | Before presenting | `{"content": "Run race detector (go test -race)", "status": "pending", "activeForm": "Running race detector"}` |
+| Khorikov | Quadrant analysis | After tests written | `{"content": "Classify functions into Khorikov quadrants", "status": "pending", "activeForm": "Classifying Khorikov quadrants"}` |
+| Khorikov | Prune trivial tests | After quadrant analysis | `{"content": "Prune tests for trivial code per Khorikov", "status": "pending", "activeForm": "Pruning trivial tests"}` |
+| FP | ACD classifications | During implementation | `{"content": "Add ACD classification comments to public functions", "status": "pending", "activeForm": "Adding ACD classifications"}` |
+| FP | Raw loop vs fluentfp | During implementation | `{"content": "Verify early-exit patterns use raw loops", "status": "pending", "activeForm": "Verifying loop patterns"}` |
+| ES | Idempotency test | After projection code | `{"content": "Add idempotency test (same events → same state)", "status": "pending", "activeForm": "Adding idempotency test"}` |
+| ES | Events are facts | During event design | `{"content": "Verify events are past-tense with outcomes", "status": "pending", "activeForm": "Verifying event semantics"}` |
+
+**Integration with Telescoping Pattern:**
+
+Guide invariants stay collapsed as "Step 2b: Verify compliance" until implementation substeps complete. This keeps the main todo list uncluttered while ensuring verification isn't forgotten.
+
+**Example: Entering Step 2 for Go implementation with Khorikov testing**
+
+Step 2 blowout shows implementation substeps + collapsed verification:
+
+```
+[x] Step 1: Plan validation
+[ ] Step 2a: Write failing tests (TDD)  ← in_progress
+[ ] Step 2a: Implement production code
+[ ] Step 2a: Add benchmarks for calculation functions
+[ ] Step 2a: Add ACD classification comments
+[ ] Step 2b: Verify compliance (5 items)  ← collapsed
+[ ] Step 3: Update contract
+[ ] Step 4: Present and await approval
+[ ] Step 5: Post-approval actions
+```
+
+After implementation completes, blow out Step 2b:
+
+```
+[x] Step 1: Plan validation
+[x] Step 2a: Implementation complete
+[ ] Step 2b: Classify Khorikov quadrants  ← in_progress
+[ ] Step 2b: Prune trivial tests
+[ ] Step 2b: Run coverage (document in contract)
+[ ] Step 2b: Run race detector
+[ ] Step 2b: Run full test suite
+[ ] Step 3: Update contract
+[ ] Step 4: Present and await approval
+[ ] Step 5: Post-approval actions
+```
+
+After verification completes, telescope up:
+
+```
+[x] Step 1: Plan validation
+[x] Step 2: Complete deliverable
+[ ] Step 3: Update contract  ← in_progress
+[ ] Step 4: Present and await approval
+[ ] Step 5: Post-approval actions
+```
+
+**TodoWrite JSON - Phase 1 (implementation):**
 
 ```python
-# Present plan summary
-present(f"""
-## Plan Ready for Approval
-
-**Contract:** {contract_file}
-**Objective:** [from contract]
-**Success criteria:** [count] items
-
-**Upon your approval, I will:**
-1. Mark Step 1 checklist complete (1d checked)
-2. Proceed to Step 2 (implementation)
-
-**May I proceed?**
-""")
-
-# WAIT for explicit approval
-wait_for("proceed", "yes", "approved")
+TodoWrite({
+    "todos": [
+        {"content": "Step 1: Plan validation", "status": "completed", "activeForm": "Validating plan"},
+        {"content": "Write failing tests (TDD)", "status": "in_progress", "activeForm": "Writing failing tests"},
+        {"content": "Implement production code", "status": "pending", "activeForm": "Implementing production code"},
+        {"content": "Add benchmarks for calculation functions", "status": "pending", "activeForm": "Adding benchmarks"},
+        {"content": "Add ACD classification comments", "status": "pending", "activeForm": "Adding ACD classifications"},
+        {"content": "Verify compliance (5 checks)", "status": "pending", "activeForm": "Verifying compliance"},
+        {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
+        {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
+        {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
+    ]
+})
 ```
+
+**TodoWrite JSON - Phase 2 (verification blowout):**
+
+```python
+TodoWrite({
+    "todos": [
+        {"content": "Step 1: Plan validation", "status": "completed", "activeForm": "Validating plan"},
+        {"content": "Step 2a: Implementation", "status": "completed", "activeForm": "Implementing"},
+        {"content": "Classify Khorikov quadrants", "status": "in_progress", "activeForm": "Classifying Khorikov quadrants"},
+        {"content": "Prune trivial tests", "status": "pending", "activeForm": "Pruning trivial tests"},
+        {"content": "Run coverage (document in contract)", "status": "pending", "activeForm": "Running coverage"},
+        {"content": "Run race detector", "status": "pending", "activeForm": "Running race detector"},
+        {"content": "Run full test suite", "status": "pending", "activeForm": "Running full test suite"},
+        {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
+        {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
+        {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
+    ]
+})
+```
+
+**Key principle:** The plan document should specify which guides apply. Verification items stay collapsed as a single "Verify compliance" todo during implementation, then blow out when that phase is reached. This keeps the main list clean while ensuring compliance isn't forgotten.
 
 ---
 
@@ -266,8 +392,9 @@ wait_for("proceed", "yes", "approved")
 Archive the approved plan and contract BEFORE starting implementation. This captures "what we agreed to."
 
 ```python
-# After approval received
-update_contract_checklist("1d: Approval received", checked=True)
+# After approval received and contract created
+update_contract_checklist("1c: Approval received", checked=True)
+update_contract_checklist("1d: Contract created", checked=True)
 
 # Archive approved plan + contract (COPY, don't delete)
 if plan_mode_file_exists:
@@ -761,6 +888,15 @@ npm test 2>&1 | grep "Time:"
 - Step 1: Approve plan before starting
 - Step 4: Approve results before finalizing
 - Never proceed without explicit "yes"/"approved"/"proceed"
+
+**Scope management - user controls deferrals:**
+- User MAY defer work to a future phase
+- Claude MAY NOT unilaterally defer work out of scope
+- Claude MAY reorder work within the phase to handle dependency ordering
+- Claude MAY suggest deferring work by asking the user (e.g., "This requires X first - should we defer Y to a later phase?")
+- If work is necessary to meet success criteria, it stays in scope regardless of complexity
+- "Deferred" in a contract means "user approved moving this out of scope" - never "Claude decided to skip this"
+- Marking work as "deferred" without user approval is a protocol violation
 
 **Feedback = Plan Change = Return to Step 1:**
 - User feedback that changes scope, approach, or requirements = plan change

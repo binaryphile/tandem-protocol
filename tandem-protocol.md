@@ -6,7 +6,8 @@
 flowchart TD
     S0[● Step 0: Check Contract Files] --> E0{Contract exists?<br/>Check for incomplete work}
 
-    E0 -->|"None - Clean slate"| S1[▶ Step 1: Plan Validation]
+    E0 -->|"None - Clean slate"| PLAN[Enter Plan Mode]
+    PLAN --> S1[▶ Step 1: Plan Validation]
     E0 -->|"Found - Protocol violation"| R0{Recovery Options<br/>Complete/Abandon/Investigate}
 
     %% ARC does same operation as S5B (archive) but for recovery path
@@ -14,8 +15,8 @@ flowchart TD
     R0 -->|"Abandon previous work"| DEL[Delete contract file]
     R0 -->|"Investigate first"| READ[Read contract file]
 
-    ARC --> S1
-    DEL --> S1
+    ARC --> PLAN
+    DEL --> PLAN
     READ --> R0
 
     S1 --> S1a[Step 1a: Present understanding]
@@ -24,7 +25,8 @@ flowchart TD
     S1bw -->|"No - wait"| S1b
     S1bw -->|"Yes"| S1c[Step 1c: Request approval]
     S1c --> A1{User approves?<br/>GATE 1}
-    A1 -->|"Yes - proceed"| S1d[Step 1d: Create contract]
+    A1 -->|"Yes - proceed"| EXIT[Exit Plan Mode]
+    EXIT --> S1d[Step 1d: Create contract]
     S1d --> S1e[Step 1e: Archive plan + contract]
     S1e --> S2[▶ Step 2: Complete Deliverable]
     A1 -->|"Correct understanding"| S1a
@@ -46,7 +48,7 @@ flowchart TD
     A4 -->|"Grade first"| GR[Provide honest grade]
     A4 -->|"Improve work"| IMP[Make improvements]
     A4 -->|"Address feedback"| FB[Respond to comments]
-    A4 -->|"Change plan"| S1
+    A4 -->|"Change plan"| PLAN
 
     GR --> S4a
     IMP --> S4a
@@ -71,6 +73,8 @@ flowchart TD
     style S1bw fill:#fff3e0
     style CX fill:#fff3e0
     style MORE fill:#fff3e0
+    style PLAN fill:#e3f2fd,stroke:#2196f3
+    style EXIT fill:#e3f2fd,stroke:#2196f3
 ```
 
 ---
@@ -142,12 +146,25 @@ if plan_file_exists:
 
 ## Step 1: Plan Validation
 
+**Enter plan mode before Step 1.** Plan mode enables exploration and design before committing to a contract:
+
+```python
+# Enter plan mode for exploration and design
+if tool_available("EnterPlanMode"):
+    EnterPlanMode()
+    # Plan mode allows:
+    # - Reading codebase to understand context
+    # - Exploring patterns and dependencies
+    # - Designing approach before commitment
+    # - Only read-only operations until plan approval
+```
+
 Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
 
 **Sub-steps:**
 - **1a:** Present plan understanding
 - **1b:** ⛔ BLOCKING: Ask clarifying questions (wait for answers)
-- **1c:** Request approval (wait for "proceed")
+- **1c:** Request approval → call `ExitPlanMode()` (wait for "proceed")
 - **1d:** Create contract file → `phase-N-contract.md` in working directory
 - **1e:** Archive approved plan + contract to plan-log.md
 
@@ -193,7 +210,7 @@ update_understanding_with_answers()
 
 ---
 
-### Step 1c: Request Approval
+### Step 1c: Request Approval (Exit Plan Mode)
 
 ```python
 # Present plan summary for approval
@@ -214,6 +231,12 @@ present(f"""
 
 # WAIT for explicit approval
 wait_for("proceed", "yes", "approved")
+
+# Exit plan mode - enables write operations for contract creation
+if tool_available("ExitPlanMode"):
+    ExitPlanMode()
+    # Plan mode restrictions lifted
+    # Can now create files, make edits, run commands
 ```
 
 ---
@@ -687,6 +710,9 @@ if tool_available("TodoWrite"):
         "todos": []  # Empty - will be populated at Step 1 of next phase
     })
     # Note: Next phase will blow out Step 1's sub-steps (1a, 1b, 1c, 1d)
+
+# Transition to Step 0 for next phase
+# Step 0 → Step 1 will enter plan mode automatically
 ```
 
 ---
@@ -870,6 +896,123 @@ npm test 2>&1 | grep "Time:"
 
 ---
 
+## Appendix: Grading Rubric
+
+Use this rubric for self-assessment (Step 3) and when user requests grading.
+
+### Grade Scale
+
+| Grade | Score | Meaning |
+|-------|-------|---------|
+| A+ | 97-100 | Exceptional - exceeds requirements, no issues |
+| A | 93-96 | Excellent - meets all requirements, minor issues only |
+| A- | 90-92 | Very good - meets requirements, few small gaps |
+| B+ | 87-89 | Good - meets most requirements, some gaps |
+| B | 83-86 | Satisfactory - meets core requirements, notable gaps |
+| B- | 80-82 | Acceptable - minimum requirements met |
+| C | 70-79 | Needs improvement - significant gaps |
+| D | 60-69 | Poor - major issues |
+| F | <60 | Failing - requirements not met |
+
+### Scoring Categories
+
+Start at 100 and deduct points for issues:
+
+**Completeness (up to -30)**
+| Issue | Deduction |
+|-------|-----------|
+| Success criterion not met | -5 to -10 per criterion |
+| Missing required section | -5 per section |
+| Incomplete implementation | -3 to -10 depending on scope |
+| Placeholder content remaining | -2 per placeholder |
+
+**Correctness (up to -30)**
+| Issue | Deduction |
+|-------|-----------|
+| Factual error | -3 to -5 per error |
+| Logic error in code | -5 to -10 per bug |
+| Misunderstood requirement | -5 to -15 depending on impact |
+| Wrong file/location modified | -5 |
+
+**Quality (up to -20)**
+| Issue | Deduction |
+|-------|-----------|
+| Poor organization/structure | -3 to -5 |
+| Missing error handling | -2 to -5 |
+| No verification performed | -5 |
+| Insufficient depth | -3 to -10 |
+| Missing context/examples | -2 to -5 |
+
+**Process (up to -20)**
+| Issue | Deduction |
+|-------|-----------|
+| Skipped protocol step | -5 per step |
+| Contract not updated | -5 |
+| No self-assessment | -3 |
+| Scope creep (unauthorized additions) | -3 to -5 |
+| Scope shrink (unauthorized deferrals) | -5 to -10 |
+
+### Grading Principles
+
+**Grade the deliverable, not the journey:**
+- Focus on final results, not development history
+- Earlier mistakes that were fixed don't count against the grade
+- Process deductions only for protocol violations in final state
+
+**Be honest, not generous:**
+- Users benefit from accurate assessment
+- Identify real issues even if minor
+- Don't inflate grades to avoid difficult conversations
+
+**Cite specific evidence:**
+- Reference line numbers, file paths, or specific content
+- "Missing X" not "could be better"
+- Quantify where possible ("3 of 5 criteria met")
+
+**Distinguish severity:**
+- Critical: Blocks the goal entirely (-10 to -15)
+- Major: Significant impact on quality (-5 to -10)
+- Minor: Small issues, easily fixed (-1 to -3)
+- Nitpick: Stylistic, optional (-0 to -1)
+
+### Example Self-Assessment
+
+```markdown
+### Self-Assessment
+Grade: A- (91/100)
+
+What went well:
+- All 5 success criteria met with evidence
+- Code compiles and tests pass
+- Documentation complete with examples
+
+Deductions:
+- Missing edge case test for empty input: -3
+- One TODO comment left in code: -2
+- Verification section brief: -2
+- Error message could be clearer: -2
+
+Total: 100 - 9 = 91
+```
+
+### Grading vs Improving Loop
+
+When user requests grading (/w), then improvement (/i):
+
+1. **Grade** - Honest assessment with specific deductions
+2. **Improve** - Address each deduction systematically
+3. **Re-grade** - Verify improvements, adjust score
+4. **Repeat** - Until user satisfied or A+ achieved
+
+Track improvements:
+```markdown
+### Previously Addressed
+- ~~Missing edge case test~~ → Added in lines 45-52
+- ~~TODO comment~~ → Removed, implemented feature
+```
+
+---
+
 ## Protocol Principles
 
 **Contracts are single-phase scoped:**
@@ -981,3 +1124,10 @@ Phase 2 start (blow out steps and substeps):
 - Checkpoint 2 (Step 5b): Archives completed contract as "what we delivered", then deletes
 - Plan file: Managed by Claude Code, protocol just copies for history
 - Contract file: Kept as working document until completion
+
+**Plan mode precedes Step 1:**
+- Always enter plan mode before Step 1 (Plan Validation)
+- Plan mode enables read-only exploration: codebase, patterns, dependencies
+- Exit plan mode upon approval (Step 1c) via ExitPlanMode
+- This applies to every phase, ensuring proper analysis before commitment
+- Multi-phase work naturally gets plan mode at each phase transition (Step 5d → Step 0 → Plan Mode → Step 1)

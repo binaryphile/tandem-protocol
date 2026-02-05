@@ -189,22 +189,28 @@ present("Approach: [specific actions]")
 
 ### Step 1b: Clarifying Questions ⛔ BLOCKING
 
+Questions must be ASKED (via conversation or AskUserQuestion tool), not embedded in plan file.
+The plan file should contain ANSWERS, not open questions.
+
 ```python
 # ⛔ BLOCKING: Ask clarifying questions before creating contract
 questions = identify_ambiguities()  # Assumptions, alternatives, edge cases
 
-# Always ask at least one question - if no ambiguities, ask about:
-# - Scope boundaries ("Should X be included or excluded?")
-# - Success criteria ("How will we verify completion?")
-# - Edge cases ("What happens if Y?")
+if not questions:
+    present("No clarifying questions—understanding is complete.")
+else:
+    if tool_available("AskUserQuestion"):
+        AskUserQuestion(questions)
+    else:
+        present(f"**Clarifying Questions:**\n{format_questions(questions)}")
 
-present(f"""
-**Clarifying Questions:**
-{format_questions(questions)}
-""")
+    # ANTI-PATTERNS (plan file must NOT contain):
+    # - "TBD", "to be determined", "open question"
+    # - "assuming X" without having asked about X
+    # - Questions formatted as statements
 
-# WAIT - do not proceed until user answers
-wait_for_answers()
+    wait_for_answers()
+
 update_understanding_with_answers()
 ```
 
@@ -235,8 +241,10 @@ wait_for("proceed", "yes", "approved")
 # Exit plan mode - enables write operations for contract creation
 if tool_available("ExitPlanMode"):
     ExitPlanMode()
-    # Plan mode restrictions lifted
-    # Can now create files, make edits, run commands
+    # FILE DISTINCTION (HOW vs WHAT):
+    # Plan file (~/.claude/plans/): HOW - approach, methodology, phasing
+    # Contract file (project dir): WHAT - scope, deliverables, success criteria
+    # Plan persists across phases; contract is per-phase working doc
 ```
 
 ---

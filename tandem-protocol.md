@@ -535,8 +535,8 @@ present(f"""
 3. [Notable outcome]
 
 **Upon your approval, I will:**
-1. Mark Step 5 checklist complete (5b checked)
-2. Proceed to Step 5 (commit and finalize)
+1. Mark Step 4 checklist complete (4b checked)
+2. Proceed to Step 5 (archive contract and behavioral log, commit)
 
 **May I proceed?**
 """)
@@ -555,17 +555,20 @@ if user_response in ["approve", "proceed", "yes"]:
 
 elif user_response == "grade":
     provide_grade_assessment()
-    # Loop back to Step 4a (re-present)
 
 elif user_response == "improve":
     make_improvements()
     update_contract()
-    # Loop back to Step 4a (re-present)
 
 elif user_response == "feedback":
     address_feedback()
     update_contract()
-    # Loop back to Step 4a (re-present)
+
+# After any of the above: loop back to Step 4a
+# - Quote this step: "**Current Step:** Step 4b: Await Approval"
+#   followed by the loop-back instruction from this section
+# - Re-present results per Step 4a pattern
+# - End with "**May I proceed?**"
 ```
 
 ---

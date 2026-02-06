@@ -4746,3 +4746,236 @@ Total: 100 - 6 = 94
 ## Approval
 ✅ APPROVED BY USER - 2026-02-05
 Final results: Protocol renumbered (Steps 1-5), TodoWrite→Tasks API migrated, 11 docs + 1 test updated
+
+---
+
+2026-02-06T00:03:20Z | Plan: Auto-Quote After Loop-Back
+
+# Plan: Phase 2 - Auto-Quote After Loop-Back
+
+## Objective
+
+Update tandem-protocol.md Step 4b to explicitly quote the current step and re-present after any loop-back (grade, improve, feedback). Protocol should be self-contained (independent of slash commands).
+
+## Current State
+
+**Step 4b has three loop-back handlers (lines 556-568):**
+```python
+elif user_response == "grade":
+    provide_grade_assessment()
+    # Loop back to Step 4a (re-present)
+
+elif user_response == "improve":
+    make_improvements()
+    update_contract()
+    # Loop back to Step 4a (re-present)
+
+elif user_response == "feedback":
+    address_feedback()
+    update_contract()
+    # Loop back to Step 4a (re-present)
+```
+
+**Problem:** All three say "Loop back to Step 4a" but don't show:
+1. Quoting the current step (for context)
+2. Explicit re-presentation with "May I proceed?"
+
+## Design
+
+**Approach:** Prose description of behavior (not fake pseudocode).
+
+Replace the three separate `# Loop back to Step 4a (re-present)` comments (shown in Current State above) with one consolidated block:
+
+**New:**
+```python
+elif user_response == "grade":
+    provide_grade_assessment()
+
+elif user_response == "improve":
+    make_improvements()
+    update_contract()
+
+elif user_response == "feedback":
+    address_feedback()
+    update_contract()
+
+# After any of the above: loop back to Step 4a
+# - Quote this step: "**Current Step:** Step 4b: Await Approval"
+#   followed by the loop-back instruction from this section
+# - Re-present results per Step 4a pattern
+# - End with "**May I proceed?**"
+```
+
+**What the LLM outputs at runtime (example after "improve"):**
+
+```markdown
+**Current Step:** Step 4b: Await Approval
+
+From tandem-protocol.md:
+> After any of the above: loop back to Step 4a
+> - Re-present results per Step 4a pattern
+> - End with "May I proceed?"
+
+## Phase X Complete
+
+**Deliverable:** [filename]
+...
+
+**May I proceed?**
+```
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| tandem-protocol.md | Update Step 4b handlers (lines 556-568) |
+
+## Verification
+
+```bash
+grep -A 4 "After any of the above" tandem-protocol.md
+# Should show: quote step, re-present, "May I proceed?"
+```
+
+## Line Impact
+
+Net +2 lines (remove 3 one-line comments, add 5-line consolidated block)
+
+## Interactions (Behavioral Log)
+
+| Action | Response | Outcome |
+|--------|----------|---------|
+| Initial plan presented | User: /a (grade analysis) + "improve if actionable" | Graded A:B+/85, P:B/85 |
+| Identified deduction: only covered "improve" handler | Checked all loop-back handlers | Found 3 handlers need same treatment |
+| Updated plan to cover grade/improve/feedback | Consolidated loop-back instruction | Plan improved from B to A- |
+| User: /p (grade plan) | Graded B+/88 - missing concrete quote example | Added concrete output example |
+| User: /p (grade plan) | Graded B/84 - fake pseudocode, design/example mismatch | Switched to prose description, fixed line math |
+| User: /p (grade plan) | Graded A-/91 - grep pattern wrong, instruction/example mismatch | Fixed grep pattern, aligned "loop-back instruction" wording |
+| User: /p (grade plan) | Graded A/94 - example quotes prose not actual text, redundant code block | Example now quotes actual comment text, removed duplicate block |
+
+---
+
+2026-02-06T00:03:24Z | Contract: Auto-Quote After Loop-Back
+
+# Phase 2 Contract: Auto-Quote After Loop-Back
+
+**Created:** 2026-02-06
+
+## Step 1 Checklist
+- [x] 1a: Presented understanding
+- [x] 1b: Asked clarifying questions
+- [x] 1c: Approval received
+- [x] 1d: Contract created (this file)
+- [ ] 1e: Plan + contract archived
+
+## Objective
+Update tandem-protocol.md Step 4b to explicitly quote the current step and re-present after any loop-back (grade, improve, feedback).
+
+## Success Criteria
+
+**Step 2: Complete deliverable**
+1. [ ] Three separate `# Loop back...` comments removed
+2. [ ] Consolidated 5-line block added after handlers
+3. [ ] grep verification passes
+
+**Step 3: Update contract**
+4. [ ] Contract updated with actual results
+
+**Step 4: Approval**
+5. [ ] Work graded and approved
+
+**Step 5: Archive**
+6. [ ] Contract archived to plan-log.md
+
+## Approach
+- Single edit to tandem-protocol.md lines 556-568
+- Replace 3 duplicate comments with consolidated block
+- Net +2 lines
+
+---
+
+2026-02-06T00:06:28Z | Completion: Auto-Quote After Loop-Back
+
+# Phase 2 Contract: Auto-Quote After Loop-Back
+
+**Created:** 2026-02-06
+
+## Step 1 Checklist
+- [x] 1a: Presented understanding
+- [x] 1b: Asked clarifying questions
+- [x] 1c: Approval received
+- [x] 1d: Contract created (this file)
+- [x] 1e: Plan + contract archived
+
+## Objective
+Update tandem-protocol.md Step 4b to explicitly quote the current step and re-present after any loop-back (grade, improve, feedback).
+
+## Success Criteria
+
+**Step 2: Complete deliverable**
+1. [x] Three separate `# Loop back...` comments removed
+2. [x] Consolidated 5-line block added after handlers
+3. [x] grep verification passes
+
+**Step 3: Update contract**
+4. [x] Contract updated with actual results
+
+**Step 4: Approval**
+5. [ ] Work graded and approved
+
+**Step 5: Archive**
+6. [x] Contract archived to plan-log.md
+
+## Approach
+- Single edit to tandem-protocol.md lines 556-568
+- Replace 3 duplicate comments with consolidated block
+- Net +2 lines
+
+## Actual Results
+
+**File modified:** tandem-protocol.md (lines 556-571)
+
+**Changes:**
+
+1. Replaced 3 duplicate `# Loop back to Step 4a (re-present)` comments with consolidated 5-line block:
+```
+# After any of the above: loop back to Step 4a
+# - Quote this step: "**Current Step:** Step 4b: Await Approval"
+#   followed by the loop-back instruction from this section
+# - Re-present results per Step 4a pattern
+# - End with "**May I proceed?**"
+```
+
+2. Fixed Step 4a presentation template (line 537-539):
+   - "Mark Step 5 checklist" → "Mark Step 4 checklist"
+   - "Proceed to Step 5 (commit and finalize)" → "Proceed to Step 5 (archive contract and behavioral log, commit)"
+
+**Verification:**
+```
+$ grep -A 4 "After any of the above" tandem-protocol.md
+# After any of the above: loop back to Step 4a
+# - Quote this step: "**Current Step:** Step 4b: Await Approval"
+#   followed by the loop-back instruction from this section
+# - Re-present results per Step 4a pattern
+# - End with "**May I proceed?**"
+```
+
+### Self-Assessment
+
+**Grade: A (96/100)**
+
+What went well:
+- All 3 success criteria met
+- Single clean edit
+- Verification passes
+
+Deductions:
+- Skipped Step 1e initially: -4 (process error, caught by user)
+
+## Step 4 Checklist
+- [x] 4a: Results presented to user
+- [x] 4b: Approval received
+
+## Approval
+✅ APPROVED BY USER - 2026-02-06
+Final results: Auto-quote loop-back instruction added, Step 4a template fixed

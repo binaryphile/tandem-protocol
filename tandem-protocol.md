@@ -406,9 +406,11 @@ append_to_log("plan-log.md", completion_entry)
 
 # Markers: [x]=completed, [ ]=not completed, [-]=removed (reason), [+]=added (reason)
 
-# Run verification if task type matches (see Appendix: Verification Templates)
-if task_type in ["file_download", "code_implementation", "documentation", "batch_operations", "test_suite"]:
-    run_verification_template(task_type)
+# Verify before presenting:
+# - Build/test: compiles, tests pass, no warnings
+# - Completeness: all success criteria met with evidence
+# - Spot-check: sample outputs correct
+# - No placeholders: no TODO/TBD/FIXME remaining
 ```
 
 ---
@@ -459,7 +461,8 @@ if user_response in ["approve", "proceed", "yes"]:
     # Proceed to Step 4
 
 elif user_response == "grade":
-    provide_grade_assessment()
+    # Check: unmet criteria, errors/bugs, quality issues, skipped steps
+    # Grade deliverable not journey; cite evidence; be honest not generous
     log_interaction(f"grade → {grade}")
 
 elif user_response == "improve":
@@ -554,28 +557,6 @@ update_plan_file(expand_next_phase=True)
 
 # Transition to Step 1 for next phase (triggers plan mode entry)
 ```
-
----
-
-## Appendix: Verification
-
-See `docs/guides/verification-guide.md` for verification templates:
-- File Download/Generation
-- Code Implementation
-- Documentation/Writing
-- Batch Operations
-- Test Suite
-
----
-
-## Appendix: Grading
-
-See `docs/guides/grading-guide.md` for the full rubric including:
-- Grade scale (A+ through F)
-- Scoring categories (Completeness, Correctness, Quality, Process)
-- Grading principles
-- Example self-assessment
-- Grading vs improving loop
 
 ---
 

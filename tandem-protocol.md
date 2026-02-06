@@ -42,13 +42,12 @@ flowchart TD
     FB --> S4a
 
     S5 --> S5A[Step 5a: Mark APPROVED]
-    S5A --> S5B[Step 5b: Archive to plan-log.md]
-    S5B --> S5C[Step 5c: Commit deliverable + archive]
-    S5C --> S5D[Step 5d: Setup next phase]
-    S5D --> PLAN
+    S5A --> S5B[Step 5b: Commit deliverable + archive]
+    S5B --> S5C[Step 5c: Setup next phase]
+    S5C --> PLAN
 
     style PLAN stroke:#4caf50,stroke-width:3px
-    style S5D stroke:#4caf50,stroke-width:3px
+    style S5C stroke:#4caf50,stroke-width:3px
     style S1e fill:#e8f5e9,stroke:#4caf50
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
     style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
@@ -77,7 +76,7 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description
 | Type | When | Example |
 |------|------|---------|
 | Contract | Step 1d (phase start) | `Contract: Phase 1 - implement auth, 3 success criteria` |
-| Completion | Step completion | `Completion: Step 2 - auth.go created, 45 lines` |
+| Completion | Results delivered against contract | `Completion: Step 2 - auth.go created, 45 lines` |
 | Interaction | User feedback | `Interaction: /p grade → B/84, missing edge case` |
 
 ---
@@ -295,7 +294,7 @@ Step 3 blowout shows implementation substeps + collapsed verification:
 [ ] Step 2a: Add benchmarks for calculation functions
 [ ] Step 2a: Add ACD classification comments
 [ ] Step 2b: Verify compliance (5 items)  ← collapsed
-[ ] Step 3: Update contract
+[ ] Step 3: Log results
 [ ] Step 4: Present and await approval
 [ ] Step 5: Post-approval actions
 ```
@@ -310,7 +309,7 @@ After implementation completes, blow out Step 2b:
 [ ] Step 2b: Run coverage (document in contract)
 [ ] Step 2b: Run race detector
 [ ] Step 2b: Run full test suite
-[ ] Step 3: Update contract
+[ ] Step 3: Log results
 [ ] Step 4: Present and await approval
 [ ] Step 5: Post-approval actions
 ```
@@ -320,7 +319,7 @@ After verification completes, telescope up:
 ```
 [x] Step 1: Plan validation
 [x] Step 2: Complete deliverable
-[ ] Step 3: Update contract  ← in_progress
+[ ] Step 3: Log results  ← in_progress
 [ ] Step 4: Present and await approval
 [ ] Step 5: Post-approval actions
 ```
@@ -336,7 +335,7 @@ if tool_available("TaskCreate"):
     TaskCreate({"subject": "Add benchmarks", "description": "...", "activeForm": "Adding benchmarks"})
     TaskCreate({"subject": "Add ACD classifications", "description": "...", "activeForm": "Adding ACD"})
     TaskCreate({"subject": "Verify compliance (5 checks)", "description": "...", "activeForm": "Verifying compliance"})
-    TaskCreate({"subject": "Step 3: Update contract", "description": "...", "activeForm": "Updating contract"})
+    TaskCreate({"subject": "Step 3: Log results", "description": "...", "activeForm": "Logging results"})
     TaskCreate({"subject": "Step 4: Present and await", "description": "...", "activeForm": "Presenting"})
     TaskCreate({"subject": "Step 5: Post-approval", "description": "...", "activeForm": "Post-approval"})
 
@@ -395,7 +394,7 @@ if has_sub_phases:
     for sub_phase in sub_phases:
         complete_sub_phase(sub_phase)
 
-        # BLOCKING: Must log completion after each sub-phase
+        # BLOCKING: Log completion against contract as each result is delivered
         log_completion(f"Step 2a: {sub_phase} complete")
         present_progress(f"Completed {sub_phase}.")
 
@@ -409,7 +408,7 @@ else:
 ## Step 3: Log Results
 
 ```python
-# Log Completion entry for Step 2
+# Log Completion entry - results delivered against contract
 timestamp = datetime.now().isoformat() + "Z"
 completion_entry = f"{timestamp} | Completion: Step 2 - {deliverable} created, {size}"
 append_to_log("plan-log.md", completion_entry)
@@ -490,7 +489,7 @@ elif user_response == "feedback":
 
 ## Step 5: Post-Approval Actions
 
-Step 5 has sub-steps (5a-5d) shown in the mermaid diagram. Execute sequentially.
+Step 5 has sub-steps (5a-5c) shown in the mermaid diagram. Execute sequentially.
 
 ---
 
@@ -508,7 +507,7 @@ append_to_log("plan-log.md", approval_entry)
 
 ---
 
-### Step 5c: Commit Deliverable
+### Step 5b: Commit Deliverable
 
 Commit deliverable AND the updated plan-log.md together.
 
@@ -530,7 +529,7 @@ Contract: archived to plan-log.md
 
 ---
 
-### Step 5d: Setup Next Phase
+### Step 5c: Setup Next Phase
 
 ```python
 # Telescope tasks: delete all completed tasks for clean slate
@@ -781,7 +780,7 @@ Start at 100 and deduct points for issues:
 | Issue | Deduction |
 |-------|-----------|
 | Skipped protocol step | -5 per step |
-| Contract not updated | -5 |
+| Log entries missing | -5 |
 | No self-assessment | -3 |
 | Scope creep (unauthorized additions) | -3 to -5 |
 | Scope shrink (unauthorized deferrals) | -5 to -10 |
@@ -856,8 +855,8 @@ Track improvements:
 - After Phase N approval → Step 1 for Phase N+1 (plan, clarify, get approval)
 
 **Event logging is the primary record:**
-- Log Contract entry at Step 1d (scope)
-- Log Completion entries at step transitions
+- Log Contract entry at Step 1d (scope/deliverables)
+- Log Completion entries as results are delivered against the contract
 - Log Interaction entries on user feedback
 - All events go directly to plan-log.md
 
@@ -955,7 +954,7 @@ Phase 2 start (blow out steps and substeps):
 
 **Direct event logging:**
 - Contract entry at Step 1d: Captures "what we agreed to"
-- Completion entries at step transitions: Captures progress
+- Completion entries as results delivered: Captures progress against the contract
 - Interaction entries on user feedback: Captures behavioral data
 - All entries go directly to plan-log.md - no intermediate files
 
@@ -964,4 +963,4 @@ Phase 2 start (blow out steps and substeps):
 - Plan mode enables read-only exploration: codebase, patterns, dependencies
 - Exit plan mode upon approval (Step 1c) via ExitPlanMode
 - This applies to every phase, ensuring proper analysis before commitment
-- Multi-phase work naturally gets plan mode at each phase transition (Step 5d → Plan Mode → Step 1)
+- Multi-phase work naturally gets plan mode at each phase transition (Step 5c → Plan Mode → Step 1)

@@ -5,6 +5,14 @@
 **Primary Actor:** LLM (executing protocol)
 **Secondary Actors:** User (provides answers), Tool system (AskUserQuestion if available)
 
+## In/Out List
+
+| In Scope | Out of Scope |
+|----------|--------------|
+| Questions asked via conversation/tool | Question content or format |
+| Explicit "no questions" statement | How to formulate good questions |
+| Main success path only | Exceptional cases (Claude reasons through these) |
+
 ## Context of Use
 During Step 1 of Tandem Protocol, after presenting understanding (1a) and before requesting approval (1c), the LLM must gather clarifying information. This use case ensures questions are ASKED to the user rather than embedded as assumptions in the plan.
 

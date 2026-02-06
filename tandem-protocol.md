@@ -152,11 +152,29 @@ if plan_file_exists:
 # Enter plan mode for exploration and design
 if tool_available("EnterPlanMode"):
     EnterPlanMode()
-    # Plan mode allows:
-    # - Reading codebase to understand context
-    # - Exploring patterns and dependencies
-    # - Designing approach before commitment
-    # - Only read-only operations until plan approval
+
+# Check for existing plan file
+plan_file = find_plan("~/.claude/plans/")
+if plan_file:
+    # Quote VERBATIM once - no summarizing, no interpreting
+    present(f"```\n{read(plan_file)}\n```")
+
+    while True:
+        # Grade analysis FIRST: "Do I understand this?"
+        grade_analysis()  # /a skill
+
+        # Grade plan SECOND: "Is this plan sound?"
+        grade_plan()  # /p skill
+
+        # BLOCKING: wait for direction
+        direction = wait_for("improve", "proceed")
+
+        if direction == "improve":
+            # Address ALL actionable deductions (analysis + plan)
+            address_deductions()
+            # Loop back to re-grade
+        else:
+            break  # proceed to Step 1a
 ```
 
 Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.

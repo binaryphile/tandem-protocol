@@ -13,6 +13,7 @@
 | EnterPlanMode/ExitPlanMode timing | Plan mode UI/UX details |
 | Content routing (HOW vs WHAT) | File format specifications |
 | Integration points in protocol steps | Multi-agent coordination |
+| Main success path only | Exceptional cases (Claude reasons through these) |
 
 ## System-in-Use Story
 

@@ -13,20 +13,20 @@ flowchart TD
     S1bw -->|"Yes"| S1c[Step 1c: Request approval]
     S1c --> A1{User approves?<br/>GATE 1}
     A1 -->|"Yes - proceed"| EXIT[Step 1c-exit: Exit Plan Mode]
-    EXIT --> S1d[Step 1d: Create contract]
-    S1d --> S1e[Step 1e: Archive plan + contract]
+    EXIT --> S1d[Step 1d: Log Contract entry]
+    S1d --> S1e[Step 1e: Log Completion]
     S1e --> S2[▶ Step 2: Complete Deliverable]
     A1 -->|"Correct understanding"| S1a
 
     S2 --> CX{Complex with<br/>sub-phases?}
     CX -->|"Simple task"| S3
     CX -->|"Multiple sub-phases"| SUB[Step 2a: Complete one sub-phase]
-    SUB --> BLK[⛔ Step 2b: Update contract<br/>BLOCKING - cannot proceed without]
+    SUB --> BLK[⛔ Step 2b: Log Completion<br/>BLOCKING - cannot proceed without]
     BLK --> MORE{More sub-phases<br/>remaining?}
     MORE -->|"Yes - continue"| SUB
     MORE -->|"No - all done"| S3
 
-    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present and Await]
+    S3[▶ Step 3: Log Results] --> S4[▶ Step 4: Present and Await]
 
     S4 --> S4a[Step 4a: Present results]
     S4a --> S4b[⛔ Step 4b: Await approval<br/>BLOCKING]
@@ -147,7 +147,7 @@ Questions must be ASKED (via conversation or AskUserQuestion tool), not embedded
 The plan file should contain ANSWERS, not open questions.
 
 ```python
-# ⛔ BLOCKING: Ask clarifying questions before creating contract
+# ⛔ BLOCKING: Ask clarifying questions before logging Contract entry
 questions = identify_ambiguities()  # Assumptions, alternatives, edge cases
 
 if not questions:
@@ -395,12 +395,9 @@ if has_sub_phases:
     for sub_phase in sub_phases:
         complete_sub_phase(sub_phase)
 
-        # BLOCKING: Must update contract after each sub-phase
-        update_contract_checkboxes(sub_phase)
-        present_progress(f"Completed {sub_phase}. Contract updated.")
-
-        # Cannot proceed without completing contract update
-        wait_for_contract_confirmation()
+        # BLOCKING: Must log completion after each sub-phase
+        log_completion(f"Step 2a: {sub_phase} complete")
+        present_progress(f"Completed {sub_phase}.")
 
 # For simple tasks
 else:
@@ -409,75 +406,20 @@ else:
 
 ---
 
-## Step 3: Update Contract
+## Step 3: Log Results
 
 ```python
-# After edits: verify line references still accurate (numbers shift)
-update_contract("""
-## Actual Results
+# Log Completion entry for Step 2
+timestamp = datetime.now().isoformat() + "Z"
+completion_entry = f"{timestamp} | Completion: Step 2 - {deliverable} created, {size}"
+append_to_log("plan-log.md", completion_entry)
 
-**Deliverable:** [filename] ([size])
-**Completed:** [date]
+# Example:
+# 2026-02-06T15:30:00Z | Completion: Step 2 - auth.go created, 45 lines
 
-### Success Criteria Status
-1. [x] Step 2: Complete deliverable - DONE (reference: lines X-Y)
-2. [x] Step 3: Update contract - DONE (this section)
-3. [ ] Step 5d: Archive contract and log progress
-
-### Deliverable Details
-- Path: [full path]
-- Size: [lines/words/MB]
-- Key sections: [line numbers]
-""")
-
-# Consult verification templates if task type matches
-task_types = [
-    "file_download",
-    "code_implementation",
-    "documentation",
-    "batch_operations",
-    "test_suite"
-]
-
-if task_type in task_types:
-    template = select_template_from_appendix(task_type)
-    verification_results = run_template_commands(template)
-    append_to_contract(verification_results)
-
-# Add quality verification section
-append_to_contract("""
-### Quality Verification
-[Spot-check results]
-[Error pattern checks]
-[Completeness verification]
-""")
-
-# Add self-assessment
-append_to_contract("""
-### Self-Assessment
-Grade: [A-F] ([score]/100)
-
-What went well:
-- [specific accomplishment]
-
-Deductions:
-- [issue]: -X points
-""")
-
-# Add interaction log for behavioral analysis
-append_to_contract("""
-### Interactions
-
-| Action | Response | Outcome |
-|--------|----------|---------|
-""")
-
-# Add Step 5 Checklist (tracks approval state)
-append_to_contract("""
-## Step 4 Checklist
-- [ ] 4a: Results presented to user
-- [ ] 4b: Approval received
-""")
+# Run verification if task type matches (see Appendix: Verification Templates)
+if task_type in ["file_download", "code_implementation", "documentation", "batch_operations", "test_suite"]:
+    run_verification_template(task_type)
 ```
 
 ---
@@ -492,14 +434,14 @@ Step 4 is broken into atomic sub-steps. Execute each sub-step fully before proce
 
 ```python
 # Mark checklist item
-update_contract_checklist("4a: Results presented to user", checked=True)
+# Mark Step 4a complete
 
 # Present completion to user
 present(f"""
 ## Phase X Complete
 
 **Deliverable:** [filename] ([size])
-**Contract:** [contract filename]
+**Log:** plan-log.md
 
 ### Key Highlights
 1. [Major accomplishment with reference]
@@ -508,7 +450,7 @@ present(f"""
 
 **Upon your approval, I will:**
 1. Mark Step 4 checklist complete (4b checked)
-2. Proceed to Step 5 (archive contract and behavioral log, commit)
+2. Proceed to Step 5 (log approval, commit)
 
 **May I proceed?**
 """)
@@ -523,18 +465,19 @@ present(f"""
 user_response = wait_for_response()
 
 if user_response in ["approve", "proceed", "yes"]:
-    update_contract_checklist("4b: Approval received", checked=True)
+    # Proceed to Step 5
 
 elif user_response == "grade":
     provide_grade_assessment()
+    log_interaction(f"/w grade → {grade}")
 
 elif user_response == "improve":
     make_improvements()
-    update_contract()
+    log_interaction(f"/i improve → {changes_made}")
 
 elif user_response == "feedback":
     address_feedback()
-    update_contract()
+    log_interaction(f"feedback: {user_comment} → {response}")
 
 # After any of the above: loop back to Step 4a
 # - Quote this step: "**Current Step:** Step 4b: Await Approval"
@@ -551,76 +494,16 @@ Step 5 has sub-steps (5a-5d) shown in the mermaid diagram. Execute sequentially.
 
 ---
 
-### Step 5a: Mark Approved
+### Step 5a: Log Approval
 
 ```python
-# Add approval record to contract
-append_to_contract(f"""
-## Approval
-✅ APPROVED BY USER - {date}
-Final results: [summary]
-""")
-```
+# Log Completion entry for phase approval
+timestamp = datetime.now().isoformat() + "Z"
+approval_entry = f"{timestamp} | Completion: Phase {N} approved - {summary}"
+append_to_log("plan-log.md", approval_entry)
 
----
-
-### Step 5b: Archive Contract + Write Log Entry
-
-Archive the contract BEFORE committing so the history is included in the commit. Also write a standalone log entry for readers unfamiliar with the conversation.
-
-```python
-# Archive VERBATIM - no summarizing, no reformatting
-if web_ui:
-    output_to_chat(contract_file_contents)
-else:
-    # Append separator + timestamp + contract to history file
-    echo("\n---\n")              >> "plan-log.md"
-    echo(f"## Archived: {date}") >> "plan-log.md"
-    cat(contract_file)           >> "plan-log.md"
-    rm(contract_file)
-
-# Write standalone log entry for external readers (same file, after contract)
-log_entry = f"""
----
-
-## Log: {date} - [Phase title]
-
-**What was done:**
-[1-3 sentence summary for someone unfamiliar with the conversation]
-
-**Key files changed:**
-- [file1]: [brief description]
-- [file2]: [brief description]
-
-**Why it matters:**
-[1 sentence on purpose/impact]
-"""
-echo(log_entry) >> "plan-log.md"
-```
-
-**Bash equivalent:**
-```bash
-echo -e "\n---\n## Archived: $(date -I)\n" >> plan-log.md
-cat phase-N-contract.md >> plan-log.md
-rm phase-N-contract.md
-
-# Log entry for external readers
-cat >> plan-log.md << 'EOF'
-
----
-
-## Log: YYYY-MM-DD - Phase title
-
-**What was done:**
-[Summary for unfamiliar readers]
-
-**Key files changed:**
-- file1: changes
-- file2: changes
-
-**Why it matters:**
-[Purpose/impact]
-EOF
+# Example:
+# 2026-02-06T16:00:00Z | Completion: Phase 1 approved - auth middleware complete
 ```
 
 ---
@@ -633,7 +516,7 @@ Commit deliverable AND the updated plan-log.md together.
 # Commit to version control (if available)
 if has_git:
     git_add(deliverable_file)
-    git_add("plan-log.md")  # Contains archived contract + log entry
+    git_add("plan-log.md")  # Contains event log entries
     git_commit(f"""Phase X complete: [title]
 
 [Summary of work]
@@ -966,17 +849,17 @@ Track improvements:
 
 ## Protocol Principles
 
-**Contracts are single-phase scoped:**
-- Each contract covers ONE phase only
+**Phases are single-scoped:**
+- Each phase covers ONE deliverable scope
 - Planning for subsequent phases is deferred until the current phase is approved
 - This structurally prevents skipping checkpoints between phases
 - After Phase N approval → Step 1 for Phase N+1 (plan, clarify, get approval)
-- Never pre-plan multiple phases in one contract
 
-**Deliverable contracts are the primary artifact:**
-- Create at Step 1, update at Step 3, finalize at Step 5
-- Commit to git or output to chat (for web UI)
-- Serves as phase completion history
+**Event logging is the primary record:**
+- Log Contract entry at Step 1d (scope)
+- Log Completion entries at step transitions
+- Log Interaction entries on user feedback
+- All events go directly to plan-log.md
 
 **User approval gates:**
 - Step 1: Approve plan before starting
@@ -989,7 +872,7 @@ Track improvements:
 - Claude MAY reorder work within the phase to handle dependency ordering
 - Claude MAY suggest deferring work by asking the user (e.g., "This requires X first - should we defer Y to a later phase?")
 - If work is necessary to meet success criteria, it stays in scope regardless of complexity
-- "Deferred" in a contract means "user approved moving this out of scope" - never "Claude decided to skip this"
+- "Deferred" means "user approved moving this out of scope" - never "Claude decided to skip this"
 - Marking work as "deferred" without user approval is a protocol violation
 
 **Feedback = Plan Change = Return to Step 1:**
@@ -998,8 +881,8 @@ Track improvements:
 - Distinguish: "fix this bug in my implementation" (stay at Step 4) vs "also add feature X" (return to Step 1)
 
 **BLOCKING checkpoints:**
-- Multi-phase tasks: Update contract after EACH sub-phase
-- Cannot proceed without contract update + user confirmation
+- Multi-phase tasks: Log Completion after EACH sub-phase
+- Cannot proceed without logging progress
 
 **Tasks API hierarchical telescoping pattern:**
 - Always show the full hierarchy: remaining phases → remaining steps → current substeps
@@ -1057,7 +940,7 @@ Phase 2 start (blow out steps and substeps):
 **Platform flexibility:**
 - Works with or without git
 - Works with or without Tasks API
-- Contract history appended to `plan-log.md` at Step 5b
+- Event history logged directly to `plan-log.md`
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
 
@@ -1070,11 +953,11 @@ Phase 2 start (blow out steps and substeps):
 - Do not duplicate transition info in prose or code blocks
 - Refer to diagram for "what comes next"
 
-**Two-checkpoint archiving:**
-- Checkpoint 1 (Step 1e): Copies approved plan + contract as "what we agreed to"
-- Checkpoint 2 (Step 5b): Archives completed contract as "what we delivered", then deletes
-- Plan file: Managed by Claude Code, protocol just copies for history
-- Contract file: Kept as working document until completion
+**Direct event logging:**
+- Contract entry at Step 1d: Captures "what we agreed to"
+- Completion entries at step transitions: Captures progress
+- Interaction entries on user feedback: Captures behavioral data
+- All entries go directly to plan-log.md - no intermediate files
 
 **Plan mode precedes Step 1:**
 - Always enter plan mode before Step 1 (Plan Validation)

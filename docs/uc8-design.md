@@ -5,20 +5,45 @@
 **Location:** tandem-protocol.md - Step 1 (start) and Step 4c
 
 **Design principle:** Plan file (document) and Tasks API (tool) are separate but synchronized.
-- **Plan file** (~/.claude/plans/*.md): Document with phase structure, groomed as phases complete
-- **Tasks API** (TaskCreate/Update/List): Tool for progress tracking, synced from plan file
 
-**Current state:** Protocol mentions Tasks API but plan file and tasks are separate artifacts.
+| Artifact | Format | Lifecycle | Persistence |
+|----------|--------|-----------|-------------|
+| **Plan file** | `[x]`/`[ ]` checkboxes | skeleton → expand → collapse | Permanent (committed) |
+| **Tasks API** | `completed/in_progress/pending` | create → update → delete | Session (ephemeral) |
 
-**Problem:** Observed drift between plan state and todo state. User had to remind about telescoping.
+**Sync direction:** Plan file → Tasks API (plan file is source of truth)
+
+## Plan File Lifecycle
+
+| State | Definition | Content |
+|-------|------------|---------|
+| **Skeleton** | Future phases | IAPI substeps listed, no detail |
+| **Expanded** | Current phase | Substeps shown with `[ ]` checkboxes |
+| **Collapsed** | Completed phases | Substeps REMOVED, parent marked `[x]` |
+
+**Collapse = remove substeps, keep parent with `[x]`**
+
+```
+[x] Phase 1: Auth middleware           ← collapsed (was 4 substeps, now 1 line)
+[ ] Phase 2: Event logging             ← expanded (showing substeps)
+    [ ] Step 1a: Present understanding
+    [ ] Step 1b: Ask questions
+    ...
+[ ] Phase 3: README update             ← skeleton (no substeps yet)
+```
 
 ## Telescoping Pattern
 
-When entering a step, telescope tasks:
-- **Collapse completed steps** to single task (status: completed)
-- **Expand current step** to show deliverables (status: in_progress/pending)
-- **Keep pending steps** collapsed (status: pending)
-- **Show all phases** - future phases visible as pending, not hidden
+**In Plan File (checkboxes):**
+- **Collapsed completed phases**: Substeps removed, parent marked `[x]`
+- **Expanded current phase**: Substeps shown with `[ ]`
+- **Skeleton future phases**: Listed but not expanded
+
+**In Tasks API (status):**
+- **Collapse completed steps**: Mark `completed`, then delete at phase end
+- **Expand current step**: Show deliverables with `in_progress`/`pending`
+- **Keep pending steps**: Show as `pending`
+- **Show future phases**: Single `pending` task per phase
 
 **Example: Phase 1, Step 2 with 3 deliverables and 3 more phases**
 

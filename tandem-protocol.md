@@ -541,8 +541,16 @@ if tool_available("TaskList"):
         TaskUpdate({"taskId": task.id, "status": "deleted"})
     # Tasks will be re-created at Step 1 of next phase
 
-# Update plan file: mark completed phases, remove detail from finished work
-update_plan_file(mark_phase_complete=True, collapse_completed=True)
+# Collapse completed phase in plan file:
+# - Remove substeps (Step 1a, 1b, etc.)
+# - Keep parent with [x] checkmark
+# Example: "[x] Phase 1: Auth middleware" (substeps removed)
+update_plan_file(collapse_completed_phase=True)
+
+# Expand next phase in plan file:
+# - Add substeps with [ ] checkboxes
+# Example: "[ ] Phase 2: Event logging\n    [ ] Step 1a: Present understanding\n    ..."
+update_plan_file(expand_next_phase=True)
 
 # Transition to Step 1 for next phase (triggers plan mode entry)
 ```

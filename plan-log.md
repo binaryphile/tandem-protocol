@@ -4504,3 +4504,245 @@ Deductions:
 - tests/uc8-phase-transition.sh
 - tandem-protocol.md updates
 
+
+---
+
+2026-02-05T10:00:00Z | Plan: Protocol Maintenance Updates
+
+# Plan: Protocol Maintenance Updates
+
+## Classification
+
+**Not a use case** — documentation maintenance task.
+
+**Approach:** Fix design doc first (UC4), then direct edits for protocol.
+
+---
+
+## Changes
+
+### 0. Fix UC4 design doc (prerequisite)
+
+UC4 has incorrect entry format and missing workflow steps.
+
+**Current (wrong):**
+```
+## [Subject] Contract: Archived Verbatim [Date]
+```
+
+**Correct format (grep-friendly):**
+```
+YYYY-MM-DDTHH:MM:SSZ | Type: subject
+```
+
+**Three entry types:**
+- `Plan:` — archived plan file (Step 1e)
+- `Contract:` — archived contract at approval (Step 1e)
+- `Completion:` — final archive with results (Step 4b, was 5b)
+
+### 1. TodoWrite → Tasks API migration
+Mechanical mapping from deprecated API to current API.
+
+### 2. Collapse Steps 1+2, renumber to 1-5
+Remove Step 1 (contract file check), make Plan Validation the new Step 1, renumber all subsequent steps.
+
+**Before (1-6):** Check Contract → Plan Validation → Complete → Update → Present → Post-Approval
+**After (1-5):** Plan Validation → Complete → Update → Present → Post-Approval
+
+Renumbering:
+- Step 2 → Step 1 (Plan Validation)
+- Step 3 → Step 2 (Complete Deliverable)
+- Step 4 → Step 3 (Update Contract)
+- Step 5 → Step 4 (Present and Await)
+- Step 6 → Step 5 (Post-Approval)
+
+---
+
+## Tasks API (Verified from Tool Schema)
+
+| Tool | Required | Optional | Returns |
+|------|----------|----------|---------|
+| `TaskCreate` | `subject`, `description` | `activeForm`, `metadata` | `Task #N created successfully` |
+| `TaskUpdate` | `taskId` (numeric string) | `status`, `addBlockedBy`, `addBlocks`, `owner`, `metadata` | confirmation |
+| `TaskGet` | `taskId` | - | full details + blockers |
+| `TaskList` | (none) | - | `#N [status] subject` per task |
+
+**Status values:** `pending` (default), `in_progress`, `completed`, `deleted`
+
+**Verified via TDD:**
+- TaskCreate returns ID in message: `Task #44 created successfully`
+- addBlockedBy takes array of strings: `["45"]`
+- TaskGet shows dependencies: `Blocked by: #45`
+
+---
+
+## Files to Modify
+- tandem-protocol.md (primary)
+- docs/*.md (12 UC docs)
+- tests/*.sh (6 test files)
+- README.md, enhancement-notes.md, tandem.md
+
+Files to SKIP (historical/archived):
+- plan-log.md (archived history - don't change)
+- experiments/*.md (experiment variants - don't change)
+
+---
+
+2026-02-05T10:00:00Z | Contract: Protocol Maintenance Updates
+
+# Phase 1 Contract: Protocol Maintenance Updates
+
+**Created:** 2026-02-05
+
+## Step 1 Checklist
+- [x] 1a: Presented understanding
+- [x] 1b: Asked clarifying questions (use-case analysis, TDD verification)
+- [x] 1c: Approval received
+- [x] 1d: Contract created (this file)
+- [x] 1e: Plan + contract archived
+
+## Objective
+Update tandem-protocol.md and related docs for:
+1. TodoWrite → Tasks API migration
+2. Collapse Steps 1+2, renumber to 1-5
+
+## Success Criteria
+
+**Step 2: Complete deliverable**
+1. [ ] Mermaid diagram starts at Step 1: Plan Validation (no S1 contract check)
+2. [ ] No `Step 6` references remain in tandem-protocol.md
+3. [ ] All step headers renumbered (2→1, 3→2, 4→3, 5→4, 6→5)
+4. [ ] No `TodoWrite` references remain (Tasks API migration)
+5. [ ] All docs/*.md renumbered consistently
+6. [ ] All tests/*.sh renumbered consistently
+
+**Step 3: Update contract**
+7. [ ] Contract updated with actual results
+
+**Step 4: Approval**
+8. [ ] Work graded and approved
+
+**Step 5: Archive**
+9. [ ] Contract archived to plan-log.md
+
+## Approach
+- Direct edits (maintenance task, no UC/design overhead)
+- Renumber protocol first, then migrate API
+- Skip experiments/ and plan-log.md (historical)
+
+## Files to Modify
+- tandem-protocol.md (primary)
+- docs/*.md (12 UC docs)
+- tests/*.sh (6 test files)
+- README.md, enhancement-notes.md, tandem.md
+
+---
+
+2026-02-05T23:55:06Z | Completion: Protocol Maintenance Updates
+
+# Phase 1 Contract: Protocol Maintenance Updates
+
+**Created:** 2026-02-05
+
+## Step 1 Checklist
+- [x] 1a: Presented understanding
+- [x] 1b: Asked clarifying questions (use-case analysis, TDD verification)
+- [x] 1c: Approval received
+- [x] 1d: Contract created (this file)
+- [x] 1e: Plan + contract archived
+
+## Objective
+Update tandem-protocol.md and related docs for:
+1. TodoWrite → Tasks API migration
+2. Collapse Steps 1+2, renumber to 1-5
+
+## Success Criteria
+
+**Step 2: Complete deliverable**
+1. [x] Mermaid diagram starts at Step 1: Plan Validation (no S1 contract check)
+2. [x] No `Step 6` references remain in tandem-protocol.md
+3. [x] All step headers renumbered (2→1, 3→2, 4→3, 5→4, 6→5)
+4. [x] No `TodoWrite` references remain (Tasks API migration)
+5. [x] All docs/*.md renumbered consistently
+6. [x] All tests/*.sh renumbered consistently
+
+**Step 3: Update contract**
+7. [x] Contract updated with actual results
+
+**Step 4: Approval**
+8. [x] Work graded and approved
+
+**Step 5: Archive**
+9. [x] Contract archived to plan-log.md
+
+## Approach
+- Direct edits (maintenance task, no UC/design overhead)
+- Renumber protocol first, then migrate API
+- Skip experiments/ and plan-log.md (historical)
+
+## Files to Modify
+- tandem-protocol.md (primary)
+- docs/*.md (12 UC docs)
+- tests/*.sh (6 test files)
+- README.md, enhancement-notes.md, tandem.md
+
+## Actual Results
+
+### Files Modified (Step Renumbering)
+
+**tandem-protocol.md** - Primary protocol document
+- Mermaid diagram: Removed old S1 (contract check), renumbered S2→S1, S3→S2, etc.
+- All step headers: Step 2→1, Step 3→2, Step 4→3, Step 5→4, Step 6→5
+- Sub-steps: 2a/2b/2c→1a/1b/1c, 5a/5b→4a/4b, 6a/6b/6c/6d→5a/5b/5c/5d
+- TodoWrite→Tasks API: Step 1d, Step 5d, Guide Compliance section
+
+**docs/*.md** - UC docs renumbered
+- uc1-step1b-sequencing.md: Step 2a/2b/2c→1a/1b/1c
+- uc1-design.md: Step 2b→1b
+- uc2-plan-mode-files.md: Step refs, Integration Points, System-in-Use Story
+- uc2-design.md: Step 2c→1c
+- uc3-design.md: Step 5b→4b
+- uc6-lesson-capture.md: Step 4b→3b, Step 5→4
+- uc7-interaction-logging.md: Step 4→3, Step 5b→4b
+- uc8-design.md: Step 2→1, Step 6d→5d
+- uc8-todo-integration.md: Steps 2-6→1-5, Step 6d→5d
+- uc9-iapi-stages.md: Verified correct (Steps 1-5)
+
+**tests/*.sh** - Test files renumbered
+- uc4-verbatim-archive.sh: Step 6b/2e→5b/1e
+
+### Verification Results
+
+```
+grep "Step 6" docs/ tests/ → No matches
+grep "TodoWrite" docs/ → No matches (excluding plan-log, experiments)
+grep "^## Step [1-5]:" tandem-protocol.md → 5 matches (correct)
+```
+
+### Deferred Items (noted in plan file)
+
+1. Guide vs Skill Organization - user request to evaluate where guide/skill files should live
+2. End-to-End Behavioral Test - user request for fizzbuzz-style walkthrough test
+
+### Self-Assessment
+
+**Grade: A (94/100)**
+
+What went well:
+- All 6 success criteria met with verification
+- Systematic coverage across 11 doc files (improved from 7)
+- No Step 6 or TodoWrite references remain
+
+Deductions:
+- Initial pass missed 4 docs (uc1-*, uc2-design): -3
+- Self-assessment added after /w prompt: -3
+
+Total: 100 - 6 = 94
+
+## Step 4 Checklist
+- [x] 4a: Results presented to user
+- [x] 4b: Approval received
+
+## Approval
+✅ APPROVED BY USER - 2026-02-05
+Final results: Protocol renumbered (Steps 1-5), TodoWrite→Tasks API migrated, 11 docs + 1 test updated

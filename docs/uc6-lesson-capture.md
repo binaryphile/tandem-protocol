@@ -25,7 +25,7 @@
 
 ## Preconditions
 
-- LLM is performing grading (Step 5b or any /w invocation)
+- LLM is performing grading (Step 4b or any /w invocation)
 - Gap identified that isn't actionable in current session
 
 ## Success Guarantee
@@ -88,19 +88,24 @@ LLM identifies a gap during grading that cannot be fixed in the current session.
 
 ## File Routing Guide
 
-| Lesson Type | Target Guide |
-|-------------|--------------|
-| Grading methodology | self-grading-guide.md |
-| Protocol compliance | enhancement-notes.md |
-| Code quality patterns | (project-specific guide) |
-| Tool usage | (tool-specific guide) |
+Route lessons to the IAPI stage where they apply (see UC9):
+
+| Lesson Type | IAPI Stage | Target Guide |
+|-------------|------------|--------------|
+| "Should have explored X" | Investigate | investigation-guide.md |
+| "Misunderstood Y" | Analyze | analysis-guide.md |
+| "Better approach Z" | Plan | planning-guide.md |
+| Code quality patterns | Implement | (domain-specific guide) |
+| Grading methodology | Analyze | self-grading-guide.md |
+| Protocol compliance | (meta) | enhancement-notes.md |
 
 ## Integration Points in Protocol
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 5b | During grading, apply actionability test |
+| Step 3b | During grading, apply actionability test |
 | Any /w | Same rule applies to ad-hoc grading |
+| Step 4 | Route non-actionable lessons to stage guides |
 
 ## Project Info
 

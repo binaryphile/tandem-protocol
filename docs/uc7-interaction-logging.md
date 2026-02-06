@@ -76,8 +76,8 @@ LLM receives user input during protocol execution (proceed, /q, /w, /i, feedback
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 4 | Update contract with interactions before self-assessment |
-| Step 6b | Archive includes interaction log |
+| Step 3 | Update contract with interactions before self-assessment |
+| Step 4b | Archive includes interaction log |
 
 ## Project Info
 

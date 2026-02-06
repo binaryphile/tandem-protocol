@@ -4,149 +4,66 @@
 
 ```mermaid
 flowchart TD
-    S1[● Step 1: Check Contract Files] --> E1{Contract exists?<br/>Check for incomplete work}
+    PLAN[● Enter Plan Mode] --> S1[▶ Step 1: Plan Validation]
 
-    E1 -->|"None - Clean slate"| PLAN[Step 1b: Enter Plan Mode]
-    PLAN --> S2[▶ Step 2: Plan Validation]
-    E1 -->|"Found - Protocol violation"| R1{Recovery Options<br/>Complete/Abandon/Investigate}
+    S1 --> S1a[Step 1a: Present understanding]
+    S1a --> S1b[⛔ Step 1b: Clarifying questions<br/>BLOCKING - must ask]
+    S1b --> S1bw{Answers received?}
+    S1bw -->|"No - wait"| S1b
+    S1bw -->|"Yes"| S1c[Step 1c: Request approval]
+    S1c --> A1{User approves?<br/>GATE 1}
+    A1 -->|"Yes - proceed"| EXIT[Step 1c-exit: Exit Plan Mode]
+    EXIT --> S1d[Step 1d: Create contract]
+    S1d --> S1e[Step 1e: Archive plan + contract]
+    S1e --> S2[▶ Step 2: Complete Deliverable]
+    A1 -->|"Correct understanding"| S1a
 
-    %% Recovery sub-steps (same archive operation as S6B but for recovery path)
-    R1 -->|"Complete previous work"| ARC[Step 1a-complete: Archive contract]
-    R1 -->|"Abandon previous work"| DEL[Step 1a-abandon: Delete contract]
-    R1 -->|"Investigate first"| READ[Step 1a-investigate: Read contract]
-
-    ARC --> PLAN
-    DEL --> PLAN
-    READ --> R1
-
-    S2 --> S2a[Step 2a: Present understanding]
-    S2a --> S2b[⛔ Step 2b: Clarifying questions<br/>BLOCKING - must ask]
-    S2b --> S2bw{Answers received?}
-    S2bw -->|"No - wait"| S2b
-    S2bw -->|"Yes"| S2c[Step 2c: Request approval]
-    S2c --> A2{User approves?<br/>GATE 1}
-    A2 -->|"Yes - proceed"| EXIT[Step 2c-exit: Exit Plan Mode]
-    EXIT --> S2d[Step 2d: Create contract]
-    S2d --> S2e[Step 2e: Archive plan + contract]
-    S2e --> S3[▶ Step 3: Complete Deliverable]
-    A2 -->|"Correct understanding"| S2a
-
-    S3 --> CX{Complex with<br/>sub-phases?}
-    CX -->|"Simple task"| S4
-    CX -->|"Multiple sub-phases"| SUB[Step 3a: Complete one sub-phase]
-    SUB --> BLK[⛔ Step 3b: Update contract<br/>BLOCKING - cannot proceed without]
+    S2 --> CX{Complex with<br/>sub-phases?}
+    CX -->|"Simple task"| S3
+    CX -->|"Multiple sub-phases"| SUB[Step 2a: Complete one sub-phase]
+    SUB --> BLK[⛔ Step 2b: Update contract<br/>BLOCKING - cannot proceed without]
     BLK --> MORE{More sub-phases<br/>remaining?}
     MORE -->|"Yes - continue"| SUB
-    MORE -->|"No - all done"| S4
+    MORE -->|"No - all done"| S3
 
-    S4[▶ Step 4: Update Contract] --> S5[▶ Step 5: Present and Await]
+    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present and Await]
 
-    S5 --> S5a[Step 5a: Present results]
-    S5a --> S5b[⛔ Step 5b: Await approval<br/>BLOCKING]
-    S5b --> A5{User response?<br/>GATE 2}
-    A5 -->|"Approve - finalize"| S6[▶ Step 6: Post-Approval]
-    A5 -->|"Grade first"| GR[Step 5c: Provide honest grade]
-    A5 -->|"Improve work"| IMP[Step 5d: Make improvements]
-    A5 -->|"Address feedback"| FB[Step 5e: Respond to comments]
-    A5 -->|"Change plan"| PLAN
+    S4 --> S4a[Step 4a: Present results]
+    S4a --> S4b[⛔ Step 4b: Await approval<br/>BLOCKING]
+    S4b --> A4{User response?<br/>GATE 2}
+    A4 -->|"Approve - finalize"| S5[▶ Step 5: Post-Approval]
+    A4 -->|"Grade first"| GR[Step 4c: Provide honest grade]
+    A4 -->|"Improve work"| IMP[Step 4d: Make improvements]
+    A4 -->|"Address feedback"| FB[Step 4e: Respond to comments]
+    A4 -->|"Change plan"| PLAN
 
-    GR --> S5a
-    IMP --> S5a
-    FB --> S5a
+    GR --> S4a
+    IMP --> S4a
+    FB --> S4a
 
-    S6 --> S6A[Step 6a: Mark APPROVED]
-    S6A --> S6B[Step 6b: Archive to plan-log.md]
-    S6B --> S6C[Step 6c: Commit deliverable + archive]
-    S6C --> S6D[Step 6d: Setup next phase]
-    S6D --> S1
+    S5 --> S5A[Step 5a: Mark APPROVED]
+    S5A --> S5B[Step 5b: Archive to plan-log.md]
+    S5B --> S5C[Step 5c: Commit deliverable + archive]
+    S5C --> S5D[Step 5d: Setup next phase]
+    S5D --> PLAN
 
-    style S1 stroke:#4caf50,stroke-width:3px
-    style S6D stroke:#4caf50,stroke-width:3px
-    style S2e fill:#e8f5e9,stroke:#4caf50
+    style PLAN stroke:#4caf50,stroke-width:3px
+    style S5D stroke:#4caf50,stroke-width:3px
+    style S1e fill:#e8f5e9,stroke:#4caf50
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style S2b fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style S5b fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style A2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style A5 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style E1 fill:#fff3e0
-    style R1 fill:#fff3e0
-    style S2bw fill:#fff3e0
+    style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style S4b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style A4 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style S1bw fill:#fff3e0
     style CX fill:#fff3e0
     style MORE fill:#fff3e0
-    style PLAN fill:#e3f2fd,stroke:#2196f3
     style EXIT fill:#e3f2fd,stroke:#2196f3
 ```
 
 ---
 
-## Step 1: Check Contract Files
-**Only required for persistent filesystem (Claude Code, Cursor, etc.) - skip for web UI**
-
-```python
-# Check for leftover contracts from previous incomplete work
-# Look in the current project directory (where deliverables will be created)
-contract_files = ls("*-contract.md")
-
-if len(contract_files) > 0:
-    # Protocol violation detected - previous work incomplete
-    print(f"Found {len(contract_files)} contract files from incomplete work:")
-    print(contract_files)
-
-    response = AskUserQuestion({
-        "questions": [{
-            "question": "What would you like to do with the incomplete work?",
-            "header": "Recovery",
-            "options": [
-                {
-                    "label": "Complete",
-                    "description": "Review and finalize the previous work"
-                },
-                {
-                    "label": "Abandon",
-                    "description": "Delete contract and start fresh"
-                },
-                {
-                    "label": "Investigate",
-                    "description": "Read contract file first"
-                }
-            ],
-            "multiSelect": false
-        }]
-    })
-    choice = response["Recovery"].lower()
-
-    if choice == "complete":
-        # Review contract, verify APPROVED status
-        review(contract_file)
-        if approved:
-            commit_to_git(contract_file)  # or output to chat
-            rm(contract_file)
-
-    elif choice == "abandon":
-        rm(contract_file)
-        print("Contract deleted. Previous work abandoned.")
-
-    elif choice == "investigate":
-        read(contract_file)
-        # Loop back to options after investigation
-
-# Also clean up plan files for multi-phase work
-if plan_file_exists:
-    # Remove completed phases from plan file (keep only current + future phases)
-    # Completed phases are already archived in plan-log.md
-    completed_phases = find_phases_marked_complete(plan_file)
-    if len(completed_phases) > 0:
-        remove_completed_phases(plan_file)
-        print(f"Removed {len(completed_phases)} completed phases from plan file")
-
-# Clean slate or recovery complete - see diagram for next step
-```
-
----
-
-## Step 2: Plan Validation
-
-**Enter plan mode before Step 2.** Plan mode enables exploration and design before committing to a contract:
+## Step 1: Plan Validation
 
 ```python
 # Enter plan mode for exploration and design
@@ -174,10 +91,10 @@ if plan_file:
             address_deductions()
             # Loop back to re-grade
         else:
-            break  # proceed to Step 2a
+            break  # proceed to Step 1a
 ```
 
-Step 2 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
+Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
 
 **Sub-steps:**
 - **1a:** Present plan understanding
@@ -194,7 +111,7 @@ Iterate on the plan until approved, then lock scope into a contract.
 
 ---
 
-### Step 2a: Present Understanding
+### Step 1a: Present Understanding
 
 ```python
 # Present understanding to user
@@ -205,7 +122,7 @@ present("Approach: [specific actions]")
 
 ---
 
-### Step 2b: Clarifying Questions ⛔ BLOCKING
+### Step 1b: Clarifying Questions ⛔ BLOCKING
 
 Questions must be ASKED (via conversation or AskUserQuestion tool), not embedded in plan file.
 The plan file should contain ANSWERS, not open questions.
@@ -234,7 +151,7 @@ update_understanding_with_answers()
 
 ---
 
-### Step 2c: Request Approval (Exit Plan Mode)
+### Step 1c: Request Approval (Exit Plan Mode)
 
 ```python
 # Present plan summary for approval
@@ -248,7 +165,7 @@ present(f"""
 **Upon your approval, I will:**
 1. Create contract file capturing this scope
 2. Archive plan + contract
-3. Proceed to Step 3 (implementation)
+3. Proceed to Step 2 (implementation)
 
 **May I proceed?**
 """)
@@ -267,7 +184,7 @@ if tool_available("ExitPlanMode"):
 
 ---
 
-### Step 2d: Create Contract
+### Step 1d: Create Contract
 
 **Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
 **Location:** Project directory (where the deliverable will be created, to make it git-able)
@@ -282,7 +199,7 @@ write_to_contract("""
 
 **Created:** [date]
 
-## Step 2 Checklist
+## Step 1 Checklist
 - [x] 1a: Presented understanding
 - [x] 1b: Asked clarifying questions
 - [x] 1b-answer: Received answers
@@ -294,9 +211,9 @@ write_to_contract("""
 [What this phase accomplishes]
 
 ## Success Criteria
-1. [ ] Step 3: Complete deliverable
-2. [ ] Step 4: Update contract with results
-3. [ ] Step 6d: Archive contract and log progress
+1. [ ] Step 2: Complete deliverable
+2. [ ] Step 3: Update contract with results
+3. [ ] Step 5d: Archive contract and log progress
 
 ## Approach
 [Specific implementation steps]
@@ -305,26 +222,39 @@ write_to_contract("""
 Estimated: XX-XXK tokens
 """)
 
-# Create TodoWrite with hierarchical structure: current substeps + remaining steps
-if tool_available("TodoWrite"):
-    TodoWrite({
-        "todos": [
-            # Current step (Step 2) blown out to substeps
-            {"content": "Step 2a: Present plan understanding", "status": "completed", "activeForm": "Presenting plan understanding"},
-            {"content": "Step 2b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
-            {"content": "Step 2c: Request approval", "status": "completed", "activeForm": "Requesting approval"},
-            {"content": "Step 2d: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
-            {"content": "Step 2e: Archive plan + contract", "status": "pending", "activeForm": "Archiving plan and contract"},
-            # Remaining steps (collapsed)
-            {"content": "Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
-            {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
-            {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
-            {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
-        ]
-    })
-    # After Step 2 complete: telescope (remove substeps, mark Step 2 complete, blow out Step 3)
+# Create tasks with hierarchical structure: current substeps + remaining steps
+if tool_available("TaskCreate"):
+    # Current step (Step 1) blown out to substeps
+    TaskCreate({"subject": "Step 1a: Present plan understanding", "description": "Present understanding to user", "activeForm": "Presenting plan understanding"})
+    TaskCreate({"subject": "Step 1b: Ask clarifying questions", "description": "BLOCKING - ask questions", "activeForm": "Asking clarifying questions"})
+    TaskCreate({"subject": "Step 1c: Request approval", "description": "Present and await approval", "activeForm": "Requesting approval"})
+    TaskCreate({"subject": "Step 1d: Create contract file", "description": "Create phase contract", "activeForm": "Creating contract file"})
+    TaskCreate({"subject": "Step 1e: Archive plan + contract", "description": "Archive to plan-log.md", "activeForm": "Archiving plan and contract"})
+    # Remaining steps (collapsed)
+    TaskCreate({"subject": "Step 2: Complete deliverable", "description": "Execute the work", "activeForm": "Completing deliverable"})
+    TaskCreate({"subject": "Step 3: Update contract", "description": "Record results", "activeForm": "Updating contract"})
+    TaskCreate({"subject": "Step 4: Present and await approval", "description": "Present for user approval", "activeForm": "Presenting for approval"})
+    TaskCreate({"subject": "Step 5: Post-approval actions", "description": "Archive and commit", "activeForm": "Post-approval actions"})
 
-# Plan file is todo source of truth - sync TodoWrite from plan
+    # Wire sequential dependencies
+    TaskUpdate({"taskId": "2", "addBlockedBy": ["1"]})
+    TaskUpdate({"taskId": "3", "addBlockedBy": ["2"]})
+    TaskUpdate({"taskId": "4", "addBlockedBy": ["3"]})
+    TaskUpdate({"taskId": "5", "addBlockedBy": ["4"]})
+    TaskUpdate({"taskId": "6", "addBlockedBy": ["5"]})
+    TaskUpdate({"taskId": "7", "addBlockedBy": ["6"]})
+    TaskUpdate({"taskId": "8", "addBlockedBy": ["7"]})
+    TaskUpdate({"taskId": "9", "addBlockedBy": ["8"]})
+
+    # Mark completed and in-progress
+    TaskUpdate({"taskId": "1", "status": "completed"})
+    TaskUpdate({"taskId": "2", "status": "completed"})
+    TaskUpdate({"taskId": "3", "status": "completed"})
+    TaskUpdate({"taskId": "4", "status": "in_progress"})
+
+    # After Step 1 complete: telescope (delete substeps, blow out Step 2)
+
+# Plan file is todo source of truth - sync tasks from plan
 # Expand current phase in plan file, collapse completed phases
 update_plan_file(expand_current_phase=True)
 ```
@@ -333,27 +263,28 @@ update_plan_file(expand_current_phase=True)
 
 ### Guide Compliance Invariants
 
-When generating a phase plan for code implementation, automatically extract verification invariants from applicable guides and include them as TodoWrite items. This ensures compliance checkpoints are never forgotten.
+When generating a phase plan for code implementation, automatically extract verification invariants from applicable guides and include them as tasks. This ensures compliance checkpoints are never forgotten.
 
 **Process:**
 1. Identify which guides apply to this phase (Go Dev, FP, ES, Khorikov, etc.)
 2. Read each guide and extract invariants that require verification
-3. Generate TodoWrite items for each invariant at the appropriate step
-4. Insert these as substeps within Step 3 (implementation) or Step 4 (verification)
+3. Generate tasks for each invariant at the appropriate step
+4. Insert these as substeps within Step 2 (implementation) or Step 3 (verification)
 
 **Common Guide Invariants (extract when applicable):**
 
-| Guide | Invariant | When | TodoWrite JSON |
+| Guide | Invariant | When | Task API |
 |-------|-----------|------|----------------|
-| Go Dev | Benchmarks for calculations | After implementing calculations | `{"content": "Add benchmarks for new calculation functions", "status": "pending", "activeForm": "Adding benchmarks"}` |
-| Go Dev | Coverage check | Before presenting | `{"content": "Run coverage and document in contract", "status": "pending", "activeForm": "Running coverage"}` |
-| Go Dev | Race detection | Before presenting | `{"content": "Run race detector (go test -race)", "status": "pending", "activeForm": "Running race detector"}` |
-| Khorikov | Quadrant analysis | After tests written | `{"content": "Classify functions into Khorikov quadrants", "status": "pending", "activeForm": "Classifying Khorikov quadrants"}` |
-| Khorikov | Prune trivial tests | After quadrant analysis | `{"content": "Prune tests for trivial code per Khorikov", "status": "pending", "activeForm": "Pruning trivial tests"}` |
-| FP | ACD classifications | During implementation | `{"content": "Add ACD classification comments to public functions", "status": "pending", "activeForm": "Adding ACD classifications"}` |
-| FP | Raw loop vs fluentfp | During implementation | `{"content": "Verify early-exit patterns use raw loops", "status": "pending", "activeForm": "Verifying loop patterns"}` |
-| ES | Idempotency test | After projection code | `{"content": "Add idempotency test (same events → same state)", "status": "pending", "activeForm": "Adding idempotency test"}` |
-| ES | Events are facts | During event design | `{"content": "Verify events are past-tense with outcomes", "status": "pending", "activeForm": "Verifying event semantics"}` |
+| Go Dev | Benchmarks for calculations | After implementing calculations | `TaskCreate({"subject": "Add benchmarks", "description": "...", "activeForm": "Adding benchmarks"})` |
+| Go Dev | Coverage check | Before presenting | `TaskCreate({"subject": "Run coverage", "description": "...", "activeForm": "Running coverage"})` |
+| Go Dev | Race detection | Before presenting | `TaskCreate({"subject": "Run race detector", "description": "...", "activeForm": "Running race detector"})` |
+| Khorikov | Quadrant analysis | After tests written | `TaskCreate({"subject": "Classify Khorikov quadrants", "description": "...", "activeForm": "Classifying quadrants"})` |
+| Khorikov | Prune trivial tests | After quadrant analysis | `TaskCreate({"subject": "Prune trivial tests", "description": "...", "activeForm": "Pruning tests"})` |
+| Khorikov | Identify overcomplicated tests | After quadrant analysis | `TaskCreate({"subject": "Identify code smell tests", "description": "Tests in overcomplicated quadrant", "activeForm": "Finding code smells"})` |
+| FP | ACD classifications | During implementation | `TaskCreate({"subject": "Add ACD classifications", "description": "...", "activeForm": "Adding ACD"})` |
+| FP | Raw loop vs fluentfp | During implementation | `TaskCreate({"subject": "Verify loop patterns", "description": "...", "activeForm": "Verifying loops"})` |
+| ES | Idempotency test | After projection code | `TaskCreate({"subject": "Add idempotency test", "description": "...", "activeForm": "Adding test"})` |
+| ES | Events are facts | During event design | `TaskCreate({"subject": "Verify event semantics", "description": "...", "activeForm": "Verifying events"})` |
 
 **Integration with Telescoping Pattern:**
 
@@ -400,48 +331,50 @@ After verification completes, telescope up:
 [ ] Step 5: Post-approval actions
 ```
 
-**TodoWrite JSON - Phase 1 (implementation):**
+**Tasks API - Phase 1 (implementation):**
 
 ```python
-TodoWrite({
-    "todos": [
-        {"content": "Step 1: Plan validation", "status": "completed", "activeForm": "Validating plan"},
-        {"content": "Write failing tests (TDD)", "status": "in_progress", "activeForm": "Writing failing tests"},
-        {"content": "Implement production code", "status": "pending", "activeForm": "Implementing production code"},
-        {"content": "Add benchmarks for calculation functions", "status": "pending", "activeForm": "Adding benchmarks"},
-        {"content": "Add ACD classification comments", "status": "pending", "activeForm": "Adding ACD classifications"},
-        {"content": "Verify compliance (5 checks)", "status": "pending", "activeForm": "Verifying compliance"},
-        {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
-        {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
-        {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
-    ]
-})
+if tool_available("TaskCreate"):
+    # Create tasks for implementation phase
+    TaskCreate({"subject": "Step 1: Plan validation", "description": "...", "activeForm": "Validating plan"})
+    TaskCreate({"subject": "Write failing tests (TDD)", "description": "...", "activeForm": "Writing failing tests"})
+    TaskCreate({"subject": "Implement production code", "description": "...", "activeForm": "Implementing"})
+    TaskCreate({"subject": "Add benchmarks", "description": "...", "activeForm": "Adding benchmarks"})
+    TaskCreate({"subject": "Add ACD classifications", "description": "...", "activeForm": "Adding ACD"})
+    TaskCreate({"subject": "Verify compliance (5 checks)", "description": "...", "activeForm": "Verifying compliance"})
+    TaskCreate({"subject": "Step 3: Update contract", "description": "...", "activeForm": "Updating contract"})
+    TaskCreate({"subject": "Step 4: Present and await", "description": "...", "activeForm": "Presenting"})
+    TaskCreate({"subject": "Step 5: Post-approval", "description": "...", "activeForm": "Post-approval"})
+
+    # Wire dependencies and set status
+    TaskUpdate({"taskId": "1", "status": "completed"})
+    TaskUpdate({"taskId": "2", "status": "in_progress"})
 ```
 
-**TodoWrite JSON - Phase 2 (verification blowout):**
+**Tasks API - Phase 2 (verification blowout):**
 
 ```python
-TodoWrite({
-    "todos": [
-        {"content": "Step 1: Plan validation", "status": "completed", "activeForm": "Validating plan"},
-        {"content": "Step 2a: Implementation", "status": "completed", "activeForm": "Implementing"},
-        {"content": "Classify Khorikov quadrants", "status": "in_progress", "activeForm": "Classifying Khorikov quadrants"},
-        {"content": "Prune trivial tests", "status": "pending", "activeForm": "Pruning trivial tests"},
-        {"content": "Run coverage (document in contract)", "status": "pending", "activeForm": "Running coverage"},
-        {"content": "Run race detector", "status": "pending", "activeForm": "Running race detector"},
-        {"content": "Run full test suite", "status": "pending", "activeForm": "Running full test suite"},
-        {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
-        {"content": "Step 4: Present and await approval", "status": "pending", "activeForm": "Presenting for approval"},
-        {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
-    ]
-})
+# Delete implementation substeps, expand verification
+for task_id in ["2", "3", "4", "5"]:
+    TaskUpdate({"taskId": task_id, "status": "deleted"})
+
+TaskCreate({"subject": "Classify Khorikov quadrants", "description": "...", "activeForm": "Classifying"})
+TaskCreate({"subject": "Prune trivial tests", "description": "...", "activeForm": "Pruning"})
+TaskCreate({"subject": "Run coverage", "description": "...", "activeForm": "Running coverage"})
+TaskCreate({"subject": "Run race detector", "description": "...", "activeForm": "Running race detector"})
+TaskCreate({"subject": "Run full test suite", "description": "...", "activeForm": "Running tests"})
+
+# Wire dependencies
+TaskUpdate({"taskId": "10", "status": "in_progress"})
+TaskUpdate({"taskId": "11", "addBlockedBy": ["10"]})
+TaskUpdate({"taskId": "12", "addBlockedBy": ["11"]})
 ```
 
 **Key principle:** The plan document should specify which guides apply. Verification items stay collapsed as a single "Verify compliance" todo during implementation, then blow out when that phase is reached. This keeps the main list clean while ensuring compliance isn't forgotten.
 
 ---
 
-### Step 2e: Archive Approved Plan + Contract
+### Step 1e: Archive Approved Plan + Contract
 
 Archive the approved plan and contract BEFORE starting implementation. This captures "what we agreed to."
 
@@ -479,7 +412,7 @@ cat phase-N-contract.md >> plan-log.md
 
 ---
 
-## Step 3: Complete Deliverable
+## Step 2: Complete Deliverable
 
 ```python
 # Execute the work
@@ -504,7 +437,7 @@ else:
 
 ---
 
-## Step 4: Update Contract
+## Step 3: Update Contract
 
 ```python
 # After edits: verify line references still accurate (numbers shift)
@@ -569,7 +502,7 @@ append_to_contract("""
 
 # Add Step 5 Checklist (tracks approval state)
 append_to_contract("""
-## Step 5 Checklist
+## Step 4 Checklist
 - [ ] 4a: Results presented to user
 - [ ] 4b: Approval received
 """)
@@ -577,13 +510,13 @@ append_to_contract("""
 
 ---
 
-## Step 5: Present and Await Approval
+## Step 4: Present and Await Approval
 
-Step 5 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
+Step 4 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
 
 ---
 
-### Step 6a: Present Results
+### Step 4a: Present Results
 
 ```python
 # Mark checklist item
@@ -611,7 +544,7 @@ present(f"""
 
 ---
 
-### Step 6b: Await Approval ⛔ BLOCKING
+### Step 4b: Await Approval ⛔ BLOCKING
 
 ```python
 # WAIT for user response
@@ -637,13 +570,13 @@ elif user_response == "feedback":
 
 ---
 
-## Step 6: Post-Approval Actions
+## Step 5: Post-Approval Actions
 
 Step 5 has sub-steps (5a-5d) shown in the mermaid diagram. Execute sequentially.
 
 ---
 
-### Step 6a: Mark Approved
+### Step 5a: Mark Approved
 
 ```python
 # Add approval record to contract
@@ -656,7 +589,7 @@ Final results: [summary]
 
 ---
 
-### Step 6b: Archive Contract + Write Log Entry
+### Step 5b: Archive Contract + Write Log Entry
 
 Archive the contract BEFORE committing so the history is included in the commit. Also write a standalone log entry for readers unfamiliar with the conversation.
 
@@ -717,7 +650,7 @@ EOF
 
 ---
 
-### Step 6c: Commit Deliverable
+### Step 5c: Commit Deliverable
 
 Commit deliverable AND the updated plan-log.md together.
 
@@ -739,19 +672,19 @@ Contract: archived to plan-log.md
 
 ---
 
-### Step 6d: Setup Next Phase
+### Step 5d: Setup Next Phase
 
 ```python
-# Telescope todos: delete completed tasks, keep only next phase
-if tool_available("TodoWrite"):
-    TodoWrite({
-        "todos": []  # Empty - will be populated at Step 2 of next phase
-    })
+# Telescope tasks: delete all completed tasks for clean slate
+if tool_available("TaskList"):
+    for task in TaskList():
+        TaskUpdate({"taskId": task.id, "status": "deleted"})
+    # Tasks will be re-created at Step 1 of next phase
 
 # Update plan file: mark completed phases, remove detail from finished work
 update_plan_file(mark_phase_complete=True, collapse_completed=True)
 
-# Transition to Step 2 for next phase (triggers plan mode entry)
+# Transition to Step 1 for next phase (triggers plan mode entry)
 ```
 
 ---
@@ -1062,17 +995,17 @@ Track improvements:
 - Each contract covers ONE phase only
 - Planning for subsequent phases is deferred until the current phase is approved
 - This structurally prevents skipping checkpoints between phases
-- After Phase N approval → Step 2 for Phase N+1 (plan, clarify, get approval)
+- After Phase N approval → Step 1 for Phase N+1 (plan, clarify, get approval)
 - Never pre-plan multiple phases in one contract
 
 **Deliverable contracts are the primary artifact:**
-- Create at Step 2, update at Step 4, finalize at Step 6
+- Create at Step 1, update at Step 3, finalize at Step 5
 - Commit to git or output to chat (for web UI)
 - Serves as phase completion history
 
 **User approval gates:**
-- Step 2: Approve plan before starting
-- Step 5: Approve results before finalizing
+- Step 1: Approve plan before starting
+- Step 4: Approve results before finalizing
 - Never proceed without explicit "yes"/"approved"/"proceed"
 
 **Scope management - user controls deferrals:**
@@ -1084,16 +1017,16 @@ Track improvements:
 - "Deferred" in a contract means "user approved moving this out of scope" - never "Claude decided to skip this"
 - Marking work as "deferred" without user approval is a protocol violation
 
-**Feedback = Plan Change = Return to Step 2:**
+**Feedback = Plan Change = Return to Step 1:**
 - User feedback that changes scope, approach, or requirements = plan change
-- Plan changes require returning to Step 2 for re-validation
-- Distinguish: "fix this bug in my implementation" (stay at Step 5) vs "also add feature X" (return to Step 2)
+- Plan changes require returning to Step 1 for re-validation
+- Distinguish: "fix this bug in my implementation" (stay at Step 4) vs "also add feature X" (return to Step 1)
 
 **BLOCKING checkpoints:**
 - Multi-phase tasks: Update contract after EACH sub-phase
 - Cannot proceed without contract update + user confirmation
 
-**TodoWrite hierarchical telescoping pattern:**
+**Tasks API hierarchical telescoping pattern:**
 - Always show the full hierarchy: remaining phases → remaining steps → current substeps
 - Blow out children at each level as you enter it
 - Telescope up (remove children, mark parent complete) when a level finishes
@@ -1148,7 +1081,7 @@ Phase 2 start (blow out steps and substeps):
 
 **Platform flexibility:**
 - Works with or without git
-- Works with or without TodoWrite
+- Works with or without Tasks API
 - Contract history appended to `plan-log.md` at Step 5b
 - Works on web UI (no persistent filesystem)
 - Works with non-Claude tools
@@ -1163,14 +1096,14 @@ Phase 2 start (blow out steps and substeps):
 - Refer to diagram for "what comes next"
 
 **Two-checkpoint archiving:**
-- Checkpoint 1 (Step 2e): Copies approved plan + contract as "what we agreed to"
-- Checkpoint 2 (Step 6b): Archives completed contract as "what we delivered", then deletes
+- Checkpoint 1 (Step 1e): Copies approved plan + contract as "what we agreed to"
+- Checkpoint 2 (Step 5b): Archives completed contract as "what we delivered", then deletes
 - Plan file: Managed by Claude Code, protocol just copies for history
 - Contract file: Kept as working document until completion
 
 **Plan mode precedes Step 1:**
 - Always enter plan mode before Step 1 (Plan Validation)
 - Plan mode enables read-only exploration: codebase, patterns, dependencies
-- Exit plan mode upon approval (Step 2c) via ExitPlanMode
+- Exit plan mode upon approval (Step 1c) via ExitPlanMode
 - This applies to every phase, ensuring proper analysis before commitment
-- Multi-phase work naturally gets plan mode at each phase transition (Step 6d → Step 1 → Plan Mode → Step 2)
+- Multi-phase work naturally gets plan mode at each phase transition (Step 5d → Plan Mode → Step 1)

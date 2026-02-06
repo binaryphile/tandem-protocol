@@ -2,11 +2,11 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 2 (start) and Step 6d
+**Location:** tandem-protocol.md - Step 1 (start) and Step 5d
 
 **Design principle:** Plan file IS the todo state. No separate tracking.
 
-**Current state:** Protocol mentions TodoWrite but plan file and todos are separate artifacts.
+**Current state:** Protocol mentions Tasks API but plan file and tasks are separate artifacts.
 
 **Problem:** Observed drift between plan state and todo state. User had to remind about telescoping.
 
@@ -23,17 +23,17 @@ update_plan_file("""
 ### Current Phase (expanded)
 - [in_progress] UC3-A: Use case doc (Step 2)
 - [pending] UC3-B: Design doc (Step 2)
-- [pending] UC3-C: Implementation (Steps 2-6)
+- [pending] UC3-C: Implementation (Steps 1-5)
 """)
 
-# Sync to TodoWrite if available
-if tool_available("TodoWrite"):
-    TodoWrite(read_todos_from_plan())
+# Sync to Tasks API if available
+if tool_available("TaskCreate"):
+    sync_tasks_from_plan()
 ```
 
-### Change 2: Step 6d - Collapse and expand
+### Change 2: Step 5d - Collapse and expand
 
-**Location:** Step 6d, replace current content (~line 738)
+**Location:** Step 5d, replace current content (~line 738)
 
 ```python
 # Collapse completed phase in plan file
@@ -47,12 +47,12 @@ update_plan_file("""
 ### Current Phase (expanded)
 - [in_progress] UC4-A: Use case doc (Step 2)
 - [pending] UC4-B: Design doc (Step 2)
-- [pending] UC4-C: Implementation (Steps 2-6)
+- [pending] UC4-C: Implementation (Steps 1-5)
 """)
 
-# Sync to TodoWrite
-if tool_available("TodoWrite"):
-    TodoWrite(read_todos_from_plan())
+# Sync to Tasks API
+if tool_available("TaskCreate"):
+    sync_tasks_from_plan()
 ```
 
 ## Plan File Template
@@ -82,7 +82,7 @@ When sketching initial plan:
 | Change | Lines |
 |--------|-------|
 | Step 2 expansion pseudocode | +8 |
-| Step 6d collapse/expand | +10 |
+| Step 5d collapse/expand | +10 |
 | **Total** | **+18** |
 
 ## Behavioral Test Cases (for UC8-C)
@@ -101,7 +101,7 @@ When sketching initial plan:
 
 ### Phase 2: GREEN
 1. Add expansion pseudocode to Step 2
-2. Update Step 6d with collapse/expand
+2. Update Step 5d with collapse/expand
 3. Verify T1-T3 PASS
 
 ### Phase 3: REFACTOR

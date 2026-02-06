@@ -26,14 +26,14 @@ echo "Testing: $PROTOCOL"
 echo ""
 
 # T1: Verbatim guidance near archive/cat commands
-# Must be in Step 6b or Step 2e context, not just anywhere
-ARCHIVE_SECTIONS=$(sed -n '/Step 6b\|Step 2e/,/^###\|^---/p' "$PROTOCOL")
+# Must be in Step 5b or Step 1e context, not just anywhere
+ARCHIVE_SECTIONS=$(sed -n '/Step 5b\|Step 1e/,/^###\|^---/p' "$PROTOCOL")
 if echo "$ARCHIVE_SECTIONS" | grep -qiE "VERBATIM|no summar"; then
     echo "PASS: T1 - Verbatim guidance at archive"
     ((PASSED++))
 else
     echo "FAIL: T1 - Verbatim guidance at archive"
-    echo "      Pattern not found in Step 2e or Step 6b sections"
+    echo "      Pattern not found in Step 1e or Step 5b sections"
     ((FAILED++))
 fi
 # Skip the generic test_section call for T1

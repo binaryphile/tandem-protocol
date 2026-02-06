@@ -9,7 +9,7 @@
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Plan file vs contract file distinction | Other tool integrations (TodoWrite, etc.) |
+| Plan file vs contract file distinction | Other tool integrations (Tasks API, etc.) |
 | EnterPlanMode/ExitPlanMode timing | Plan mode UI/UX details |
 | Content routing (HOW vs WHAT) | File format specifications |
 | Integration points in protocol steps | Multi-agent coordination |
@@ -17,7 +17,7 @@
 
 ## System-in-Use Story
 
-> Claude, executing Tandem Protocol for a user's feature request, needs to document its approach. It enters plan mode and writes methodology to the plan file: "Phase by use case, TDD for implementation." After getting user approval at Step 2c, Claude exits plan mode and creates the contract file with scope and success criteria. Claude likes this separation because the plan file persists across sessions for reference, while the contract tracks immediate deliverables. The user likes it because they can review "what we agreed" (contract) separately from "how we'll do it" (plan).
+> Claude, executing Tandem Protocol for a user's feature request, needs to document its approach. It enters plan mode and writes methodology to the plan file: "Phase by use case, TDD for implementation." After getting user approval at Step 1c, Claude exits plan mode and creates the contract file with scope and success criteria. Claude likes this separation because the plan file persists across sessions for reference, while the contract tracks immediate deliverables. The user likes it because they can review "what we agreed" (contract) separately from "how we'll do it" (plan).
 
 ## Context of Use
 When executing Tandem Protocol under Claude Code, the LLM must correctly use plan mode tools (EnterPlanMode, ExitPlanMode) and distinguish between plan file and contract file. Confusion causes content to land in wrong locations.
@@ -37,7 +37,7 @@ When executing Tandem Protocol under Claude Code, the LLM must correctly use pla
 - Plan file contains HOW (approach, methodology, research strategy)
 - Contract file contains WHAT (scope, deliverables, success criteria)
 - Plan mode entered before Step 1
-- Plan mode exited at Step 2c (after approval, before contract creation)
+- Plan mode exited at Step 1c (after approval, before contract creation)
 
 ## Minimal Guarantee
 - No contract-style content in plan file
@@ -52,9 +52,9 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 2. LLM enters plan mode (EnterPlanMode tool if available)
 3. LLM writes approach/methodology to plan file
 4. LLM executes Steps 1a-1c in plan mode (understanding, questions, approval)
-5. LLM exits plan mode at Step 2c (ExitPlanMode tool)
-6. LLM creates contract file in project directory (Step 2d)
-7. LLM archives plan + contract to plan-log.md (Step 2e)
+5. LLM exits plan mode at Step 1c (ExitPlanMode tool)
+6. LLM creates contract file in project directory (Step 1d)
+7. LLM archives plan + contract to plan-log.md (Step 1e)
 
 ## Extensions
 2a. EnterPlanMode tool not available:
@@ -63,7 +63,7 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 
 3a. LLM writes contract-style content to plan file:
     3a1. VIOLATION - plan file should contain HOW, not WHAT
-    3a2. At Step 2d, extract scope/deliverables from plan, write to contract instead
+    3a2. At Step 1d, extract scope/deliverables from plan, write to contract instead
     3a3. Plan file retains only methodology; contract gets WHAT content
 
 5a. ExitPlanMode tool not available:
@@ -80,12 +80,12 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
     7a3. Archive each contract to plan-log.md at completion
 
 ## Sub-Variations
-- Step 3: Plan may include research strategy, phasing, methodology
-- Step 6: Contract may include success criteria, deliverables, constraints
+- Step 1: Plan may include research strategy, phasing, methodology
+- Step 4: Contract may include success criteria, deliverables, constraints
 
 ## Technology Variations
-- Step 2/5: May use EnterPlanMode/ExitPlanMode or equivalent
-- Step 6: Contract file may be markdown, yaml, or other format
+- Step 1: May use EnterPlanMode/ExitPlanMode or equivalent
+- Step 4: Contract file may be markdown, yaml, or other format
 
 ## Guard Conditions (Behavioral Tests)
 
@@ -100,7 +100,7 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 ### Tool-Invocation-Based (hook verification)
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| EnterPlanMode called after Step 2 starts | FAIL: Late entry |
+| EnterPlanMode called after Step 1 starts | FAIL: Late entry |
 | ExitPlanMode called before user approval | FAIL: Premature exit |
 | ExitPlanMode not called before Write to contract | FAIL: Still in plan mode |
 | Write to contract path while plan mode active | FAIL: Should exit first |
@@ -112,25 +112,25 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 | Approach | Plan file | "Phase by use case, TDD for implementation" |
 | Methodology | Plan file | "Deferred planning, efficiency constraints" |
 | Research notes | Plan file | "Need to investigate X before Y" |
-| Scope | Contract | "Implement Step 2b sequencing rule" |
+| Scope | Contract | "Implement Step 1b sequencing rule" |
 | Success criteria | Contract | "1. [ ] Step 2: Complete deliverable" |
 | Deliverables | Contract | "Modified tandem-protocol.md" |
 
 **Protocol format requirements:**
 - Step numbering starts at 1 (not 0)
-- All steps in Mermaid diagram must have "Step X" format (e.g., "Step 6a: Mark APPROVED")
-- Logically grouped steps use subletters for telescoping (6a, 6b, 6c, 6d)
-- Success criteria should be numbered and reference protocol step numbers (e.g., "Step 3: Complete deliverable")
+- All steps in Mermaid diagram must have "Step X" format (e.g., "Step 5a: Mark APPROVED")
+- Logically grouped steps use subletters for telescoping (5a, 5b, 5c, 5d)
+- Success criteria should be numbered and reference protocol step numbers (e.g., "Step 2: Complete deliverable")
 
 ## Integration Points in Protocol
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Before Step 2 | Enter plan mode if tool available |
-| Step 2a-1c | Execute in plan mode |
-| Step 2c | Exit plan mode after approval |
-| Step 2d | Create contract (now outside plan mode) |
-| Step 2e | Archive both files |
+| Before Step 1 | Enter plan mode if tool available |
+| Step 1a-1c | Execute in plan mode |
+| Step 1c | Exit plan mode after approval |
+| Step 1d | Create contract (now outside plan mode) |
+| Step 1e | Archive both files |
 
 ## Project Info
 - Priority: P1 (High) - High frequency compliance failure

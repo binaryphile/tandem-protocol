@@ -1,4 +1,4 @@
-# UC1-B Design: Step 2b Sequencing Integration
+# UC1-B Design: Step 1b Sequencing Integration
 
 ## Current State Analysis
 
@@ -101,7 +101,7 @@ Based on UC1-A guard conditions. Tests verify tandem-protocol.md contains the re
 |---------|---------------------------|--------------|
 | T1 | Explicit "ASKED not embedded" rule | `ASKED.*not.*embedded\|embedded.*not.*ASKED` |
 | T2 | AskUserQuestion tool integration | `tool_available.*AskUserQuestion` |
-| T3 | Fallback for no-tool case | `else:` AND `present.*[Qq]uestions` (both in Step 2b section) |
+| T3 | Fallback for no-tool case | `else:` AND `present.*[Qq]uestions` (both in Step 1b section) |
 | T4 | No-questions explicit statement | `[Nn]o.*clarifying.*questions\|understanding.*complete` |
 | T5 | Anti-pattern: TBD | `TBD\|to be determined\|open question` |
 | T6 | Anti-pattern: assuming | `assuming.*without` |
@@ -113,15 +113,15 @@ Based on UC1-A guard conditions. Tests verify tandem-protocol.md contains the re
 
 ## Integration Points
 
-- **tandem-protocol.md** lines 190-209: Step 2b pseudocode
-- **tandem-protocol.md** line 287: TodoWrite substep reference (no change needed)
+- **tandem-protocol.md** lines 190-209: Step 1b pseudocode
+- **tandem-protocol.md** line 287: Task substep reference (no change needed)
 - **tests/**: New behavioral test file for UC1
 
 ## Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| tandem-protocol.md | Modify Step 2b section |
+| tandem-protocol.md | Modify Step 1b section |
 | tests/uc1-step1b.sh | Create behavioral tests |
 
 ## UC1-C Implementation Sequence (Red/Green TDD)

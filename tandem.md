@@ -21,7 +21,7 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 **Where are we right now?**
 
 1. Check the contract file for current status
-2. Check TodoWrite for which step is "in_progress"
+2. Check Tasks API for which step is "in_progress"
 3. If at Step 4 boundary, have you gotten explicit approval?
 
 ## Common Mistakes to Avoid
@@ -32,7 +32,7 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 - **Forgetting Step 3:** Always update contract + add Step 4 Checklist before presenting
 - **Step 4→5 violations:** Never proceed to commit without "yes"/"approved"/"proceed"
 - **Feedback = Plan Change:** User feedback that changes scope/approach → return to Step 1
-- **TodoWrite drift:** Keep TodoWrite updated in real-time
+- **Tasks API drift:** Keep Tasks API updated in real-time
 - **Mental model drift:** Don't assume you know the protocol - quote the actual sub-step text
 
 ## Step 5b/5c Reminder

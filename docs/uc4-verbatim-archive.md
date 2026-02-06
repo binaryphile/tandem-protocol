@@ -9,13 +9,14 @@
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Archive = literally append file | Archive format/structure |
+| Archive = literally append file | Entry format specification (see design doc) |
 | Intro line before content | Plan-log organization |
-| Main success path only | Exceptional cases (Claude reasons through these) |
+| Three entry types (Plan, Contract, Completion) | Entry type definitions (see design doc) |
+| Checkbox update before archive | Exceptional cases (Claude reasons through these) |
 
 ## System-in-Use Story
 
-> Claude, completing a phase of work, needs to archive the contract to plan-log.md. Instead of summarizing what happened or reformatting the contract, Claude writes an intro line with the date and subject, then literally appends the contract file contents. No editing, no interpretation—just cat the file. The user likes this because when they review the log later, they see exactly what was agreed, not Claude's summary of it. Claude likes it because there's no judgment call about what to include—just append everything.
+> Claude, completing a phase of work, needs to archive the contract to plan-log.md. Instead of summarizing what happened or reformatting the contract, Claude first updates all contract checkboxes to reflect completion, then writes a grep-friendly intro line (`2026-02-05T14:30:00Z | Completion: UC3-C`), then literally appends the contract file contents. No editing, no interpretation—just cat the file. The user likes this because when they review the log later, they see exactly what was agreed, not Claude's summary of it. Claude likes it because there's no judgment call about what to include—just append everything.
 
 ## Stakeholders & Interests
 
@@ -40,43 +41,38 @@
 
 ## Trigger
 
-LLM reaches Step 6b (archive completed contract) or equivalent checkpoint.
+LLM reaches Step 4b (archive completed contract) or equivalent checkpoint.
 
 ## Main Success Scenario
 
 1. LLM completes work and marks contract APPROVED
-2. LLM writes intro line to plan-log.md: `## [Subject] Contract: Archived Verbatim [Date]`
-3. LLM appends contract file contents literally (cat >> plan-log)
-4. LLM deletes original contract file
+2. LLM updates all contract checkboxes to reflect completion state
+3. LLM writes intro line to plan-log.md (see design doc for format)
+4. LLM appends contract file contents verbatim
+5. LLM deletes original contract file
 
 ## Extensions
 
-3a. Contract contains sensitive data:
-    3a1. LLM notes sensitivity but still archives verbatim
-    3a2. User responsibility to sanitize before archiving if needed
+4a. Contract contains sensitive data:
+    4a1. LLM notes sensitivity but still archives verbatim
+    4a2. User responsibility to sanitize before archiving if needed
 
 ## Guard Conditions (Behavioral Tests)
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | Archive requested | Must append file literally, not summarize |
-| Intro line | Must include date and subject |
+| Checkboxes | Must be updated before archive |
+| Intro line | Must be grep-friendly format (see design doc) |
 | After archive | Original contract file must be deleted |
 | Content transformation | FAIL if any editing/summarizing detected |
-
-## File Content Guide
-
-| Content Type | Belongs In | Example |
-|--------------|------------|---------|
-| Intro line | Before contract | `## UC3-C Contract: Archived Verbatim 2026-02-05` |
-| Contract body | After intro | Exact file contents, no transformation |
 
 ## Integration Points in Protocol
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 6b | Archive contract verbatim (not summarize) |
-| Step 2e | Archive plan + contract (same rule applies) |
+| Step 4b | Archive contract verbatim (not summarize) |
+| Step 1e | Archive plan + contract (same rule applies) |
 
 ## Project Info
 

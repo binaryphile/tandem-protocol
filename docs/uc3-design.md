@@ -2,38 +2,27 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 2 start
-
+**Location:** tandem-protocol.md - Step 1 start 
 **Design principle:** Protocol covers the main success path only. Exceptional cases (no existing plan, file too large, etc.) are omitted - Claude can reason through these without explicit guidance. This maintains protocol efficiency.
 
-Step 2 sequence:
-1. Check for leftover contracts, clear if needed
-2. Enter plan mode
-3. If existing plan: quote verbatim, grade /a then /p, wait for direction
-4. Continue to Step 2a (present understanding)
+Step 1 sequence:
+1. Enter plan mode
+2. If existing plan: quote verbatim, grade /a then /p, wait for direction
+3. Present understanding + "Upon approval I will..." + "May I proceed?"
+4. On approval: exit plan mode, create contract, archive plan + contract
+5. Continue to Step 2 (complete deliverable)
 
 ## Pseudocode
 
 **Location:** Step 2 start
 
 ```python
-# STEP 2 START: Contract cleanup + Plan mode entry
-
-# 1a. Check for leftover contracts
-contracts = ls("*-contract.md")
-if contracts:
-    action = ask("Incomplete work found. Abandon or complete first?")
-    if action == "abandon":
-        delete(contracts)
-    else:
-        # Complete previous work first
-        resume_at_step_4()
-
-# 1b. Enter plan mode
+# STEP 1 START: Plan mode entry 
+# 1a. Enter plan mode
 if tool_available("EnterPlanMode"):
     EnterPlanMode()
 
-# 1c. If existing plan, quote and grade
+# 1b. If existing plan, quote and grade
 plan_file = find_plan("~/.claude/plans/")
 if plan_file:
     # Quote VERBATIM - no summarizing
@@ -45,29 +34,63 @@ if plan_file:
     # Plan grade SECOND (/p)
     present(grade_plan())  # "Is this sound?"
 
-    # BLOCKING: wait for direction
-    wait_for("improve", "proceed")
+    # BLOCKING: wait for direction on grades
+    direction = wait_for("improve", "proceed")
 
-# Continue to Step 2a (present understanding)...
+    if direction == "improve":
+        address_deductions()
+        # Loop back to re-grade
+
+# 1c. APPROVAL GATE: Re-present understanding + what happens on proceed
+present(f"""
+## Plan Ready for Approval
+
+**Objective:** [from understanding]
+**Success criteria:** [count] items
+**Approach:** [summary]
+
+**Upon your approval, I will:**
+1. Exit plan mode
+2. Create contract file capturing this scope
+3. Archive plan + contract to plan-log.md
+4. Proceed to Step 2 (complete deliverable)
+
+**May I proceed?**
+""")
+
+# BLOCKING: wait for explicit approval
+wait_for("proceed", "yes", "approved")
+
+# 1d. Exit plan mode - enables write operations
+if tool_available("ExitPlanMode"):
+    ExitPlanMode()
+
+# Continue to Step 1d (create contract)...
 ```
 
-## Post-Proceed Flow (Reference)
+## Step 1e: Archive Plan + Contract (after approval)
 
-After user says "proceed" and work completes:
+After user says "proceed", archive BEFORE starting work:
 
 ```python
-# Step 6: Post-Approval (existing protocol)
-contract.status = "APPROVED"
+# Step 1e: Archive plan + contract (captures "what we agreed to")
+timestamp = datetime.now().isoformat() + "Z"  # e.g., 2026-02-05T14:30:00Z
 
-# Archive with intro line, then append file literally
-plan_log.append(f"## {phase_name} Contract: Archived Verbatim {date}\n\n")
-cat(contract) >> plan_log  # Append file contents directly
-delete(contract)
+# Archive plan file with intro line
+echo(f"{timestamp} | Plan: {subject}") >> "plan-log.md"
+cat(plan_file) >> "plan-log.md"  # Verbatim
+
+# Archive contract file with intro line
+echo(f"{timestamp} | Contract: {subject}") >> "plan-log.md"
+cat(contract_file) >> "plan-log.md"  # Verbatim
+
+# Note: contract file NOT deleted here - it's the working doc for Steps 2-4
+# Contract gets deleted at Step 4b (Completion archive)
 ```
 
-Intro line format: `## [Subject]: Archived Verbatim [Date]`
+**Entry format:** `YYYY-MM-DDTHH:MM:SSZ | Type: subject`
 
-**Line impact:** +20 lines (entry sequence only - archiving is existing Step 6)
+**Line impact:** +20 lines (entry sequence only)
 
 ## Behavioral Test Cases (for UC3-C)
 
@@ -80,8 +103,7 @@ Intro line format: `## [Subject]: Archived Verbatim [Date]`
 
 ## Integration Points
 
-- **tandem-protocol.md:** Step 2 start
-- **Mermaid diagram:** Step 2 includes contract check + plan mode entry
+- **tandem-protocol.md:** Step 1 start - **Mermaid diagram:** Step 1 is Plan Validation (no contract check)
 
 ## Line Budget
 

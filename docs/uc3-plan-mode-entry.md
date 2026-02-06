@@ -71,50 +71,49 @@ LLM enters plan mode for any phase or new session.
 
 ## Main Success Scenario
 
-1. LLM begins Step 2 (any phase or non-phased session)
-2. LLM checks for leftover contract files from incomplete work
-3. If contracts found: clear them (user confirms abandon/complete)
-4. LLM enters plan mode (EnterPlanMode if available)
-5. LLM checks for existing plan file at `~/.claude/plans/`
-6. LLM finds existing plan
-7. LLM quotes plan verbatim (no summarizing, no interpreting)
-8. LLM grades own analysis FIRST: "Do I understand this?" (/a)
-9. LLM grades plan quality SECOND: "Is this sound?" (/p)
-10. LLM waits for user direction (BLOCKING - cannot proceed without)
-11. User directs: "improve" / "proceed"
+1. LLM begins Step 1 (any phase or non-phased session)
+2. LLM enters plan mode (EnterPlanMode if available)
+3. LLM checks for existing plan file at `~/.claude/plans/`
+4. LLM finds existing plan
+5. LLM quotes plan verbatim (no summarizing, no interpreting)
+6. LLM grades own analysis FIRST: "Do I understand this?" (/a)
+7. LLM grades plan quality SECOND: "Is this sound?" (/p)
+8. LLM presents understanding + "Upon approval I will..." + "May I proceed?"
+9. LLM waits for user direction (BLOCKING - cannot proceed without)
+10. User directs: "improve" / "proceed"
 
 ## Extensions
 
-2a. No existing plan file:
-    2a1. LLM notes "No existing plan found"
-    2a2. LLM proceeds to create new plan (Step 2a-1c)
-    2a3. Skip to step 8 (wait for direction on new plan)
+3a. No existing plan file:
+    3a1. LLM notes "No existing plan found"
+    3a2. LLM proceeds to create new plan
+    3a3. Skip to step 8 (present understanding)
 
 4a. Plan file too large to quote fully:
     4a1. LLM quotes relevant sections for current phase
     4a2. LLM notes which sections were excerpted
     4a3. Continue at step 5
 
-5a. Analysis grade is low (C or below):
-    5a1. LLM explicitly lists points of confusion
-    5a2. User may clarify before proceeding
+6a. Analysis grade is low (C or below):
+    6a1. LLM explicitly lists points of confusion
+    6a2. User may clarify before proceeding
 
-6a. Plan grade is low (C or below):
-    6a1. LLM explicitly lists plan weaknesses
-    6a2. User may choose to improve before work
+7a. Plan grade is low (C or below):
+    7a1. LLM explicitly lists plan weaknesses
+    7a2. User may choose to improve before work
 
-9a. User says "improve":
-    9a1. LLM addresses ALL actionable deductions (analysis + plan)
-    9a2. Re-grade both
-    9a3. Return to step 8 (wait for direction)
+10a. User says "improve":
+    10a1. LLM addresses ALL actionable deductions (analysis + plan)
+    10a2. Re-grade both
+    10a3. Return to step 8 (present understanding)
 
-9b. User says "proceed":
-    9b1. Plan understanding confirmed
-    9b2. Exit plan mode entry sequence
-    9b3. Execute user's stated direction (or prompt if none given)
-    9b4. When work complete: update contract → append intro line + contract file to plan-log → delete contract
-         Intro line: `## [Phase] Contract: Archived Verbatim [Date]`
-    9b5. Append interaction log section (user interactions, lessons, direction changes)
+10b. User says "proceed":
+    10b1. LLM exits plan mode
+    10b2. LLM creates contract file
+    10b3. LLM archives plan + contract to plan-log.md (Step 1e)
+         Format: `YYYY-MM-DDTHH:MM:SSZ | Plan: [subject]` then verbatim plan
+         Format: `YYYY-MM-DDTHH:MM:SSZ | Contract: [subject]` then verbatim contract
+    10b4. LLM proceeds to Step 2 (complete deliverable)
 
 ## Guard Conditions (Behavioral Tests)
 
@@ -141,10 +140,10 @@ LLM enters plan mode for any phase or new session.
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 2 (start) | Check for leftover contracts, clear if needed, THEN enter plan mode |
-| Step 2 (plan mode entry) | Quote plan → /a → /p → wait for direction |
-| Step 2a | Applies after plan mode entry completes |
-| Any phase start | Re-enter Step 2, trigger this behavior |
+| Step 1 (start) | Enter plan mode |
+| Step 1 (plan mode entry) | Quote plan → /a → /p → present → wait for direction |
+| Step 1e | On approval: archive plan + contract, proceed to Step 2 |
+| Any phase start | Re-enter Step 1, trigger this behavior |
 
 
 ## Project Info

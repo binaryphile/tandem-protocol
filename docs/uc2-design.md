@@ -2,7 +2,7 @@
 
 ## Current State Analysis
 
-**Location:** tandem-protocol.md lines 219-246 (Step 2c)
+**Location:** tandem-protocol.md lines 219-246 (Step 1c)
 
 **Current pseudocode:**
 ```python
@@ -64,17 +64,17 @@ Tests verify tandem-protocol.md contains the required guidance.
 | T3 | Plan file location | `~/.claude/plans/\|plans/` |
 | T4 | Plan persists across phases | `persist.*phase\|across.*phase` |
 
-**Test Logic:** PASS if pattern found in Step 2c section of tandem-protocol.md
+**Test Logic:** PASS if pattern found in Step 1c section of tandem-protocol.md
 
 ## Integration Points
 
-- **tandem-protocol.md** lines 241-246: Step 2c ExitPlanMode block
+- **tandem-protocol.md** lines 241-246: Step 1c ExitPlanMode block
 
 ## Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| tandem-protocol.md | Modify Step 2c section |
+| tandem-protocol.md | Modify Step 1c section |
 | tests/uc2-plan-mode.sh | Create behavioral tests |
 
 ## UC2-C Implementation Sequence (Red/Green TDD)

@@ -195,7 +195,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > **Upon your approval, I will:**
 > 1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from contract
 > 2. Proceed to Step 2 (implement validation)
-> 3. Update TodoWrite
+> 3. Update Tasks API
 >
 > May I proceed?
 >
@@ -216,7 +216,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > **Upon your approval, I will:**
 > 1. Mark contract as APPROVED
 > 2. Commit changes to git
-> 3. Update TodoWrite
+> 3. Update Tasks API
 >
 > May I proceed?
 >
@@ -241,7 +241,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > **Upon your approval, I will:**
 > 1. Mark contract as APPROVED
 > 2. Commit changes to git
-> 3. Update TodoWrite
+> 3. Update Tasks API
 >
 > May I proceed?
 >

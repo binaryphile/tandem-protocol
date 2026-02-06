@@ -3,20 +3,20 @@
 **Scope:** Tandem Protocol
 **Level:** Blue
 **Primary Actor:** LLM (executing protocol)
-**Secondary Actors:** TodoWrite tool, plan file
+**Secondary Actors:** Tasks API, plan file
 
 ## In/Out List
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| TodoWrite JSON in plan file | Todo UI/display |
-| Step expansion/collapse per phase | TodoWrite tool implementation |
+| Task definitions in plan file | Todo UI/display |
+| Step expansion/collapse per phase | Tasks API implementation |
 | Plan file as todo source of truth | Multi-agent coordination |
 | Main success path only | Exceptional cases |
 
 ## System-in-Use Story
 
-> Claude, beginning a new phased effort, sketches the plan file with collapsed phase placeholders. When UC3-A starts, Claude expands the todo JSON for UC3's steps directly in the plan file: `[in_progress] UC3-A`, `[pending] UC3-B`, `[pending] UC3-C`. The TodoWrite tool reads from this structure. When UC3-A completes, Claude marks it `[completed]` in the plan and collapses detail. The plan file IS the todo state—no separate tracking needed. The user likes this because plan and todos are one artifact. Claude likes it because the plan file shows exactly what's active and what's done.
+> Claude, beginning a new phased effort, sketches the plan file with collapsed phase placeholders. When UC3-A starts, Claude expands the tasks for UC3's steps directly in the plan file: `[in_progress] UC3-A`, `[pending] UC3-B`, `[pending] UC3-C`. The Tasks API syncs from this structure. When UC3-A completes, Claude marks it `[completed]` in the plan and collapses detail. The plan file IS the task state—no separate tracking needed. The user likes this because plan and tasks are one artifact. Claude likes it because the plan file shows exactly what's active and what's done.
 
 ## Stakeholders & Interests
 
@@ -27,7 +27,7 @@
 ## Preconditions
 
 - Plan file exists with phase structure
-- TodoWrite tool available (or equivalent)
+- Tasks API available (or equivalent)
 
 ## Success Guarantee
 
@@ -61,9 +61,9 @@ LLM enters a new phase or completes a step within current phase.
 
 ## Extensions
 
-2a. TodoWrite not available:
-    2a1. LLM maintains state in plan file only
-    2a2. User sees progress via plan file
+2a. Tasks API not available:
+    2a1. LLM maintains state in contract file
+    2a2. User sees progress via contract file
     2a3. Continue at step 3
 
 ## Guard Conditions (Behavioral Tests)
@@ -100,16 +100,16 @@ Each sub-phase maps to protocol steps:
 
 | Sub-phase | Protocol Steps |
 |-----------|----------------|
-| UC*-A (Use Case) | Step 2 (plan + present) |
-| UC*-B (Design) | Step 2 (plan + present) |
-| UC*-C (Implementation) | Steps 2-6 (full cycle with TDD) |
+| UC*-A (Use Case) | Step 1 (plan + present) |
+| UC*-B (Design) | Step 1 (plan + present) |
+| UC*-C (Implementation) | Steps 1-5 (full cycle with TDD) |
 
 ## Integration Points in Protocol
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 2 (start) | Expand current phase in plan file |
-| Step 6d | Collapse completed phase, expand next |
+| Step 1 (start) | Expand current phase in plan file |
+| Step 5d | Collapse completed phase, expand next |
 
 ## Project Info
 

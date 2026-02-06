@@ -4483,3 +4483,24 @@ Deductions:
 | feedback: "manage plan file" | Updated phase list | Plan reflects current state |
 | feedback: "transition to planning mode" | Noted but didn't do | Gap in compliance |
 | feedback: "make sure reminders covered" | Will address after UC7 | Pending |
+
+---
+## Archived: 2026-02-05
+
+
+---
+
+## UC8: Archived Verbatim 2026-02-05
+
+**Context:** Added during /i (improve) cycle to address user reminders about todo telescoping and plan file management.
+
+**Commit:** 69b9b9d
+
+**Tests:** 4/4 passing
+
+**Deliverables:**
+- docs/uc8-todo-integration.md
+- docs/uc8-design.md
+- tests/uc8-phase-transition.sh
+- tandem-protocol.md updates
+

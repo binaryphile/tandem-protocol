@@ -4293,3 +4293,133 @@ Implement plan mode & file distinction guidance in tandem-protocol.md using Red/
 - User: `/w` then noted gap in behavioral testing methodology
 - Acknowledged: Tests are document validation, not true behavioral tests with /q cueing
 - User: "continue" - approved
+
+---
+
+## Phase Commit Contract: Archived Verbatim 2026-02-05
+
+# Phase Contract: Commit UC1-UC3 Work
+
+**Created:** 2026-02-05
+
+## Scope
+
+Commit all UC1-UC3 implementation to git:
+- `tandem-protocol.md` - Plan mode entry sequence
+- `docs/uc1-*`, `docs/uc2-*`, `docs/uc3-*` - Use case and design docs
+- `tests/uc1-*`, `tests/uc2-*`, `tests/uc3-*` - Behavioral tests
+
+## Success Criteria
+
+- [x] All UC1-UC3 files staged and committed
+- [x] Commit message describes UC1-UC3 implementation
+- [x] Clean git status after commit
+
+**Status:** APPROVED
+**Commit:** f90263d
+
+## Interaction Log
+
+### Plan Mode Entry
+- Quoted plan verbatim
+- /a grade: B (84/100) - missed contract creation step initially
+- /p grade: A- (93/100) - needed commit as tracked action
+
+### Key Direction Changes
+- User clarified: single "improve" path (not separate analysis/plan)
+- User clarified: archive = literally append file with intro line
+- User clarified: protocol covers main path only, Claude handles exceptions
+
+### Lessons
+- Commit operations need contracts too (trackable, archivable)
+- Gate presentation must state what "proceed" does
+
+---
+
+## Phase Commit Contract: Archived Verbatim 2026-02-05
+
+# Phase Contract: Commit UC4-UC5 Work
+
+**Created:** 2026-02-05
+
+## Scope
+
+Commit UC4-UC5 compliance fixes to git:
+- `tandem-protocol.md` - Verbatim archive + line reference guidance
+- `docs/uc4-*`, `docs/uc5-*` - Use case and design docs
+- `tests/uc4-*`, `tests/uc5-*` - Behavioral tests
+
+## Success Criteria
+
+- [x] All UC4-UC5 files staged and committed
+- [x] Commit message describes UC4-UC5 implementation
+- [x] Clean git status after commit
+
+**Status:** APPROVED
+**Commit:** 4da6dd3
+
+## Interaction Log
+
+### UC4-UC5 Implementation
+- UC4: Added "VERBATIM - no summarizing" comments to archive sections (+0 lines)
+- UC5: Added "verify line references" comment to Step 3 (+0 lines, replaced existing)
+- Tests: 3/3 new tests passing (UC4: 2, UC5: 1)
+- Total line budget: +24 of +30 used
+
+### CUT LINE 2 Reached
+All compliance fixes (UC1-UC5) complete.
+
+---
+
+## UC6 Contract: Archived Verbatim 2026-02-05
+
+# UC6 Contract: Lesson Capture from Grading
+
+**Status:** APPROVED
+**Phase:** UC6-A → UC6-B → UC6-C (Complete)
+
+## Scope
+
+Create use case documentation for lesson capture from grading—routing non-actionable gaps to guides instead of grade deductions.
+
+## Success Criteria
+
+1. [x] Step 3: Use case doc created with Cockburn format
+2. [x] Step 3: Design doc with integration point identified
+3. [x] Step 3: Implementation with TDD (2/2 tests passing)
+4. [x] Step 5: All 20 UC tests passing
+
+## Deliverables
+
+- `docs/uc6-lesson-capture.md` - Use case doc
+- `docs/uc6-design.md` - Design doc
+- `tests/uc6-lesson-capture.sh` - Behavioral tests
+- `tandem-protocol.md` - Actionability test added to grading rubric
+
+## Actual Results
+
+**Completed:** 2026-02-05
+
+### Implementation
+- Added actionability test to Grading Rubric preamble (+3 lines)
+- Line count: 1,164 (baseline 1,134, delta +30)
+- Tests: 20/20 passing (UC1-UC6)
+
+### Self-Assessment
+Grade: A (95/100)
+
+What went well:
+- Minimal implementation (+3 lines vs +81 budget)
+- Clean TDD cycle (RED → GREEN)
+- All existing tests still pass
+
+Deductions:
+- (-5) Didn't complete post-approval steps after implementation
+
+## Interactions
+
+| Action | Response | Outcome |
+|--------|----------|---------|
+| proceed (after CUT LINE 2) | Started UC6 | Created use case, design, implemented |
+| /q | Quoted Step 6 | Revealed missing post-approval steps |
+| User feedback | "do post acceptance steps" | Now completing properly |

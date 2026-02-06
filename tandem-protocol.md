@@ -927,6 +927,10 @@ npm test 2>&1 | grep "Time:"
 
 Use this rubric for self-assessment (Step 4) and when user requests grading.
 
+**Actionability test:** Before each deduction, ask "Can I fix this now?"
+- YES (in scope, fixable this session) → Include as deduction
+- NO (future work, process improvement) → Capture in guide, don't deduct
+
 ### Grade Scale
 
 | Grade | Score | Meaning |

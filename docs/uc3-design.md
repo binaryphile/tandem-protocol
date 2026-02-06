@@ -9,8 +9,9 @@ Step 1 sequence:
 1. Enter plan mode
 2. If existing plan: quote verbatim, grade /a then /p, wait for direction
 3. Present understanding + "Upon approval I will..." + "May I proceed?"
-4. On approval: exit plan mode, create contract, archive plan + contract
-5. Continue to Step 2 (complete deliverable)
+4. On approval: exit plan mode, log Contract entry to plan-log.md
+5. Log Completion entry for Step 1
+6. Continue to Step 2 (complete deliverable)
 
 ## Pseudocode
 
@@ -51,8 +52,8 @@ present(f"""
 
 **Upon your approval, I will:**
 1. Exit plan mode
-2. Create contract file capturing this scope
-3. Archive plan + contract to plan-log.md
+2. Log Contract entry to plan-log.md (scope/criteria)
+3. Log Completion entry for Step 1
 4. Proceed to Step 2 (complete deliverable)
 
 **May I proceed?**
@@ -68,29 +69,25 @@ if tool_available("ExitPlanMode"):
 # Continue to Step 1d (create contract)...
 ```
 
-## Step 1e: Archive Plan + Contract (after approval)
+## Step 1d-1e: Log Contract and Completion (after approval)
 
-After user says "proceed", archive BEFORE starting work:
+After user says "proceed":
 
 ```python
-# Step 1e: Archive plan + contract (captures "what we agreed to")
-timestamp = datetime.now().isoformat() + "Z"  # e.g., 2026-02-05T14:30:00Z
+# Step 1d: Log Contract entry (captures "what we agreed to")
+timestamp = datetime.now().isoformat() + "Z"
+criteria_checkboxes = ", ".join([f"[ ] {c}" for c in success_criteria])
+contract_entry = f"{timestamp} | Contract: Phase {N} - {objective} | {criteria_checkboxes}"
+append_to_log("plan-log.md", contract_entry)
 
-# Archive plan file with intro line
-echo(f"{timestamp} | Plan: {subject}") >> "plan-log.md"
-cat(plan_file) >> "plan-log.md"  # Verbatim
+# Example: 2026-02-06T14:30:00Z | Contract: Phase 1 - auth | [ ] middleware, [ ] tests, [ ] docs
 
-# Archive contract file with intro line
-echo(f"{timestamp} | Contract: {subject}") >> "plan-log.md"
-cat(contract_file) >> "plan-log.md"  # Verbatim
-
-# Note: contract file NOT deleted here - it's the working doc for Steps 2-4
-# Contract gets deleted at Step 4b (Completion archive)
+# Step 1e: Log Completion entry for Step 1
+completion_entry = f"{timestamp} | Completion: Step 1 - plan validated, approval received"
+append_to_log("plan-log.md", completion_entry)
 ```
 
-**Entry format:** `YYYY-MM-DDTHH:MM:SSZ | Type: subject`
-
-**Line impact:** +20 lines (entry sequence only)
+**Entry format:** See UC7 for Contract/Completion entry details
 
 ## Behavioral Test Cases (for UC3-C)
 

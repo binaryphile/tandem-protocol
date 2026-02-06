@@ -109,10 +109,9 @@ LLM enters plan mode for any phase or new session.
 
 10b. User says "proceed":
     10b1. LLM exits plan mode
-    10b2. LLM creates contract file
-    10b3. LLM archives plan + contract to plan-log.md (Step 1e)
-         Format: `YYYY-MM-DDTHH:MM:SSZ | Plan: [subject]` then verbatim plan
-         Format: `YYYY-MM-DDTHH:MM:SSZ | Contract: [subject]` then verbatim contract
+    10b2. LLM logs Contract entry to plan-log.md (Step 1d)
+         Format: `YYYY-MM-DDTHH:MM:SSZ | Contract: [phase] | [ ] criterion1, [ ] criterion2, ...`
+    10b3. LLM logs Completion entry for Step 1 (Step 1e)
     10b4. LLM proceeds to Step 2 (complete deliverable)
 
 ## Guard Conditions (Behavioral Tests)
@@ -142,7 +141,8 @@ LLM enters plan mode for any phase or new session.
 |------|-----------------|
 | Step 1 (start) | Enter plan mode |
 | Step 1 (plan mode entry) | Quote plan → /a → /p → present → wait for direction |
-| Step 1e | On approval: archive plan + contract, proceed to Step 2 |
+| Step 1d | On approval: log Contract entry to plan-log.md |
+| Step 1e | Log Completion entry, proceed to Step 2 |
 | Any phase start | Re-enter Step 1, trigger this behavior |
 
 

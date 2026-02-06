@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Generic wrapper for running commands inside nix develop.
+# Symlink to this file with the name of the command you want to wrap.
+# Example: ln -s nix-wrapper node
+
+progName=$(basename "$0")
+scriptDir=$(cd "$(dirname "$0")" && pwd)
+# Find the real program, excluding our bin/ directory
+prog=$(type -Pa "$progName" | grep -v "^$scriptDir/" | head -1)
+# IN_NIX_DEVELOP is set by flake.nix shellHook
+# Change to PROJECT_ROOT if defined (useful for subprojects)
+[[ -n "$PROJECT_ROOT" ]] && echo cd "$PROJECT_ROOT" && cd "$PROJECT_ROOT"
+(( IN_NIX_DEVELOP )) && exec $prog "$@" || exec nix develop -c $progName "$@"

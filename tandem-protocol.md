@@ -445,7 +445,7 @@ Archive the approved plan and contract BEFORE starting implementation. This capt
 update_contract_checklist("1c: Approval received", checked=True)
 update_contract_checklist("1d: Contract created", checked=True)
 
-# Archive approved plan + contract (COPY, don't delete)
+# Archive VERBATIM - no summarizing, no reformatting
 if plan_mode_file_exists:
     echo("\n---\n")                      >> "plan-log.md"
     echo(f"## Approved Plan: {date}\n")  >> "plan-log.md"
@@ -502,7 +502,7 @@ else:
 ## Step 3: Update Contract
 
 ```python
-# Update contract file with actual results
+# After edits: verify line references still accurate (numbers shift)
 update_contract("""
 ## Actual Results
 
@@ -648,7 +648,7 @@ Final results: [summary]
 Archive the contract BEFORE committing so the history is included in the commit. Also write a standalone log entry for readers unfamiliar with the conversation.
 
 ```python
-# Archive contract to plan history, then delete
+# Archive VERBATIM - no summarizing, no reformatting
 if web_ui:
     output_to_chat(contract_file_contents)
 else:

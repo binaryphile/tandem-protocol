@@ -9,5 +9,8 @@ scriptDir=$(cd "$(dirname "$0")" && pwd)
 prog=$(type -Pa "$progName" | grep -v "^$scriptDir/" | head -1)
 # IN_NIX_DEVELOP is set by flake.nix shellHook
 # Change to PROJECT_ROOT if defined (useful for subprojects)
-[[ -n "$PROJECT_ROOT" ]] && echo cd "$PROJECT_ROOT" && cd "$PROJECT_ROOT"
-(( IN_NIX_DEVELOP )) && exec $prog "$@" || exec nix develop -c $progName "$@"
+if (( IN_NIX_DEVELOP )); then
+    [[ -n "$PROJECT_ROOT" ]] && echo -e "\e[93mcd $PROJECT_ROOT\e[0m" && cd "$PROJECT_ROOT"
+    exec $prog "$@"
+fi
+exec nix develop -c $progName "$@"

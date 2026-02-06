@@ -117,7 +117,7 @@ LLM enters a new phase or completes a step within current phase.
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | Phase started | Plan file: substeps expanded with `[ ]` |
-| Step completed | Plan file: `[x]}`, Tasks API: `completed` |
+| Step completed | Plan file: `[x]`, Tasks API: `completed` |
 | Phase completed | Plan file: collapse (remove substeps, `[x]` parent) |
 | Multiple phases | Current expanded, completed collapsed, future as skeletons |
 

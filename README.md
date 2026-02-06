@@ -4,10 +4,10 @@ A lightweight protocol system for maintaining multi-phase project discipline acr
 
 ## What Is This?
 
-The **Tandem Protocol** is a 5-step workflow for complex, multi-phase projects with approval checkpoints. It ensures:
+The **Tandem Protocol** is a 4-step workflow for complex, multi-phase projects with approval checkpoints. It ensures:
 
 - Plans are validated before implementation
-- Work is documented with deliverable contracts
+- Work is documented with event logging
 - Gates provide the user the opportunity for feedback at decision points
 - Completion is properly logged and committed
 
@@ -52,161 +52,151 @@ echo "@~/tandem-protocol/tandem-protocol.md" >> CLAUDE.md
 Install anywhere, then reference with tilde or absolute path in your project's CLAUDE.md:
 `@~/your/path/tandem-protocol.md`
 
-**Advanced:** See [ADVANCED.md](./ADVANCED.md) for Docker, CI/CD, Windows WSL, monorepos, and more.
-
 ## Usage
 
 ### When to use `/tandem`
 
 Invoke 1-2 times early in your session, or whenever you notice protocol drift:
 
-- At session start (before planning): `/tandem make a plan to...` (arguments to the command are just taken as regular prompts by the LLM, so you're just tacking a protocol reminder onto your request)
-- When the LLM skips steps or doesn't adhere to the presentation formats (e.g., doesn't specifically ask "May I proceed?")
+- At session start (before planning): `/tandem make a plan to...`
+- When the LLM skips steps or doesn't adhere to the presentation formats
 - When you have lost track of the current step
 - After context compaction
 - When approaching approval boundaries
 
 ### How it works
 
-The command doesn't reproduce the protocol - it **activates the LLM's attention** to the protocol already in context.  This takes up less context than reinserting the full protocol details.
+The command doesn't reproduce the protocol - it **activates the LLM's attention** to the protocol already in context.
 
 1. Full protocol is in CLAUDE.md (via @reference)
 2. CLAUDE.md doesn't get compacted (always available)
 3. `/tandem` reminds you to check the protocol
 4. Repeated emphasis beats the attention curve
 
-### Usage Patterns
+## The 4 Steps
 
-The protocol has two checkpoint gates where you control the workflow:
-- **GATE 1**: Plan approval (after Step 1)
-- **GATE 2**: Work approval (after Step 4)
+```mermaid
+flowchart TD
+    PLAN[Plan Mode Entry] --> S1[Step 1: Plan Validation]
+    S1 --> S2[Step 2: Complete Deliverable]
+    S2 --> S3[Step 3: Present and Await]
+    S3 --> S4[Step 4: Post-Approval]
+    S4 --> PLAN
+
+    style PLAN fill:#e3f2fd,stroke:#1976d2
+    style S1 fill:#e8f5e9,stroke:#388e3c
+    style S2 fill:#e8f5e9,stroke:#388e3c
+    style S3 fill:#fff3e0,stroke:#ff9800
+    style S4 fill:#c8e6c9,stroke:#4caf50
+```
+
+| Step | Purpose | Gate |
+|------|---------|------|
+| **Step 1** | Plan validation + approval | GATE 1: "May I proceed?" |
+| **Step 2** | Implementation (actual work) | - |
+| **Step 3** | Present and await approval | GATE 2: "May I proceed?" |
+| **Step 4** | Post-approval (log, commit, next phase) | - |
+
+### Two Checkpoint Gates
+
+- **GATE 1** (Step 1): Plan approval - validates approach before work begins
+- **GATE 2** (Step 3): Work approval - validates results before finalizing
 
 At each gate, you can:
 - **Approve** - Allow work to continue
 - **Request grade** - Ask for self-evaluation before deciding
 - **Provide feedback** - Request improvements or corrections
 
-**Choose your thoroughness level based on task complexity:**
-The three patterns below show different levels of quality assurance. Use simpler patterns for straightforward tasks, more thorough patterns for complex or critical work.
+## Event Logging
 
-### Understanding Deliverable Contracts
+All protocol events are logged directly to `plan-log.md` using timestamped entries:
 
-**Deliverable contracts** (e.g. `[phase]-contract.md`) are working, temporary documentation that the **LLM creates and maintains** automatically - you don't have to do this laborious work. They track each phase and don't degrade with compaction.
+| Entry Type | When | Example |
+|------------|------|---------|
+| **Contract** | Step 1d (phase start) | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests` |
+| **Completion** | Results delivered | `Completion: Step 2 \| [x] middleware (auth.go:45)` |
+| **Interaction** | User feedback | `Interaction: grade → B/84, missing edge case` |
 
-**What's the difference between plan and contract?**
-- **Plan:** "I will do X using approach Y" (LLM writes this in Step 1, before work starts)
-- **Contract:** "[ ] I did X using approach Y, results were A/B/C, grade: B+" (LLM checks the box in Step 3-5, after work completes)
+**Format:** `YYYY-MM-DDTHH:MM:SSZ | Type: description`
 
-**Why use deliverable contracts?**
-They create an audit trail showing what was promised vs. delivered, force explicit self-evaluation, and provide a quality checkpoint before finalizing work.  To put it simply, LLMs hold themselves more accountable when they are forced to first name their deliverables, and are then required to measure their completion by acknowledging each result explicitly and individually.
+The Contract/Completion checkbox pattern ensures criteria verification is explicit - can't claim "3/3 met" without evidence.
 
-The protocol's built-in self-evaluation as part of the contract generation process requires genuine LLM engagement, reinforcing accountability.
+## IAPI Stage Model
 
-**The deliverable contract evolves incrementally:**
-1. **Created** (Step 1): Success criteria and approach defined, then frozen pending approval
-2. **Completed** (Step 3): Actual results and self-assessment added, then frozen pending approval
-3. **Finalized** (Step 5): Marked approved and committed to git
+The protocol uses the IAPI model for cognitive stages:
 
-#### Pattern 1: Happy Path (Simple Tasks)
+| Stage | Step | Description |
+|-------|------|-------------|
+| **I**nvestigate | Plan Mode | Explore codebase, gather context |
+| **A**nalyze | 1a-1b | Understand requirements, ask questions |
+| **P**lan | 1c-1e | Design approach, get approval |
+| **I**mplement | 2 | Execute the work |
 
-For straightforward work where you trust the approach. Simply approve at both gates.  Even though these approvals may seem like no-ops, as complexity rises, the simple act of generating a plan and deliverable contracts results in higher quality outcomes and fewer planning gaps than with a non-planned work session.
+Each I/A/P stage can use subagents that read domain guides and return structured output with lessons applied/missed.
 
-Note: this is a simplified view of the protocol.
+## Usage Patterns
 
-```mermaid
-flowchart TD
-    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-contract.md</i>"]
-    P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-contract.md</i><br/>• presents results"]
-    IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
+### Pattern 1: Happy Path (Simple Tasks)
 
-    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
-```
-
-#### The Grading Cycle
-
-At any gate, instead of approving immediately, you can ask the LLM to grade its own work and improve it. This creates a feedback loop that catches issues before they compound. The LLM provides a letter grade with specific deductions, then automatically addresses those gaps.
-
-Note that I usually do "grade your work" and "improve your work" as separate prompts.  Anecdotally, I feel like I get better results with separate prompts, but the jury is still out on that.  I have strong reason to believe that bundled prompts like this render different results than unbundled prompts.  I encourage you to try it both ways, "Grade your work, then improve it", vs "Grade your work", then "Improve your work" after getting a response.  *Always prompt "grade your work" separately from the request you are grading*.  For example, don't prompt "do X and grade your work".  Bundled grading requests are almost always more forgiving ("perfect A!") than a separate prompt.
-
-```mermaid
-flowchart LR
-    GATE{"GATE<br/>LLM: &quot;May I proceed?&quot;"} -->|"User: &quot;Grade your work, then improve it.&quot;"| GRADE["LLM: &quot;GRADE: A- (93/100)&quot;<br/>• deduction 1<br/>• deduction 2<br/><i>Makes improvements...</i>"]
-    GRADE -.-> GATE
-
-    style GATE fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style GRADE fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-```
-
-This works at both the Planning Gate (to refine the plan) and the Completion Gate (to polish the deliverable).
-
-You can repeat this cycle, although you'll usually get better quality by add a grading cycle at the other gate instead, if you haven't already.  It is subject to strongly diminishing returns on the same gate, usually, although occasionally multiple grading cycles can reveal cracks in the plan if the LLM doesn't come to equilibrium on its grading (bounces between grades forever).  Usually that only happens with complex issues.
-#### Pattern 2: With Grading Cycle
-
-For work requiring validation. Request self-evaluation after completion, then decide whether to approve or request changes.
+For straightforward work. Simply approve at both gates.
 
 ```mermaid
 flowchart TD
-    START(["Start"]) -->|"User: &quot;Make a plan to ...&quot;"| P1["LLM:<br/>• develops plan<br/>• presents plan<br/>• asks clarifying questions<br/>• creates <i>[phase]-contract.md</i>"]
-    P1 --> G1{"PLANNING GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G1 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| IMPL["LLM:<br/>• implements plan<br/>• completes <i>[phase]-contract.md</i><br/>• presents results"]
-    IMPL --> G2{"COMPLETION GATE<br/>LLM: &quot;May I proceed?&quot;"}
-    G2 -->|"User: &quot;I approve&quot; / &quot;Yes&quot; / &quot;Proceed&quot;"| DONE(["Done / Next phase"])
-    G2 -->|"User: &quot;Grade your work, then improve it.&quot;"| GRADE["LLM: &quot;GRADE: A- (93/100)...&quot;"]
-    GRADE -.-> G2
+    START(["Start"]) -->|"Make a plan to..."| S1["Step 1: Plan Validation"]
+    S1 --> G1{"GATE 1<br/>May I proceed?"}
+    G1 -->|"Approve"| S2["Step 2: Implementation"]
+    S2 --> S3["Step 3: Present Results"]
+    S3 --> G2{"GATE 2<br/>May I proceed?"}
+    G2 -->|"Approve"| S4["Step 4: Log + Commit"]
+    S4 --> DONE(["Done / Next phase"])
 
-    style START fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style P1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style IMPL fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style GRADE fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style DONE fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+    style G1 fill:#fff3e0,stroke:#ff9800
+    style G2 fill:#fff3e0,stroke:#ff9800
 ```
 
-**Pattern 3 (Enhanced QA)** would be to add a grading cycle at the Planning Gate as well—useful for complex or high-stakes work where you want to validate the approach before implementation begins. Covering both gates is generally preferable to multiple grading cycles on one of the gates without any on the other.
+### Pattern 2: With Grading Cycle
 
-### Example: Pattern 2 in Action
+For work requiring validation. Request self-evaluation after completion.
 
-Here's a realistic conversation showing Pattern 2 (Quality Check):
+```mermaid
+flowchart TD
+    G2{"GATE 2<br/>May I proceed?"} -->|"Grade your work"| GRADE["Grade: A- (93/100)<br/>- deduction 1<br/>- deduction 2"]
+    GRADE -->|"Improve"| IMPROVE["Address deductions"]
+    IMPROVE --> G2
+    G2 -->|"Approve"| S4["Step 4: Log + Commit"]
+
+    style G2 fill:#fff3e0,stroke:#ff9800
+    style GRADE fill:#e8f5e9,stroke:#388e3c
+```
+
+The grading cycle works at both gates. Add grading at both gates for complex or high-stakes work.
+
+## Example Conversation
 
 > **You:** Make a plan to add input validation to the `calculate_discount` function
 >
-> **Claude:** I understand the plan as: Add input validation to the `calculate_discount` function to check for valid input types and ranges.
+> **Claude:** I understand the plan as: Add input validation to check for valid input types and ranges.
 >
 > Target file: `src/pricing.py` (line 45)
 > Approach: Add type checking and range validation before calculation logic
->
-> Deliverable contract created: `validation-contract.md`
 > Success criteria: 3 items
-> Estimated effort: 500-700 tokens
 >
-> **I have a few clarifying questions:**
+> **Clarifying questions:**
 > - Should validation throw exceptions or return error objects?
-> - What should the valid range be for discount percentages (0-100)?
-> - Should we validate data types strictly or coerce when possible?
+> - What should the valid range be for discount percentages?
 >
 > **Upon your approval, I will:**
-> 1. Remove "⏸️ AWAITING STEP 1 APPROVAL" footer from contract
-> 2. Proceed to Step 2 (implement validation)
-> 3. Update Tasks API
+> 1. Log Contract entry capturing this scope
+> 2. Log Completion entry for Step 1
+> 3. Proceed to Step 2 (implementation)
 >
 > May I proceed?
 >
-> **You:** Answers: Throw exceptions, yes 0-100 is correct, and validate strictly. Proceed.
+> **You:** Throw exceptions, 0-100 range. Proceed.
 >
-> **Claude:** *[Implements validation, updates contract]*
+> **Claude:** *[Implements validation]*
 >
-> ## Validation Implementation Complete
->
-> **Deliverable:** Updated `calculate_discount` function with input validation
-> **Deliverable contract:** validation-contract.md
+> ## Implementation Complete
 >
 > Key highlights:
 > - Added type checking for amount and percentage parameters
@@ -214,53 +204,31 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 > - Added error messages for invalid inputs
 >
 > **Upon your approval, I will:**
-> 1. Mark contract as APPROVED
-> 2. Commit changes to git
-> 3. Update Tasks API
+> 1. Log Completion entry for Step 3
+> 2. Step 4a: Log phase approval
+> 3. Step 4b: Commit deliverable + plan-log.md
+> 4. Step 4c: Setup next phase
 >
 > May I proceed?
 >
-> **You:** grade your work
+> **You:** Grade your work
 >
 > **Claude:** **Self-Grade: B+ (88/100)**
 >
 > What went well:
 > - Type checking implemented correctly
 > - Range validation works for percentage
-> - Clear error messages
 >
 > Deductions:
-> - -12: Didn't validate for negative amounts (oversight)
+> - -12: Didn't validate for negative amounts
 >
-> **You:** improve your work
+> **You:** Improve
 >
-> **Claude:** *[Adds negative amount check, updates contract]*
->
-> Updated validation to reject negative amounts. Re-presenting:
->
-> **Upon your approval, I will:**
-> 1. Mark contract as APPROVED
-> 2. Commit changes to git
-> 3. Update Tasks API
+> **Claude:** *[Adds negative amount check, re-presents]*
 >
 > May I proceed?
 >
-> **You:** proceed
->
-> **Claude:** *[Commits changes and completes phase]*
-
----
-
-**Multi-phase projects**: For projects with multiple implementation phases, this pattern repeats for each phase (Step 5d loops back to Step 0).
-
-## The 5 Steps (Quick Reference)
-
-0. **Contract cleanup** (new planning sessions only)
-1. **Plan validation + approval** (never skip!)
-2. **Implementation** (actual work)
-3. **Checkpoint preparation** (update contract, add AWAITING footer)
-4. **Present and WAIT** (explicit approval required)
-5. **Post-approval** (contract → commit)
+> **You:** Proceed
 
 ## Design Philosophy
 
@@ -277,7 +245,7 @@ Here's a realistic conversation showing Pattern 2 (Quality Check):
 
 ## Testing
 
-This repository includes automated tests to verify installation and migration scripts work correctly.
+This repository includes automated tests to verify installation and protocol compliance.
 
 ### Run All Tests
 
@@ -287,9 +255,9 @@ bash tests/run_all.sh
 
 ### What's Tested
 
-- ✅ URL validation (no placeholder URLs)
-- ✅ Migration script (from env vars to tilde paths)
-- ✅ Manual installation steps
-- ✅ Quick install script
+- Protocol format verification (4-step structure)
+- Event logging patterns (Contract/Completion/Interaction)
+- No outdated references (Step 5, contract files)
+- Installation scripts
 
 See [tests/README.md](./tests/README.md) for details.

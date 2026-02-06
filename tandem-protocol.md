@@ -127,6 +127,17 @@ if plan_file:
             # Loop back to re-grade
         else:
             break  # proceed to Step 1a
+
+# Create tasks for protocol steps (telescoped: Step 1 expanded, rest collapsed)
+if tool_available("TaskCreate"):
+    TaskCreate({"subject": "Step 1a: Present plan understanding", "activeForm": "Presenting understanding"})
+    TaskCreate({"subject": "Step 1b: Ask clarifying questions", "activeForm": "Asking questions"})
+    TaskCreate({"subject": "Step 1c: Request approval", "activeForm": "Requesting approval"})
+    TaskCreate({"subject": "Step 1d: Log Contract entry", "activeForm": "Logging contract"})
+    TaskCreate({"subject": "Step 1e: Log Completion entry", "activeForm": "Logging completion"})
+    TaskCreate({"subject": "Step 2: Complete deliverable", "activeForm": "Completing deliverable"})
+    TaskCreate({"subject": "Step 3: Present and await approval", "activeForm": "Presenting for approval"})
+    TaskCreate({"subject": "Step 4: Post-approval actions", "activeForm": "Post-approval actions"})
 ```
 
 Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
@@ -224,49 +235,16 @@ if tool_available("ExitPlanMode"):
 Log the phase scope directly to plan-log.md as a Contract entry.
 
 ```python
-# Log Contract entry to plan-log.md
+# Log Contract entry to plan-log.md with checkboxes for each criterion
 timestamp = datetime.now().isoformat() + "Z"
-contract_entry = f"{timestamp} | Contract: Phase {N} - {objective}, {len(success_criteria)} success criteria"
+criteria_checkboxes = ", ".join([f"[ ] {c}" for c in success_criteria])
+contract_entry = f"{timestamp} | Contract: Phase {N} - {objective} | {criteria_checkboxes}"
 append_to_log("plan-log.md", contract_entry)
 
 # Example entry:
-# 2026-02-06T14:30:00Z | Contract: Phase 1 - implement auth middleware, 3 success criteria
+# 2026-02-06T14:30:00Z | Contract: Phase 1 - auth middleware | [ ] middleware, [ ] tests, [ ] docs
 
 # Plan file: future phases need IAPI skeleton (I/A/P substeps) + TaskCreate calls
-
-# Create tasks with hierarchical structure: current substeps + remaining steps
-if tool_available("TaskCreate"):
-    # Current step (Step 1) blown out to substeps
-    TaskCreate({"subject": "Step 1a: Present plan understanding", "description": "Present understanding to user", "activeForm": "Presenting plan understanding"})
-    TaskCreate({"subject": "Step 1b: Ask clarifying questions", "description": "BLOCKING - ask questions", "activeForm": "Asking clarifying questions"})
-    TaskCreate({"subject": "Step 1c: Request approval", "description": "Present and await approval", "activeForm": "Requesting approval"})
-    TaskCreate({"subject": "Step 1d: Log Contract entry", "description": "Log scope to plan-log.md", "activeForm": "Logging contract"})
-    TaskCreate({"subject": "Step 1e: Log Completion entry", "description": "Log Step 1 complete", "activeForm": "Logging completion"})
-    # Remaining steps (collapsed)
-    TaskCreate({"subject": "Step 2: Complete deliverable", "description": "Execute the work", "activeForm": "Completing deliverable"})
-    TaskCreate({"subject": "Step 3: Present and await approval", "description": "Present for user approval", "activeForm": "Presenting for approval"})
-    TaskCreate({"subject": "Step 4: Post-approval actions", "description": "Log and commit", "activeForm": "Post-approval actions"})
-
-    # Wire sequential dependencies
-    TaskUpdate({"taskId": "2", "addBlockedBy": ["1"]})
-    TaskUpdate({"taskId": "3", "addBlockedBy": ["2"]})
-    TaskUpdate({"taskId": "4", "addBlockedBy": ["3"]})
-    TaskUpdate({"taskId": "5", "addBlockedBy": ["4"]})
-    TaskUpdate({"taskId": "6", "addBlockedBy": ["5"]})
-    TaskUpdate({"taskId": "7", "addBlockedBy": ["6"]})
-    TaskUpdate({"taskId": "8", "addBlockedBy": ["7"]})
-
-    # Mark completed and in-progress
-    TaskUpdate({"taskId": "1", "status": "completed"})
-    TaskUpdate({"taskId": "2", "status": "completed"})
-    TaskUpdate({"taskId": "3", "status": "completed"})
-    TaskUpdate({"taskId": "4", "status": "in_progress"})
-
-    # After Step 1 complete: telescope (delete substeps, blow out Step 2)
-
-# Plan file is todo source of truth - sync tasks from plan
-# Expand current phase in plan file, collapse completed phases
-update_plan_file(expand_current_phase=True)
 ```
 
 ---
@@ -302,41 +280,41 @@ Guide invariants stay collapsed as "Step 2a: Verify compliance" until implementa
 
 **Example: Entering Step 2 for Go implementation with Khorikov testing**
 
-Step 2 blowout shows implementation substeps + collapsed verification:
+Step 2 expansion shows implementation substeps + collapsed verification:
 
 ```
-[x] Step 1: Plan validation
-[ ] Step 2a: Write failing tests (TDD)  ← in_progress
-[ ] Step 2a: Implement production code
-[ ] Step 2a: Add benchmarks for calculation functions
-[ ] Step 2a: Add ACD classification comments
-[ ] Step 2a: Verify compliance (5 items)  ← collapsed
-[ ] Step 3: Present and await approval
-[ ] Step 4: Post-approval actions
+[completed] Step 1: Plan validation
+[in_progress] Step 2a: Write failing tests (TDD)
+[pending] Step 2a: Implement production code
+[pending] Step 2a: Add benchmarks for calculation functions
+[pending] Step 2a: Add ACD classification comments
+[pending] Step 2a: Verify compliance (5 items)  ← collapsed
+[pending] Step 3: Present and await approval
+[pending] Step 4: Post-approval actions
 ```
 
-After implementation completes, blow out Step 2a (verification):
+After implementation completes, expand Step 2a (verification):
 
 ```
-[x] Step 1: Plan validation
-[x] Step 2a: Implementation complete
-[ ] Step 2a: Classify Khorikov quadrants  ← in_progress
-[ ] Step 2a: Prune trivial tests
-[ ] Step 2a: Run coverage
-[ ] Step 2a: Run race detector
-[ ] Step 2a: Run full test suite
-[ ] Step 2b: Log Completion (criteria met)
-[ ] Step 3: Present and await approval
-[ ] Step 4: Post-approval actions
+[completed] Step 1: Plan validation
+[completed] Step 2a: Implementation complete
+[in_progress] Step 2a: Classify Khorikov quadrants
+[pending] Step 2a: Prune trivial tests
+[pending] Step 2a: Run coverage
+[pending] Step 2a: Run race detector
+[pending] Step 2a: Run full test suite
+[pending] Step 2b: Log Completion (criteria met)
+[pending] Step 3: Present and await approval
+[pending] Step 4: Post-approval actions
 ```
 
 After verification completes, telescope up:
 
 ```
-[x] Step 1: Plan validation
-[x] Step 2: Complete deliverable
-[ ] Step 3: Present and await approval  ← in_progress
-[ ] Step 4: Post-approval actions
+[completed] Step 1: Plan validation
+[completed] Step 2: Complete deliverable
+[in_progress] Step 3: Present and await approval
+[pending] Step 4: Post-approval actions
 ```
 
 **Tasks API - Phase 1 (implementation):**
@@ -358,7 +336,7 @@ if tool_available("TaskCreate"):
     TaskUpdate({"taskId": "2", "status": "in_progress"})
 ```
 
-**Tasks API - Phase 2 (verification blowout):**
+**Tasks API - Phase 2 (verification expansion):**
 
 ```python
 # Delete implementation substeps, expand verification
@@ -377,7 +355,7 @@ TaskUpdate({"taskId": "11", "addBlockedBy": ["10"]})
 TaskUpdate({"taskId": "12", "addBlockedBy": ["11"]})
 ```
 
-**Key principle:** The plan document should specify which guides apply. Verification items stay collapsed as a single "Verify compliance" todo during implementation, then blow out when that phase is reached. This keeps the main list clean while ensuring compliance isn't forgotten.
+**Key principle:** The plan document should specify which guides apply. Verification items stay collapsed as a single "Verify compliance" todo during implementation, then expand when that phase is reached. This keeps the main list clean while ensuring compliance isn't forgotten.
 
 ---
 
@@ -416,13 +394,17 @@ else:
 if user_feedback:
     log_interaction(f"{feedback_type} → {outcome}")
 
-# Step 2b: Log Completion - all criteria met against contract
+# Step 2b: Log Completion - copy Contract criteria, fill checkboxes with evidence
 timestamp = datetime.now().isoformat() + "Z"
-completion_entry = f"{timestamp} | Completion: Step 2 - {N}/{N} criteria met ({criteria_list})"
+# Read Contract entry, copy criteria, fill [x]/[-]/[+] with evidence
+criteria_filled = ", ".join([f"[x] {c} ({evidence[c]})" for c in completed_criteria])
+completion_entry = f"{timestamp} | Completion: Step 2 | {criteria_filled}"
 append_to_log("plan-log.md", completion_entry)
 
 # Example:
-# 2026-02-06T15:30:00Z | Completion: Step 2 - 3/3 criteria met (middleware, tests, docs)
+# 2026-02-06T15:30:00Z | Completion: Step 2 | [x] middleware (auth.go:45), [x] tests (auth_test.go), [x] docs (README:12)
+
+# Markers: [x]=completed, [ ]=not completed, [-]=removed (reason), [+]=added (reason)
 
 # Run verification if task type matches (see Appendix: Verification Templates)
 if task_type in ["file_download", "code_implementation", "documentation", "batch_operations", "test_suite"]:
@@ -457,7 +439,9 @@ present(f"""
 
 **Upon your approval, I will:**
 1. Log Completion entry for Step 3
-2. Proceed to Step 4 (log approval, commit)
+2. Step 4a: Log phase approval to plan-log.md
+3. Step 4b: Commit deliverable + plan-log.md
+4. Step 4c: Setup next phase (groom plan file, route lessons)
 
 **May I proceed?**
 """)
@@ -904,55 +888,55 @@ Track improvements:
 
 **Tasks API hierarchical telescoping pattern:**
 - Always show the full hierarchy: remaining phases → remaining steps → current substeps
-- Blow out children at each level as you enter it
+- Expand children at each level as you enter it
 - Telescope up (remove children, mark parent complete) when a level finishes
 - This maintains context of the overall plan while focusing on current atomic work
 
 **Example: 2 phases, 2 steps/phase, 2 substeps/step**
 
-Phase 1, Step 1 start (blow out substeps):
+Phase 1, Step 1 start (expand substeps):
 ```
-[ ] Phase 1, Step 1, Substep 1a  ← in_progress
-[ ] Phase 1, Step 1, Substep 1b
-[ ] Phase 1, Step 2
-[ ] Phase 2
+[in_progress] Phase 1, Step 1, Substep 1a
+[pending] Phase 1, Step 1, Substep 1b
+[pending] Phase 1, Step 2
+[pending] Phase 2
 ```
 
 After completing 1a:
 ```
-[x] Phase 1, Step 1, Substep 1a
-[ ] Phase 1, Step 1, Substep 1b  ← in_progress
-[ ] Phase 1, Step 2
-[ ] Phase 2
+[completed] Phase 1, Step 1, Substep 1a
+[in_progress] Phase 1, Step 1, Substep 1b
+[pending] Phase 1, Step 2
+[pending] Phase 2
 ```
 
 After completing Step 1 (telescope: remove substeps, mark Step 1 complete):
 ```
-[x] Phase 1, Step 1
-[ ] Phase 1, Step 2  ← in_progress
-[ ] Phase 2
+[completed] Phase 1, Step 1
+[in_progress] Phase 1, Step 2
+[pending] Phase 2
 ```
 
-Phase 1, Step 2 start (blow out substeps):
+Phase 1, Step 2 start (expand substeps):
 ```
-[x] Phase 1, Step 1
-[ ] Phase 1, Step 2, Substep 2a  ← in_progress
-[ ] Phase 1, Step 2, Substep 2b
-[ ] Phase 2
+[completed] Phase 1, Step 1
+[in_progress] Phase 1, Step 2, Substep 2a
+[pending] Phase 1, Step 2, Substep 2b
+[pending] Phase 2
 ```
 
 After completing Phase 1 (telescope: remove steps, mark Phase 1 complete):
 ```
-[x] Phase 1
-[ ] Phase 2  ← in_progress
+[completed] Phase 1
+[in_progress] Phase 2
 ```
 
-Phase 2 start (blow out steps and substeps):
+Phase 2 start (expand steps and substeps):
 ```
-[x] Phase 1
-[ ] Phase 2, Step 1, Substep 1a  ← in_progress
-[ ] Phase 2, Step 1, Substep 1b
-[ ] Phase 2, Step 2
+[completed] Phase 1
+[in_progress] Phase 2, Step 1, Substep 1a
+[pending] Phase 2, Step 1, Substep 1b
+[pending] Phase 2, Step 2
 ```
 
 **Platform flexibility:**

@@ -48,11 +48,15 @@ LLM enters a new phase or completes a step within current phase.
 
 1. LLM creates plan with collapsed phase placeholders
 2. LLM enters first phase (e.g., UC1-A)
-3. LLM expands phase to protocol steps in plan file:
+3. LLM expands phase to protocol steps in plan file, keeping future phases visible:
    ```
-   [in_progress] UC1-A: Step 2 (create use case doc)
-   [pending] UC1-B: Step 2 (create design doc)
-   [pending] UC1-C: Steps 2-6 (TDD implementation)
+   [in_progress] Step 2: UC1-A use case doc
+   [pending] Step 2: UC1-B design doc
+   [pending] Step 2: UC1-C implementation
+   [pending] Step 3: Present and await approval
+   [pending] Step 4: Post-approval actions
+   [pending] Phase 2: Plan/contract distinction  ← future phase
+   [pending] Phase 3: Plan mode entry            ← future phase
    ```
 4. LLM completes UC1-A, marks `[completed]` in plan
 5. LLM marks UC1-B `[in_progress]`, continues
@@ -62,8 +66,8 @@ LLM enters a new phase or completes a step within current phase.
 ## Extensions
 
 2a. Tasks API not available:
-    2a1. LLM maintains state in contract file
-    2a2. User sees progress via contract file
+    2a1. LLM maintains state in plan file only
+    2a2. User sees progress via plan file structure
     2a3. Continue at step 3
 
 ## Guard Conditions (Behavioral Tests)
@@ -71,28 +75,24 @@ LLM enters a new phase or completes a step within current phase.
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | Phase started | Plan shows expanded steps for that phase |
-| Step completed | Plan marks step `[completed]` |
-| Phase completed | Plan collapses phase to single line |
-| Multiple phases | Only current phase expanded |
+| Step completed | Task marked `[completed]` |
+| Phase completed | Collapse step tasks, keep phase visible |
+| Multiple phases | Current phase steps expanded, future phases as single tasks |
 
-## Todo JSON Structure in Plan File
+## Todo Structure (Tasks API)
 
-```markdown
-## Phase List (Todo State)
-
-### Completed (collapsed)
-- [completed] UC1: Step 1b sequencing
-- [completed] UC2: Plan/contract distinction
-
-### Current (expanded)
-- [completed] UC3-A: Use case doc
-- [in_progress] UC3-B: Design doc
-- [pending] UC3-C: Implementation (TDD)
-
-### Pending (placeholders)
-- [pending] UC4-UC5: Compliance fixes
-- [pending] UC6-UC7: New features (may cut)
 ```
+[completed] Step 1: Plan Validation
+[in_progress] Step 2: UC3-A use case doc
+[pending] Step 2: UC3-B design doc
+[pending] Step 2: UC3-C implementation
+[pending] Step 3: Present and await approval
+[pending] Step 4: Post-approval actions
+[pending] Phase 2: UC4-UC5 compliance fixes    ← future phase
+[pending] Phase 3: UC6-UC7 new features        ← future phase
+```
+
+**Pattern:** Step deliverables prefixed with step number, future phases prefixed with "Phase".
 
 ## Protocol Step Mapping
 
@@ -102,14 +102,15 @@ Each sub-phase maps to protocol steps:
 |-----------|----------------|
 | UC*-A (Use Case) | Step 1 (plan + present) |
 | UC*-B (Design) | Step 1 (plan + present) |
-| UC*-C (Implementation) | Steps 1-5 (full cycle with TDD) |
+| UC*-C (Implementation) | Steps 1-4 (full cycle with TDD) |
 
 ## Integration Points in Protocol
 
 | Step | Guidance Needed |
 |------|-----------------|
 | Step 1 (start) | Expand current phase in plan file |
-| Step 5d | Collapse completed phase, expand next |
+| Step 2 (start) | Telescope: collapse Step 1, expand Step 2 deliverables |
+| Step 4c | Collapse completed phase, expand next |
 
 ## Project Info
 

@@ -2,13 +2,39 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 1 (start) and Step 5d
+**Location:** tandem-protocol.md - Step 1 (start) and Step 4c
 
-**Design principle:** Plan file IS the todo state. No separate tracking.
+**Design principle:** Plan file (document) and Tasks API (tool) are separate but synchronized.
+- **Plan file** (~/.claude/plans/*.md): Document with phase structure, groomed as phases complete
+- **Tasks API** (TaskCreate/Update/List): Tool for progress tracking, synced from plan file
 
 **Current state:** Protocol mentions Tasks API but plan file and tasks are separate artifacts.
 
 **Problem:** Observed drift between plan state and todo state. User had to remind about telescoping.
+
+## Telescoping Pattern
+
+When entering a step, telescope tasks:
+- **Collapse completed steps** to single task (status: completed)
+- **Expand current step** to show deliverables (status: in_progress/pending)
+- **Keep pending steps** collapsed (status: pending)
+- **Show all phases** - future phases visible as pending, not hidden
+
+**Example: Phase 1, Step 2 with 3 deliverables and 3 more phases**
+
+```
+[completed] Step 1: Plan Validation
+[in_progress] Step 2: Update tandem-protocol.md
+[pending] Step 2: Update UC7 docs
+[pending] Step 2: Create protocol-guide.md
+[pending] Step 3: Present and await approval
+[pending] Step 4: Post-approval actions
+[pending] Phase 2: Plan File Lifecycle      ← future phase (collapsed)
+[pending] Phase 3: UC Audit                 ← future phase (collapsed)
+[pending] Phase 4: README Rewrite           ← future phase (collapsed)
+```
+
+**Note:** Use Tasks API status (completed/in_progress/pending), not checkbox markers in task subjects.
 
 ## Change
 
@@ -31,9 +57,9 @@ if tool_available("TaskCreate"):
     sync_tasks_from_plan()
 ```
 
-### Change 2: Step 5d - Collapse and expand
+### Change 2: Step 4c - Collapse and expand
 
-**Location:** Step 5d, replace current content (~line 738)
+**Location:** Step 4c, replace current content (~line 738)
 
 ```python
 # Collapse completed phase in plan file
@@ -82,7 +108,7 @@ When sketching initial plan:
 | Change | Lines |
 |--------|-------|
 | Step 2 expansion pseudocode | +8 |
-| Step 5d collapse/expand | +10 |
+| Step 4c collapse/expand | +10 |
 | **Total** | **+18** |
 
 ## Behavioral Test Cases (for UC8-C)
@@ -101,7 +127,7 @@ When sketching initial plan:
 
 ### Phase 2: GREEN
 1. Add expansion pseudocode to Step 2
-2. Update Step 5d with collapse/expand
+2. Update Step 4c with collapse/expand
 3. Verify T1-T3 PASS
 
 ### Phase 3: REFACTOR

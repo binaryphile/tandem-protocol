@@ -323,6 +323,10 @@ if tool_available("TodoWrite"):
         ]
     })
     # After Step 2 complete: telescope (remove substeps, mark Step 2 complete, blow out Step 3)
+
+# Plan file is todo source of truth - sync TodoWrite from plan
+# Expand current phase in plan file, collapse completed phases
+update_plan_file(expand_current_phase=True)
 ```
 
 ---
@@ -738,16 +742,16 @@ Contract: archived to plan-log.md
 ### Step 6d: Setup Next Phase
 
 ```python
-# Clear Step 6 sub-steps, prepare for next phase
+# Telescope todos: delete completed tasks, keep only next phase
 if tool_available("TodoWrite"):
-    # Clear current phase todos, start Step 1/2 for next phase
     TodoWrite({
         "todos": []  # Empty - will be populated at Step 2 of next phase
     })
-    # Note: Next phase will blow out Step 2's sub-steps (2a, 2b, 2c, 2d)
 
-# Transition to Step 1 for next phase
-# Step 1 → Step 2 will enter plan mode automatically
+# Update plan file: mark completed phases, remove detail from finished work
+update_plan_file(mark_phase_complete=True, collapse_completed=True)
+
+# Transition to Step 2 for next phase (triggers plan mode entry)
 ```
 
 ---

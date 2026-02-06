@@ -63,6 +63,25 @@ flowchart TD
 
 ---
 
+## Event Logging
+
+All protocol events are logged directly to plan-log.md using timestamped entries.
+
+**Format:**
+```
+YYYY-MM-DDTHH:MM:SSZ | Type: description
+```
+
+**Entry Types:**
+
+| Type | When | Example |
+|------|------|---------|
+| Contract | Step 1d (phase start) | `Contract: Phase 1 - implement auth, 3 success criteria` |
+| Completion | Step completion | `Completion: Step 2 - auth.go created, 45 lines` |
+| Interaction | User feedback | `Interaction: /p grade → B/84, missing edge case` |
+
+---
+
 ## Step 1: Plan Validation
 
 ```python
@@ -100,14 +119,14 @@ Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-ste
 - **1a:** Present plan understanding
 - **1b:** ⛔ BLOCKING: Ask clarifying questions (wait for answers)
 - **1c:** Request approval → call `ExitPlanMode()` (wait for "proceed")
-- **1d:** Create contract file → `phase-N-contract.md` in working directory
-- **1e:** Archive approved plan + contract to plan-log.md
+- **1d:** Log Contract entry to plan-log.md (scope/deliverables)
+- **1e:** Log Completion entry for Step 1
 
-**Note:** Contract creation (1d) comes AFTER approval (1c). The two files serve different purposes:
+**Note:** Contract logging (1d) comes AFTER approval (1c). Plan file and log entries serve different purposes:
 - **Plan file** (`~/.claude/plans/`): HOW - approach, methodology, research strategy
-- **Contract file** (`project-dir/phase-N-contract.md`): WHAT - scope, deliverables, success criteria
+- **Contract entry** (plan-log.md): WHAT - scope, deliverables, success criteria
 
-Iterate on the plan until approved, then lock scope into a contract.
+Iterate on the plan until approved, then log scope as Contract entry.
 
 ---
 
@@ -163,8 +182,8 @@ present(f"""
 **Approach:** [summary]
 
 **Upon your approval, I will:**
-1. Create contract file capturing this scope
-2. Archive plan + contract
+1. Log Contract entry capturing this scope
+2. Log Completion entry for Step 1
 3. Proceed to Step 2 (implementation)
 
 **May I proceed?**
@@ -173,54 +192,29 @@ present(f"""
 # WAIT for explicit approval
 wait_for("proceed", "yes", "approved")
 
-# Exit plan mode - enables write operations for contract creation
+# Exit plan mode - enables write operations
 if tool_available("ExitPlanMode"):
     ExitPlanMode()
-    # FILE DISTINCTION (HOW vs WHAT):
+    # DISTINCTION (HOW vs WHAT):
     # Plan file (~/.claude/plans/): HOW - approach, methodology, phasing
-    # Contract file (project dir): WHAT - scope, deliverables, success criteria
-    # Plan persists across phases; contract is per-phase working doc
+    # Contract entry (plan-log.md): WHAT - scope, deliverables, success criteria
+    # Plan persists across phases; Contract entry captures per-phase scope
 ```
 
 ---
 
-### Step 1d: Create Contract
+### Step 1d: Log Contract Entry
 
-**Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
-**Location:** Project directory (where the deliverable will be created, to make it git-able)
+Log the phase scope directly to plan-log.md as a Contract entry.
 
 ```python
-# Create contract file in project directory (where deliverables will be created)
-# This makes it git-able and collocated with the work
-contract_file = create_file("phase-1-contract.md")  # phase-N-contract.md in project dir
+# Log Contract entry to plan-log.md
+timestamp = datetime.now().isoformat() + "Z"
+contract_entry = f"{timestamp} | Contract: Phase {N} - {objective}, {len(success_criteria)} success criteria"
+append_to_log("plan-log.md", contract_entry)
 
-write_to_contract("""
-# Phase X Contract
-
-**Created:** [date]
-
-## Step 1 Checklist
-- [x] 1a: Presented understanding
-- [x] 1b: Asked clarifying questions
-- [x] 1b-answer: Received answers
-- [x] 1c: Approval received
-- [x] 1d: Contract created (this file)
-- [ ] 1e: Plan + contract archived
-
-## Objective
-[What this phase accomplishes]
-
-## Success Criteria
-1. [ ] Step 2: Complete deliverable
-2. [ ] Step 3: Update contract with results
-3. [ ] Step 5d: Archive contract and log progress
-
-## Approach
-[Specific implementation steps]
-
-## Token Budget
-Estimated: XX-XXK tokens
-""")
+# Example entry:
+# 2026-02-06T14:30:00Z | Contract: Phase 1 - implement auth middleware, 3 success criteria
 
 # Create tasks with hierarchical structure: current substeps + remaining steps
 if tool_available("TaskCreate"):
@@ -228,13 +222,13 @@ if tool_available("TaskCreate"):
     TaskCreate({"subject": "Step 1a: Present plan understanding", "description": "Present understanding to user", "activeForm": "Presenting plan understanding"})
     TaskCreate({"subject": "Step 1b: Ask clarifying questions", "description": "BLOCKING - ask questions", "activeForm": "Asking clarifying questions"})
     TaskCreate({"subject": "Step 1c: Request approval", "description": "Present and await approval", "activeForm": "Requesting approval"})
-    TaskCreate({"subject": "Step 1d: Create contract file", "description": "Create phase contract", "activeForm": "Creating contract file"})
-    TaskCreate({"subject": "Step 1e: Archive plan + contract", "description": "Archive to plan-log.md", "activeForm": "Archiving plan and contract"})
+    TaskCreate({"subject": "Step 1d: Log Contract entry", "description": "Log scope to plan-log.md", "activeForm": "Logging contract"})
+    TaskCreate({"subject": "Step 1e: Log Completion entry", "description": "Log Step 1 complete", "activeForm": "Logging completion"})
     # Remaining steps (collapsed)
     TaskCreate({"subject": "Step 2: Complete deliverable", "description": "Execute the work", "activeForm": "Completing deliverable"})
-    TaskCreate({"subject": "Step 3: Update contract", "description": "Record results", "activeForm": "Updating contract"})
+    TaskCreate({"subject": "Step 3: Log results", "description": "Log Completion entry", "activeForm": "Logging results"})
     TaskCreate({"subject": "Step 4: Present and await approval", "description": "Present for user approval", "activeForm": "Presenting for approval"})
-    TaskCreate({"subject": "Step 5: Post-approval actions", "description": "Archive and commit", "activeForm": "Post-approval actions"})
+    TaskCreate({"subject": "Step 5: Post-approval actions", "description": "Log and commit", "activeForm": "Post-approval actions"})
 
     # Wire sequential dependencies
     TaskUpdate({"taskId": "2", "addBlockedBy": ["1"]})
@@ -374,40 +368,18 @@ TaskUpdate({"taskId": "12", "addBlockedBy": ["11"]})
 
 ---
 
-### Step 1e: Archive Approved Plan + Contract
+### Step 1e: Log Completion Entry
 
-Archive the approved plan and contract BEFORE starting implementation. This captures "what we agreed to."
+Log Step 1 completion to plan-log.md.
 
 ```python
-# After approval received and contract created
-update_contract_checklist("1c: Approval received", checked=True)
-update_contract_checklist("1d: Contract created", checked=True)
+# Log Completion entry for Step 1
+timestamp = datetime.now().isoformat() + "Z"
+completion_entry = f"{timestamp} | Completion: Step 1 - plan validated, approval received"
+append_to_log("plan-log.md", completion_entry)
 
-# Archive VERBATIM - no summarizing, no reformatting
-if plan_mode_file_exists:
-    echo("\n---\n")                      >> "plan-log.md"
-    echo(f"## Approved Plan: {date}\n")  >> "plan-log.md"
-    cat(plan_file)                       >> "plan-log.md"
-    # Don't delete - Claude Code manages plan file automatically
-
-echo("\n---\n")                          >> "plan-log.md"
-echo(f"## Approved Contract: {date}\n")  >> "plan-log.md"
-cat(contract_file)                       >> "plan-log.md"
-# Don't delete - contract is working document for Steps 2-4
-
-update_contract_checklist("1e: Plan + contract archived", checked=True)
-```
-
-**Bash equivalent:**
-```bash
-# If plan file exists (from plan mode)
-if [ -f "$PLAN_FILE" ]; then
-    echo -e "\n---\n## Approved Plan: $(date -I)\n" >> plan-log.md
-    cat "$PLAN_FILE" >> plan-log.md
-fi
-
-echo -e "\n---\n## Approved Contract: $(date -I)\n" >> plan-log.md
-cat phase-N-contract.md >> plan-log.md
+# Example entry:
+# 2026-02-06T14:35:00Z | Completion: Step 1 - plan validated, approval received
 ```
 
 ---

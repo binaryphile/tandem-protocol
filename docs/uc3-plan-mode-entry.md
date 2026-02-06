@@ -71,7 +71,7 @@ LLM enters plan mode for any phase or new session.
 
 ## Main Success Scenario
 
-1. LLM begins Step 1 (any phase or non-phased session)
+1. LLM begins Step 2 (any phase or non-phased session)
 2. LLM checks for leftover contract files from incomplete work
 3. If contracts found: clear them (user confirms abandon/complete)
 4. LLM enters plan mode (EnterPlanMode if available)
@@ -87,7 +87,7 @@ LLM enters plan mode for any phase or new session.
 
 2a. No existing plan file:
     2a1. LLM notes "No existing plan found"
-    2a2. LLM proceeds to create new plan (Step 1a-1c)
+    2a2. LLM proceeds to create new plan (Step 2a-1c)
     2a3. Skip to step 8 (wait for direction on new plan)
 
 4a. Plan file too large to quote fully:
@@ -141,10 +141,10 @@ LLM enters plan mode for any phase or new session.
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 1 (start) | Check for leftover contracts, clear if needed, THEN enter plan mode |
-| Step 1 (plan mode entry) | Quote plan → /a → /p → wait for direction |
-| Step 1a | Applies after plan mode entry completes |
-| Any phase start | Re-enter Step 1, trigger this behavior |
+| Step 2 (start) | Check for leftover contracts, clear if needed, THEN enter plan mode |
+| Step 2 (plan mode entry) | Quote plan → /a → /p → wait for direction |
+| Step 2a | Applies after plan mode entry completes |
+| Any phase start | Re-enter Step 2, trigger this behavior |
 
 
 ## Project Info

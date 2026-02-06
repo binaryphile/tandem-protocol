@@ -58,8 +58,8 @@ LLM completes edits to a file that has line references in plan/contract.
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 2 | After completing edits, verify line references |
-| Step 3 | Grade should check for stale references |
+| Step 3 | After completing edits, verify line references |
+| Step 4 | Grade should check for stale references |
 
 ## Project Info
 

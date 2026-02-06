@@ -1,4 +1,4 @@
-# Use Case: UC1 Step 1b Sequencing Rule
+# Use Case: UC1 Step 2b Sequencing Rule
 
 **Scope:** Tandem Protocol
 **Level:** Blue
@@ -14,7 +14,7 @@
 | Main success path only | Exceptional cases (Claude reasons through these) |
 
 ## Context of Use
-During Step 1 of Tandem Protocol, after presenting understanding (1a) and before requesting approval (1c), the LLM must gather clarifying information. This use case ensures questions are ASKED to the user rather than embedded as assumptions in the plan.
+During Step 2 of Tandem Protocol, after presenting understanding (2a) and before requesting approval (2c), the LLM must gather clarifying information. This use case ensures questions are ASKED to the user rather than embedded as assumptions in the plan.
 
 ## Stakeholders & Interests
 - User: Gets to answer questions that affect scope; no surprises from undisclosed assumptions
@@ -22,8 +22,8 @@ During Step 1 of Tandem Protocol, after presenting understanding (1a) and before
 - Protocol: Maintains its guarantee of user-controlled scope
 
 ## Preconditions
-- Step 1a complete (understanding presented)
-- Step 1c not yet started (approval not yet requested)
+- Step 2a complete (understanding presented)
+- Step 2c not yet started (approval not yet requested)
 
 ## Success Guarantee
 - All clarifying questions asked via conversation or tool
@@ -36,19 +36,19 @@ During Step 1 of Tandem Protocol, after presenting understanding (1a) and before
 - User aware if questions were skipped
 
 ## Trigger
-LLM identifies need for clarification during Step 1b, OR reaches end of 1a with potential ambiguities.
+LLM identifies need for clarification during Step 2b, OR reaches end of 1a with potential ambiguities.
 
 ## Main Success Scenario
 1. LLM identifies clarifying questions during understanding phase
 2. LLM asks questions to user (via conversation or AskUserQuestion tool)
 3. User provides answers
 4. LLM incorporates answers into plan
-5. LLM proceeds to Step 1c with resolved questions
+5. LLM proceeds to Step 2c with resolved questions
 
 ## Extensions
 1a. LLM has no clarifying questions:
     1a1. LLM states explicitly: "No clarifying questions - understanding is complete"
-    1a2. Continue to Step 1c
+    1a2. Continue to Step 2c
 
 2a. AskUserQuestion tool available:
     2a1. LLM uses tool with structured questions
@@ -66,7 +66,7 @@ LLM identifies need for clarification during Step 1b, OR reaches end of 1a with 
     3b1. Return to step 2 with new questions
 
 4a. Answer changes scope significantly:
-    4a1. LLM updates understanding (return to Step 1a)
+    4a1. LLM updates understanding (return to Step 2a)
     4a2. Present revised understanding
     4a3. Return to step 1 (max 2 iterations; if scope still unclear, escalate to user)
 
@@ -97,5 +97,5 @@ Conversation transcript shows one of:
 
 ## Project Info
 - Priority: P1 (High) - Most common compliance failure
-- Frequency: Every Step 1 execution
+- Frequency: Every Step 2 execution
 - Behavioral Goal Impact: Strengthens existing goal #3, +0 new goals

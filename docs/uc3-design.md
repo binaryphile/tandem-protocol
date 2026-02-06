@@ -2,22 +2,22 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 1 start
+**Location:** tandem-protocol.md - Step 2 start
 
 **Design principle:** Protocol covers the main success path only. Exceptional cases (no existing plan, file too large, etc.) are omitted - Claude can reason through these without explicit guidance. This maintains protocol efficiency.
 
-Step 1 sequence:
+Step 2 sequence:
 1. Check for leftover contracts, clear if needed
 2. Enter plan mode
 3. If existing plan: quote verbatim, grade /a then /p, wait for direction
-4. Continue to Step 1a (present understanding)
+4. Continue to Step 2a (present understanding)
 
 ## Pseudocode
 
-**Location:** Step 1 start
+**Location:** Step 2 start
 
 ```python
-# STEP 1 START: Contract cleanup + Plan mode entry
+# STEP 2 START: Contract cleanup + Plan mode entry
 
 # 1a. Check for leftover contracts
 contracts = ls("*-contract.md")
@@ -48,7 +48,7 @@ if plan_file:
     # BLOCKING: wait for direction
     wait_for("improve", "proceed")
 
-# Continue to Step 1a (present understanding)...
+# Continue to Step 2a (present understanding)...
 ```
 
 ## Post-Proceed Flow (Reference)
@@ -56,7 +56,7 @@ if plan_file:
 After user says "proceed" and work completes:
 
 ```python
-# Step 5: Post-Approval (existing protocol)
+# Step 6: Post-Approval (existing protocol)
 contract.status = "APPROVED"
 
 # Archive with intro line, then append file literally
@@ -67,7 +67,7 @@ delete(contract)
 
 Intro line format: `## [Subject]: Archived Verbatim [Date]`
 
-**Line impact:** +20 lines (entry sequence only - archiving is existing Step 5)
+**Line impact:** +20 lines (entry sequence only - archiving is existing Step 6)
 
 ## Behavioral Test Cases (for UC3-C)
 
@@ -80,8 +80,8 @@ Intro line format: `## [Subject]: Archived Verbatim [Date]`
 
 ## Integration Points
 
-- **tandem-protocol.md:** Step 1 start
-- **Mermaid diagram:** Step 1 includes contract check + plan mode entry
+- **tandem-protocol.md:** Step 2 start
+- **Mermaid diagram:** Step 2 includes contract check + plan mode entry
 
 ## Line Budget
 

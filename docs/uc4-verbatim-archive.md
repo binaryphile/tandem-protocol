@@ -40,7 +40,7 @@
 
 ## Trigger
 
-LLM reaches Step 5b (archive completed contract) or equivalent checkpoint.
+LLM reaches Step 6b (archive completed contract) or equivalent checkpoint.
 
 ## Main Success Scenario
 
@@ -75,8 +75,8 @@ LLM reaches Step 5b (archive completed contract) or equivalent checkpoint.
 
 | Step | Guidance Needed |
 |------|-----------------|
-| Step 5b | Archive contract verbatim (not summarize) |
-| Step 1e | Archive plan + contract (same rule applies) |
+| Step 6b | Archive contract verbatim (not summarize) |
+| Step 2e | Archive plan + contract (same rule applies) |
 
 ## Project Info
 

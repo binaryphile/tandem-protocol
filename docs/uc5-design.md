@@ -2,11 +2,11 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 3 (Update Contract)
+**Location:** tandem-protocol.md - Step 4 (Update Contract)
 
 **Design principle:** Protocol covers main success path only. Exceptional cases omitted.
 
-**Current state:** Step 3 already references line numbers in contract updates (lines 513, 520) but no reminder to verify after edits.
+**Current state:** Step 4 already references line numbers in contract updates (lines 513, 520) but no reminder to verify after edits.
 
 **Problem:** Observed failures where line numbers become stale after edits but aren't updated.
 
@@ -14,7 +14,7 @@
 
 Add comment reminding to verify line references before updating contract.
 
-**Location:** Step 3, before contract update block (~line 504)
+**Location:** Step 4, before contract update block (~line 504)
 
 ```python
 # After edits: verify line references still accurate (numbers shift)
@@ -26,7 +26,7 @@ update_contract("""
 
 | Change | Lines |
 |--------|-------|
-| Comment at Step 3 | +1 |
+| Comment at Step 4 | +1 |
 | **Total** | **+1** |
 
 Total UC4+UC5: +0 + +1 = +1 line. Well within budget.
@@ -44,7 +44,7 @@ Total UC4+UC5: +0 + +1 = +1 line. Well within budget.
 2. Run against current protocol - expect FAIL
 
 ### Phase 2: GREEN
-1. Add comment to Step 3
+1. Add comment to Step 4
 2. Verify T1 PASS
 
 ### Phase 3: REFACTOR

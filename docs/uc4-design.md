@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 1e and Step 5b archive sections
+**Location:** tandem-protocol.md - Step 2e and Step 6b archive sections
 
 **Design principle:** Protocol covers main success path only. Exceptional cases omitted.
 
@@ -14,14 +14,14 @@
 
 Add comment emphasizing verbatim requirement near existing `cat` commands.
 
-**Location 1:** Step 1e (lines ~450-457)
+**Location 1:** Step 2e (lines ~450-457)
 ```python
 # Archive VERBATIM - no summarizing, no reformatting
 cat(plan_file)      >> "plan-log.md"
 cat(contract_file)  >> "plan-log.md"
 ```
 
-**Location 2:** Step 5b (lines ~656-658)
+**Location 2:** Step 6b (lines ~656-658)
 ```python
 # Archive VERBATIM - no summarizing, no reformatting
 cat(contract_file)  >> "plan-log.md"
@@ -31,8 +31,8 @@ cat(contract_file)  >> "plan-log.md"
 
 | Change | Lines |
 |--------|-------|
-| Comment at Step 1e | +1 |
-| Comment at Step 5b | +1 |
+| Comment at Step 2e | +1 |
+| Comment at Step 6b | +1 |
 | **Total** | **+2** |
 
 Remaining after UC4: 6 - 2 = 4 lines for UC5.
@@ -52,8 +52,8 @@ Remaining after UC4: 6 - 2 = 4 lines for UC5.
 3. T1 should FAIL (no explicit verbatim), T2 should PASS (cat already exists)
 
 ### Phase 2: GREEN
-1. Add verbatim comment to Step 1e
-2. Add verbatim comment to Step 5b
+1. Add verbatim comment to Step 2e
+2. Add verbatim comment to Step 6b
 3. Verify T1-T2 PASS
 
 ### Phase 3: REFACTOR

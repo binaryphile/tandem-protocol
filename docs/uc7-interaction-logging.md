@@ -1,4 +1,4 @@
-# Use Case: UC7 Interaction Logging
+# Use Case: UC7 Event Logging
 
 **Scope:** Tandem Protocol
 **Level:** Blue
@@ -9,78 +9,82 @@
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Logging g/i cycles in contract | Log format standardization |
-| Recording user feedback | Automated log analysis |
-| Main success path only | Exceptional cases (Claude reasons through these) |
+| Contract entries (scope/deliverables) | Automated log analysis |
+| Completion entries (step/deliverable done) | Log aggregation tools |
+| Interaction entries (user feedback, g/i cycles) | Exceptional cases (Claude reasons through) |
+| Direct logging to plan-log.md | Contract file lifecycle |
 
 ## System-in-Use Story
 
-> Claude, completing a feature implementation, updates the contract with an interaction log showing: "User said 'proceed' → started implementation → /q revealed missing post-approval steps → user feedback 'do post acceptance steps' → completed properly." When the contract is archived, this log goes with it. The user likes this because they can review how the session unfolded. Claude likes it because patterns emerge over time—which feedback is common, where compliance gaps appear.
+> Claude, starting a new phase, logs the scope: `2026-02-06T14:30:00Z | Contract: Phase 1 - implement auth middleware`. As work progresses, Claude logs completions: `2026-02-06T14:45:00Z | Completion: Step 2 - auth.go created, 45 lines`. The user invokes `/p` to grade the plan. Claude grades B/84 and logs: `2026-02-06T14:50:00Z | Interaction: /p grade → B/84, missing edge case`. User says `/i`, Claude improves and logs: `2026-02-06T14:52:00Z | Interaction: /i improve → added edge case handling`. The user likes this because everything is captured in real-time—no contract file to manage. Claude likes it because patterns are immediately visible in the single log file.
 
 ## Stakeholders & Interests
 
-- **User:** Wants record of session flow for review
+- **User:** Wants record of session flow without managing contract files
 - **LLM:** Needs to capture behavioral data for improvement
-- **Protocol:** Enables future behavioral analysis
+- **Protocol:** Enables future behavioral analysis via single log file
 
 ## Preconditions
 
-- Contract file exists
+- plan-log.md exists or will be created
 - LLM is executing protocol steps
 
 ## Success Guarantee
 
-- Key interactions logged in contract
-- Logs archived with contract to plan-log.md
+- All protocol events logged directly to plan-log.md
+- Entry types distinguish scope (Contract), progress (Completion), and feedback (Interaction)
 - Patterns visible for future analysis
 
 ## Minimal Guarantee
 
-- Major user feedback captured somewhere
+- Major events captured in plan-log.md
 
 ## Trigger
 
-LLM receives user input during protocol execution (proceed, /q, /w, /i, feedback).
+LLM reaches a logging point: phase start (Contract), step completion (Completion), or user input (Interaction).
 
 ## Main Success Scenario
 
-1. LLM receives user input
-2. LLM records input type and outcome in contract's Interaction section
-3. LLM continues protocol execution
-4. At archive, interactions preserved in plan-log.md
+1. LLM reaches logging point during protocol execution
+2. LLM determines entry type (Contract, Completion, or Interaction)
+3. LLM appends timestamped entry to plan-log.md
+4. LLM continues protocol execution
 
 ## Extensions
 
-2a. No contract exists yet:
-    2a1. Note interaction in session, include when contract created
-    2a2. Continue at step 3
+3a. plan-log.md doesn't exist:
+    3a1. Create plan-log.md with header
+    3a2. Continue at step 3
 
 ## Guard Conditions (Behavioral Tests)
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Contract archived | Must contain Interaction section |
-| User feedback given | Must be logged |
+| Phase started | Must have Contract entry with scope |
+| Step completed | Must have Completion entry with result |
+| User feedback given | Must have Interaction entry with response |
 | g/i cycle occurred | Must show grade → improve → outcome |
 
-## Interaction Types to Log
+## Event Types
 
-| Type | Example | Log Format |
-|------|---------|------------|
-| Gate response | "proceed" | `proceed → [action taken]` |
-| Skill invocation | /w, /q, /i | `/w → [grade given]` |
-| User feedback | "do post acceptance steps" | `feedback: [quote] → [response]` |
-| Direction change | "stop", "skip" | `direction: [quote] → [outcome]` |
+| Type | When | Format |
+|------|------|--------|
+| Contract | Phase start (Step 1d) | `YYYY-MM-DDTHH:MM:SSZ \| Contract: [phase] - [scope summary]` |
+| Completion | Step/deliverable done | `YYYY-MM-DDTHH:MM:SSZ \| Completion: [step] - [result]` |
+| Interaction | User input (feedback, skills) | `YYYY-MM-DDTHH:MM:SSZ \| Interaction: [input] → [response]` |
 
-## Integration Points in Protocol
+## Integration Points
 
-| Step | Guidance Needed |
-|------|-----------------|
-| Step 3 | Update contract with interactions before self-assessment |
-| Step 4b | Archive includes interaction log |
+| Protocol Step | Event Type | Example |
+|---------------|------------|---------|
+| Step 1d | Contract | `Contract: Phase 1 - implement X, 3 success criteria` |
+| Step 1e | Completion | `Completion: Step 1 - plan validated, approval received` |
+| Step 2 | Completion | `Completion: Step 2 - deliverable created` |
+| Step 4b | Interaction | `Interaction: /w grade → A-/91` |
+| Step 5 | Completion | `Completion: Phase 1 approved` |
 
 ## Project Info
 
 - Priority: P4 (New feature)
 - Frequency: Every protocol execution
-- Behavioral Goal Impact: +1 new goal (interactions logged for analysis)
+- Behavioral Goal Impact: +1 new goal (events logged for analysis)

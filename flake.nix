@@ -17,9 +17,8 @@
           buildInputs = with pkgs; [
             bash
             coreutils
+            gh
             git
-            nodejs
-            nodePackages.npm
             go
           ];
           shellHook = ''

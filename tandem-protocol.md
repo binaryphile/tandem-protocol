@@ -555,6 +555,14 @@ Deductions:
 - [issue]: -X points
 """)
 
+# Add interaction log for behavioral analysis
+append_to_contract("""
+### Interactions
+
+| Action | Response | Outcome |
+|--------|----------|---------|
+""")
+
 # Add Step 5 Checklist (tracks approval state)
 append_to_contract("""
 ## Step 5 Checklist

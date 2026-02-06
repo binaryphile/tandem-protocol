@@ -74,7 +74,27 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description
 |------|------|---------|
 | Contract | Step 1d (phase start) | `Contract: Phase 1 - implement auth, 3 success criteria` |
 | Completion | Results delivered against contract | `Completion: Step 2 - auth.go created, 45 lines` |
-| Interaction | User feedback | `Interaction: /p grade → B/84, missing edge case` |
+| Interaction | User feedback (any step) | `Interaction: grade → B/84, missing edge case` |
+
+---
+
+## IAPI Stage Model
+
+| Stage | Step | Guide | Execution |
+|-------|------|-------|-----------|
+| **I**nvestigate | Plan Mode | investigation-guide.md | Subagent (Explore) |
+| **A**nalyze | 1a-1b | analysis-guide.md | Subagent (Plan) |
+| **P**lan | 1c-1e | planning-guide.md | Subagent (Plan) |
+| **I**mplement | 2 | Domain guides | Direct |
+
+```python
+# I/A/P stages: subagent reads guide, returns structured output
+result = Task(subagent_type="Explore", prompt=f"""
+Read docs/guides/{stage}-guide.md. Then do {task}.
+Return: ### Lessons Applied\n- "[title]": [how]
+        ### Lessons Missed\n- "[title]": [why]
+""")
+```
 
 ---
 
@@ -93,10 +113,10 @@ if plan_file:
 
     while True:
         # Grade analysis FIRST: "Do I understand this?"
-        grade_analysis()  # /a skill
+        grade_analysis()
 
         # Grade plan SECOND: "Is this plan sound?"
-        grade_plan()  # /p skill
+        grade_plan()
 
         # BLOCKING: wait for direction
         direction = wait_for("improve", "proceed")
@@ -211,6 +231,8 @@ append_to_log("plan-log.md", contract_entry)
 
 # Example entry:
 # 2026-02-06T14:30:00Z | Contract: Phase 1 - implement auth middleware, 3 success criteria
+
+# Plan file: future phases need IAPI skeleton (I/A/P substeps) + TaskCreate calls
 
 # Create tasks with hierarchical structure: current substeps + remaining steps
 if tool_available("TaskCreate"):
@@ -390,6 +412,10 @@ if has_sub_phases:
 else:
     complete_task()
 
+# Log Interaction on any user feedback (grade, improve, questions)
+if user_feedback:
+    log_interaction(f"{feedback_type} → {outcome}")
+
 # Step 2b: Log Completion - all criteria met against contract
 timestamp = datetime.now().isoformat() + "Z"
 completion_entry = f"{timestamp} | Completion: Step 2 - {N}/{N} criteria met ({criteria_list})"
@@ -450,15 +476,15 @@ if user_response in ["approve", "proceed", "yes"]:
 
 elif user_response == "grade":
     provide_grade_assessment()
-    log_interaction(f"/w grade → {grade}")
+    log_interaction(f"grade → {grade}")
 
 elif user_response == "improve":
     make_improvements()
-    log_interaction(f"/i improve → {changes_made}")
+    log_interaction(f"improve → {changes_made}")
 
 elif user_response == "feedback":
     address_feedback()
-    log_interaction(f"feedback: {user_comment} → {response}")
+    log_interaction(f"feedback → {response}")
 
 # After any of the above: loop back to Step 3a
 # - Quote this step: "**Current Step:** Step 3b: Await Approval"
@@ -514,6 +540,17 @@ Contract: archived to plan-log.md
 ### Step 4c: Setup Next Phase
 
 ```python
+# Route non-actionable lessons to stage guides
+for stage, text in non_actionable_lessons:
+    guide = {
+        "I": "investigation-guide.md",
+        "A": "analysis-guide.md",
+        "P": "planning-guide.md",
+    }.get(stage, f"{stage}-guide.md")
+
+    if not lesson_already_covered(guide, text):
+        append_lesson(guide, text)
+
 # Telescope tasks: delete all completed tasks for clean slate
 if tool_available("TaskList"):
     for task in TaskList():
@@ -812,7 +849,7 @@ Total: 100 - 9 = 91
 
 ### Grading vs Improving Loop
 
-When user requests grading (/w), then improvement (/i):
+When user requests grading, then improvement:
 
 1. **Grade** - Honest assessment with specific deductions
 2. **Improve** - Address each deduction systematically

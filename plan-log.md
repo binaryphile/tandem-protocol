@@ -4991,3 +4991,44 @@ Final results: Auto-quote loop-back instruction added, Step 4a template fixed
 2026-02-06T00:32:00-05:00 | Completion: Phase approved (retroactive) - commits 91ee572, 9e8f7bb
 
 Note: Work committed without approval gates. Lesson: follow protocol even when modifying it.
+2026-02-06T09:19:55-05:00 | Contract: UC9 Phase 1 - fix uc9-iapi-stages.md step numbers, grade against use-case-skill, 2 criteria
+2026-02-06T09:20:03-05:00 | Completion: Step 1 - plan approved, contract logged
+2026-02-06T09:21:53-05:00 | Completion: Step 2 - uc9-iapi-stages.md updated: step numbers fixed, Main Success Scenario added, Extensions added, Trigger added, implementation code removed
+2026-02-06T09:22:35-05:00 | Interaction: /w grade → C+/78, missing MSS/Extensions/Trigger
+2026-02-06T09:22:35-05:00 | Interaction: /i improve → added MSS (10 steps), Extensions (3 paths), Trigger, removed impl code
+2026-02-06T09:23:56-05:00 | Interaction: /a grade → B+/88, missed step-agnostic logging already implied
+2026-02-06T09:23:56-05:00 | Interaction: /i improve → clarified Event Logging table: 'User feedback (any step)'
+2026-02-06T09:25:02-05:00 | Interaction: locality fix → added log_interaction to Step 2 code block
+2026-02-06T09:26:17-05:00 | Interaction: feedback → removed slash command refs from protocol, noted future work for pervasive step locality
+2026-02-06T09:28:15-05:00Z | Interaction: improve → merged redundant stage sections, clarified Guard Conditions
+2026-02-06T09:37:11-05:00Z | Interaction: improve → clarified Secondary Actors, merged Lesson Routing into Integration table
+2026-02-06T09:37:32-05:00Z | Interaction: improve → no change needed, lesson format is out of scope per In/Out List
+2026-02-06T09:37:49-05:00Z | Completion: Phase 1 approved - uc9-iapi-stages.md use case complete
+2026-02-06T09:37:55-05:00Z | Contract: Phase 2 - create uc9-design.md with behavioral tests, 4 success criteria
+2026-02-06T09:38:39-05:00Z | Completion: Step 2 - uc9-design.md created, 4 behavioral tests defined
+2026-02-06T09:38:43-05:00Z | Interaction: improve → removed 'skill' references from uc9-iapi-stages.md
+2026-02-06T09:39:35-05:00Z | Interaction: improve → concrete output example, stage-tag routing, fixed grep patterns
+2026-02-06T09:40:21-05:00Z | Interaction: improve → defined lesson tuple structure, case-insensitive T2, tuple-unpacking T4
+2026-02-06T09:40:36-05:00Z | Completion: Phase 2 approved - uc9-design.md complete with behavioral tests
+2026-02-06T09:40:41-05:00Z | Contract: Phase 3 - write failing tests from uc9-design.md, 4 success criteria (T1-T4)
+2026-02-06T09:41:01-05:00Z | Completion: Step 2 - tests/uc9-iapi-stages.sh created, 4/4 tests failing (Red phase)
+2026-02-06T09:42:01-05:00Z | Interaction: improve → removed redundant -i flag, made T4 less fragile
+2026-02-06T09:42:25-05:00Z | Completion: Phase 3 approved - tests/uc9-iapi-stages.sh complete, 4/4 failing (Red)
+2026-02-06T09:42:46-05:00Z | Interaction: improve → T4 now matches stage-to-guide dict pattern ("I":.*investigation-guide)
+2026-02-06T09:43:00-05:00Z | Contract: Phase 4 - create stage guides (investigation, analysis, planning), 3 success criteria
+2026-02-06T09:43:38-05:00Z | Completion: Step 2 - 3 stage guides created (investigation, analysis, planning)
+2026-02-06T09:44:29-05:00Z | Interaction: improve → added Category prefix and Source field to all lessons per plan format
+2026-02-06T09:45:11-05:00Z | Interaction: improve → lesson-specific categories, added Usage Example to each guide
+2026-02-06T09:45:45-05:00Z | Interaction: improve → fixed truncated lesson reference in planning-guide Usage Example
+2026-02-06T09:45:58-05:00Z | Completion: Phase 4 approved - 3 stage guides complete with usage examples
+2026-02-06T09:46:05-05:00Z | Contract: Phase 5 - protocol integration, 4 success criteria (T1-T4 pass)
+2026-02-06T09:49:53-05:00Z | Completion: Step 2 - protocol integration complete, 4/4 tests pass (Green)
+2026-02-06T09:49:58-05:00Z | Interaction: user feedback → Implement runs direct (no subagent), updated use case/design/protocol
+2026-02-06T09:53:01-05:00Z | Interaction: feedback → added locality lesson to planning-guide (pervasive behaviors in plan file)
+2026-02-06T09:54:22-05:00Z | Interaction: feedback → added Plan File Phase Template to design doc, updated use case In/Out List
+2026-02-06T09:54:52-05:00Z | Completion: Step 2 - context-space tuning complete (guides 33 lines each, <50 target)
+2026-02-06T09:56:18-05:00Z | Completion: Phase 6 - protocol tuned 998→979 lines, IAPI section 33→13 lines, tests pass
+2026-02-06T09:59:03-05:00Z | Interaction: improve → restored Lessons Applied/Missed output format, fixed In/Out List
+2026-02-06T10:02:33-05:00Z | Interaction: improve → fixed duplicate Out of Scope, added IAPI skeleton reference to Step 1d
+2026-02-06T10:03:26-05:00Z | Interaction: improve → condensed IAPI skeleton comment to 1 line (988→985)
+2026-02-06T10:04:00-05:00Z | Completion: UC9 committed - 3c3c3b9

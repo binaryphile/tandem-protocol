@@ -3,20 +3,21 @@
 **Scope:** Tandem Protocol
 **Level:** White (strategic - spans multiple user sessions)
 **Primary Actor:** LLM (executing protocol)
-**Secondary Actors:** Stage-specific skills/guides
+**Secondary Actors:** Guide files (investigation-guide.md, analysis-guide.md, planning-guide.md, domain guides)
 
 ## In/Out List
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Four orthogonal stages: Investigate, Analyze, Plan, Implement | Stage skill implementation details |
+| Four orthogonal stages: Investigate, Analyze, Plan, Implement | Stage guide implementation details |
 | Stage-specific guide loading | Guide file format |
 | Lesson routing to stage guides | Automated lesson extraction |
+| Plan file locality for task management | Guide grooming/pruning |
 | Main success path only | Exceptional cases |
 
 ## System-in-Use Story
 
-> Claude, starting a new feature request, enters the Investigation stage. The investigation skill loads with accumulated lessons from past investigations ("check for existing patterns before proposing new ones", "verify dependencies early"). Claude explores the codebase, then transitions to Analysis. The analysis skill loads with its own lessons ("grade understanding before proceeding", "identify assumptions explicitly"). After analysis confirms understanding, Claude enters Planning with planning-specific lessons. Finally, Implementation begins with implementation lessons loaded. When grading reveals a non-actionable deduction like "should have checked for race conditions during investigation", that lesson routes to the investigation guide—improving future investigations without penalizing the current grade.
+> Claude, starting a new feature request, enters the Investigation stage. The investigation guide loads with accumulated lessons from past investigations ("check for existing patterns before proposing new ones", "verify dependencies early"). Claude explores the codebase, then transitions to Analysis. The analysis guide loads with its own lessons ("grade understanding before proceeding", "identify assumptions explicitly"). After analysis confirms understanding, Claude enters Planning with planning-specific lessons. Finally, Implementation begins with implementation lessons loaded. When grading reveals a non-actionable deduction like "should have checked for race conditions during investigation", that lesson routes to the investigation guide—improving future investigations without penalizing the current grade.
 
 ## Stakeholders & Interests
 
@@ -26,89 +27,90 @@
 
 ## The Four Stages
 
-| Stage | Focus | Key Question | Skill/Guide |
-|-------|-------|--------------|-------------|
-| **I**nvestigate | Explore context | "What exists?" | investigation-guide.md |
-| **A**nalyze | Grade understanding | "Do I understand?" | analysis-guide.md |
-| **P**lan | Design approach | "How should we do this?" | planning-guide.md |
-| **I**mplement | Execute work | "Build it right" | (domain-specific guides) |
+| Stage | Focus | Key Question | Output |
+|-------|-------|--------------|--------|
+| **I**nvestigate | Explore context | "What exists?" | Patterns identified, context gathered |
+| **A**nalyze | Grade understanding | "Do I understand?" | Confidence level, clarifying questions |
+| **P**lan | Design approach | "How should we do this?" | Approved plan with success criteria |
+| **I**mplement | Execute work | "Build it right" | Deliverable meeting criteria |
 
-## Stage Characteristics
+## Main Success Scenario
 
-### Investigate
-- Read-only exploration
-- No commitments made
-- Output: Context gathered, patterns identified
+1. LLM enters Investigation stage (subagent), reads investigation-guide.md
+2. Subagent explores codebase, returns structured output with Lessons Applied/Missed
+3. LLM enters Analysis stage (subagent), reads analysis-guide.md
+4. Subagent grades understanding, identifies gaps/assumptions
+5. LLM enters Planning stage (subagent), reads planning-guide.md
+6. Subagent finalizes approach, presents for user approval
+7. User approves plan
+8. LLM enters Implementation stage (direct execution, no subagent)
+9. LLM executes work directly, domain guides loaded as needed
+10. At phase end, non-actionable lessons route to appropriate stage guides
 
-### Analyze
-- Grade own understanding (/a skill)
-- Identify gaps and assumptions
-- Output: Confidence level, clarifying questions
+## Extensions
 
-### Plan
-- Design approach (/p skill)
-- Consider alternatives
-- Output: Approved plan with success criteria
+3a. Analysis reveals insufficient investigation:
+    3a1. LLM returns to Investigation stage
+    3a2. Continue at step 1
 
-### Implement
-- Execute the work
-- Follow domain guides (Go Dev, FP, Khorikov, etc.)
-- Output: Deliverable meeting success criteria
+7a. User rejects plan:
+    7a1. LLM returns to Planning stage with feedback
+    7a2. Continue at step 5
 
-## Lesson Routing
-
-When grading produces non-actionable deductions (per UC6), route to the stage where the lesson applies:
-
-| Lesson Type | Target Stage | Example |
-|-------------|--------------|---------|
-| "Should have explored X first" | Investigate | "Check for existing error handling patterns" |
-| "Misunderstood requirement Y" | Analyze | "Verify assumptions about API contracts" |
-| "Approach Z would have been simpler" | Plan | "Consider simpler alternatives before complex ones" |
-| "Code pattern W caused issues" | Implement | Routes to domain-specific guide |
+10a. Guide already covers lesson:
+    10a1. Skip adding duplicate lesson
+    10a2. Continue
 
 ## Integration with Protocol Steps
 
-| Protocol Step | IAPI Stage(s) | Notes |
-|---------------|---------------|-------|
-| Plan Mode Entry | Investigate, Analyze | Explore then grade understanding |
-| Step 1a-1b | Analyze, Plan | Present understanding, ask questions |
-| Step 1c-1e | Plan | Finalize and commit to plan |
-| Step 2 | Implement | Execute the work |
-| Step 3-4 | Analyze | Grade results, identify lessons |
-| Step 5 | (cleanup) | Archive, route lessons to guides |
+| Protocol Step | IAPI Stage(s) | Lesson Routing Target |
+|---------------|---------------|----------------------|
+| Plan Mode Entry | Investigate, Analyze | investigation-guide.md, analysis-guide.md |
+| Step 1a-1b | Analyze, Plan | analysis-guide.md, planning-guide.md |
+| Step 1c-1e | Plan | planning-guide.md |
+| Step 2 | Implement | Domain-specific guides |
+| Step 3 | Analyze | Route non-actionable deductions to source stage |
+| Step 4 | (cleanup) | Commit lesson updates to guides |
 
-## Skill Loading Pattern
+## Plan File Locality
 
-```python
-# At Investigation start
-if skill_available("investigate"):
-    load_skill("investigate")  # Loads investigation-guide.md lessons
+Pervasive behaviors (task management, logging) must appear in plan file at each phase with full detail:
 
-# At Analysis start
-if skill_available("analyze"):
-    load_skill("analyze")  # Loads analysis-guide.md lessons
+```markdown
+## Phase N: [Name]
+### Step 1 (IAP)
+- Investigate: [exploration targets]
+- Analyze: [what to grade]
+- Plan: [approach to finalize]
+- TaskCreate({"subject": "Phase N", "activeForm": "Working on Phase N"})
 
-# At Planning start
-if skill_available("plan"):
-    load_skill("plan")  # Loads planning-guide.md lessons
+### Step 2 (Implement)
+- [deliverables]
 
-# At Implementation start
-load_domain_guides()  # Go Dev, FP, Khorikov, etc. based on task
+### Step 3-4 (Present/Cleanup)
+- TaskUpdate({"taskId": "N", "status": "completed"})
 ```
 
-## Guard Conditions (Behavioral Tests)
+This ensures task tracking happens - instructions only at Step 1d lack locality for compliance.
+
+## Guard Conditions
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| New phase started | Appropriate stage skill loads |
+| New phase started | Appropriate stage guide loads |
 | Non-actionable deduction found | Routes to correct stage guide |
 | Stage transition | Previous stage lessons captured |
 | Investigation incomplete | Should not proceed to Analysis |
 
+*Note: Behavioral test implementations in uc9-design.md*
+
+## Trigger
+
+LLM enters a new protocol phase requiring stage-specific guidance.
+
 ## Preconditions
 
 - Stage-specific guides exist (or are created on first lesson)
-- Skills configured to load guides at stage entry
 
 ## Success Guarantee
 
@@ -125,4 +127,3 @@ load_domain_guides()  # Go Dev, FP, Khorikov, etc. based on task
 
 - Priority: P3 (Enhancement - builds on UC6 lesson capture)
 - Frequency: Every protocol execution
-- Behavioral Goal Impact: +1 new goal (stage-specific improvement)

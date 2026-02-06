@@ -19,41 +19,38 @@ flowchart TD
     A1 -->|"Correct understanding"| S1a
 
     S2 --> CX{Complex with<br/>sub-phases?}
-    CX -->|"Simple task"| S3
+    CX -->|"Simple task"| S2B
     CX -->|"Multiple sub-phases"| SUB[Step 2a: Complete one sub-phase]
-    SUB --> BLK[⛔ Step 2b: Log Completion<br/>BLOCKING - cannot proceed without]
-    BLK --> MORE{More sub-phases<br/>remaining?}
+    SUB --> MORE{More sub-phases<br/>remaining?}
     MORE -->|"Yes - continue"| SUB
-    MORE -->|"No - all done"| S3
+    MORE -->|"No - all done"| S2B[Step 2b: Log Completion]
+    S2B --> S3
 
-    S3[▶ Step 3: Log Results] --> S4[▶ Step 4: Present and Await]
-
-    S4 --> S4a[Step 4a: Present results]
-    S4a --> S4b[⛔ Step 4b: Await approval<br/>BLOCKING]
-    S4b --> A4{User response?<br/>GATE 2}
-    A4 -->|"Approve - finalize"| S5[▶ Step 5: Post-Approval]
-    A4 -->|"Grade first"| GR[Step 4c: Provide honest grade]
-    A4 -->|"Improve work"| IMP[Step 4d: Make improvements]
-    A4 -->|"Address feedback"| FB[Step 4e: Respond to comments]
+    S3[▶ Step 3: Present and Await] --> S3a[Step 3a: Present results]
+    S3a --> S3b[⛔ Step 3b: Await approval<br/>BLOCKING]
+    S3b --> A3{User response?<br/>GATE 2}
+    A3 -->|"Approve - finalize"| S4[▶ Step 4: Post-Approval]
+    A3 -->|"Grade first"| GR[Step 3c: Provide honest grade]
+    A3 -->|"Improve work"| IMP[Step 3d: Make improvements]
+    A3 -->|"Address feedback"| FB[Step 3e: Respond to comments]
     A4 -->|"Change plan"| PLAN
 
-    GR --> S4a
-    IMP --> S4a
-    FB --> S4a
+    GR --> S3a
+    IMP --> S3a
+    FB --> S3a
 
-    S5 --> S5A[Step 5a: Mark APPROVED]
-    S5A --> S5B[Step 5b: Commit deliverable + archive]
-    S5B --> S5C[Step 5c: Setup next phase]
-    S5C --> PLAN
+    S4 --> S4A[Step 4a: Log Approval]
+    S4A --> S4B[Step 4b: Commit deliverable]
+    S4B --> S4C[Step 4c: Setup next phase]
+    S4C --> PLAN
 
     style PLAN stroke:#4caf50,stroke-width:3px
-    style S5C stroke:#4caf50,stroke-width:3px
+    style S4C stroke:#4caf50,stroke-width:3px
     style S1e fill:#e8f5e9,stroke:#4caf50
-    style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
     style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style S4b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style S3b fill:#ffebee,stroke:#f44336,stroke-width:3px
     style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style A4 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style A3 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
     style S1bw fill:#fff3e0
     style CX fill:#fff3e0
     style MORE fill:#fff3e0
@@ -225,9 +222,8 @@ if tool_available("TaskCreate"):
     TaskCreate({"subject": "Step 1e: Log Completion entry", "description": "Log Step 1 complete", "activeForm": "Logging completion"})
     # Remaining steps (collapsed)
     TaskCreate({"subject": "Step 2: Complete deliverable", "description": "Execute the work", "activeForm": "Completing deliverable"})
-    TaskCreate({"subject": "Step 3: Log results", "description": "Log Completion entry", "activeForm": "Logging results"})
-    TaskCreate({"subject": "Step 4: Present and await approval", "description": "Present for user approval", "activeForm": "Presenting for approval"})
-    TaskCreate({"subject": "Step 5: Post-approval actions", "description": "Log and commit", "activeForm": "Post-approval actions"})
+    TaskCreate({"subject": "Step 3: Present and await approval", "description": "Present for user approval", "activeForm": "Presenting for approval"})
+    TaskCreate({"subject": "Step 4: Post-approval actions", "description": "Log and commit", "activeForm": "Post-approval actions"})
 
     # Wire sequential dependencies
     TaskUpdate({"taskId": "2", "addBlockedBy": ["1"]})
@@ -237,7 +233,6 @@ if tool_available("TaskCreate"):
     TaskUpdate({"taskId": "6", "addBlockedBy": ["5"]})
     TaskUpdate({"taskId": "7", "addBlockedBy": ["6"]})
     TaskUpdate({"taskId": "8", "addBlockedBy": ["7"]})
-    TaskUpdate({"taskId": "9", "addBlockedBy": ["8"]})
 
     # Mark completed and in-progress
     TaskUpdate({"taskId": "1", "status": "completed"})
@@ -262,7 +257,7 @@ When generating a phase plan for code implementation, automatically extract veri
 1. Identify which guides apply to this phase (Go Dev, FP, ES, Khorikov, etc.)
 2. Read each guide and extract invariants that require verification
 3. Generate tasks for each invariant at the appropriate step
-4. Insert these as substeps within Step 2 (implementation) or Step 3 (verification)
+4. Insert these as substeps within Step 2 (implementation/verification)
 
 **Common Guide Invariants (extract when applicable):**
 
@@ -281,11 +276,11 @@ When generating a phase plan for code implementation, automatically extract veri
 
 **Integration with Telescoping Pattern:**
 
-Guide invariants stay collapsed as "Step 2b: Verify compliance" until implementation substeps complete. This keeps the main todo list uncluttered while ensuring verification isn't forgotten.
+Guide invariants stay collapsed as "Step 2a: Verify compliance" until implementation substeps complete. This keeps the main todo list uncluttered while ensuring verification isn't forgotten.
 
-**Example: Entering Step 3 for Go implementation with Khorikov testing**
+**Example: Entering Step 2 for Go implementation with Khorikov testing**
 
-Step 3 blowout shows implementation substeps + collapsed verification:
+Step 2 blowout shows implementation substeps + collapsed verification:
 
 ```
 [x] Step 1: Plan validation
@@ -293,25 +288,24 @@ Step 3 blowout shows implementation substeps + collapsed verification:
 [ ] Step 2a: Implement production code
 [ ] Step 2a: Add benchmarks for calculation functions
 [ ] Step 2a: Add ACD classification comments
-[ ] Step 2b: Verify compliance (5 items)  ← collapsed
-[ ] Step 3: Log results
-[ ] Step 4: Present and await approval
-[ ] Step 5: Post-approval actions
+[ ] Step 2a: Verify compliance (5 items)  ← collapsed
+[ ] Step 3: Present and await approval
+[ ] Step 4: Post-approval actions
 ```
 
-After implementation completes, blow out Step 2b:
+After implementation completes, blow out Step 2a (verification):
 
 ```
 [x] Step 1: Plan validation
 [x] Step 2a: Implementation complete
-[ ] Step 2b: Classify Khorikov quadrants  ← in_progress
-[ ] Step 2b: Prune trivial tests
-[ ] Step 2b: Run coverage (document in contract)
-[ ] Step 2b: Run race detector
-[ ] Step 2b: Run full test suite
-[ ] Step 3: Log results
-[ ] Step 4: Present and await approval
-[ ] Step 5: Post-approval actions
+[ ] Step 2a: Classify Khorikov quadrants  ← in_progress
+[ ] Step 2a: Prune trivial tests
+[ ] Step 2a: Run coverage
+[ ] Step 2a: Run race detector
+[ ] Step 2a: Run full test suite
+[ ] Step 2b: Log Completion (criteria met)
+[ ] Step 3: Present and await approval
+[ ] Step 4: Post-approval actions
 ```
 
 After verification completes, telescope up:
@@ -319,9 +313,8 @@ After verification completes, telescope up:
 ```
 [x] Step 1: Plan validation
 [x] Step 2: Complete deliverable
-[ ] Step 3: Log results  ← in_progress
-[ ] Step 4: Present and await approval
-[ ] Step 5: Post-approval actions
+[ ] Step 3: Present and await approval  ← in_progress
+[ ] Step 4: Post-approval actions
 ```
 
 **Tasks API - Phase 1 (implementation):**
@@ -335,9 +328,8 @@ if tool_available("TaskCreate"):
     TaskCreate({"subject": "Add benchmarks", "description": "...", "activeForm": "Adding benchmarks"})
     TaskCreate({"subject": "Add ACD classifications", "description": "...", "activeForm": "Adding ACD"})
     TaskCreate({"subject": "Verify compliance (5 checks)", "description": "...", "activeForm": "Verifying compliance"})
-    TaskCreate({"subject": "Step 3: Log results", "description": "...", "activeForm": "Logging results"})
-    TaskCreate({"subject": "Step 4: Present and await", "description": "...", "activeForm": "Presenting"})
-    TaskCreate({"subject": "Step 5: Post-approval", "description": "...", "activeForm": "Post-approval"})
+    TaskCreate({"subject": "Step 3: Present and await", "description": "...", "activeForm": "Presenting"})
+    TaskCreate({"subject": "Step 4: Post-approval", "description": "...", "activeForm": "Post-approval"})
 
     # Wire dependencies and set status
     TaskUpdate({"taskId": "1", "status": "completed"})
@@ -389,32 +381,22 @@ append_to_log("plan-log.md", completion_entry)
 # Execute the work
 create_deliverable()
 
-# For multi-phase tasks with sub-phases
+# Step 2a: For multi-phase tasks with sub-phases
 if has_sub_phases:
     for sub_phase in sub_phases:
         complete_sub_phase(sub_phase)
 
-        # BLOCKING: Log completion against contract as each result is delivered
-        log_completion(f"Step 2a: {sub_phase} complete")
-        present_progress(f"Completed {sub_phase}.")
-
-# For simple tasks
+# Step 2a: For simple tasks
 else:
     complete_task()
-```
 
----
-
-## Step 3: Log Results
-
-```python
-# Log Completion entry - results delivered against contract
+# Step 2b: Log Completion - all criteria met against contract
 timestamp = datetime.now().isoformat() + "Z"
-completion_entry = f"{timestamp} | Completion: Step 2 - {deliverable} created, {size}"
+completion_entry = f"{timestamp} | Completion: Step 2 - {N}/{N} criteria met ({criteria_list})"
 append_to_log("plan-log.md", completion_entry)
 
 # Example:
-# 2026-02-06T15:30:00Z | Completion: Step 2 - auth.go created, 45 lines
+# 2026-02-06T15:30:00Z | Completion: Step 2 - 3/3 criteria met (middleware, tests, docs)
 
 # Run verification if task type matches (see Appendix: Verification Templates)
 if task_type in ["file_download", "code_implementation", "documentation", "batch_operations", "test_suite"]:
@@ -423,17 +405,17 @@ if task_type in ["file_download", "code_implementation", "documentation", "batch
 
 ---
 
-## Step 4: Present and Await Approval
+## Step 3: Present and Await Approval
 
-Step 4 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
+Step 3 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
 
 ---
 
-### Step 4a: Present Results
+### Step 3a: Present Results
 
 ```python
 # Mark checklist item
-# Mark Step 4a complete
+# Mark Step 3a complete
 
 # Present completion to user
 present(f"""
@@ -448,8 +430,8 @@ present(f"""
 3. [Notable outcome]
 
 **Upon your approval, I will:**
-1. Mark Step 4 checklist complete (4b checked)
-2. Proceed to Step 5 (log approval, commit)
+1. Log Completion entry for Step 3
+2. Proceed to Step 4 (log approval, commit)
 
 **May I proceed?**
 """)
@@ -457,14 +439,14 @@ present(f"""
 
 ---
 
-### Step 4b: Await Approval ⛔ BLOCKING
+### Step 3b: Await Approval ⛔ BLOCKING
 
 ```python
 # WAIT for user response
 user_response = wait_for_response()
 
 if user_response in ["approve", "proceed", "yes"]:
-    # Proceed to Step 5
+    # Proceed to Step 4
 
 elif user_response == "grade":
     provide_grade_assessment()
@@ -478,22 +460,22 @@ elif user_response == "feedback":
     address_feedback()
     log_interaction(f"feedback: {user_comment} → {response}")
 
-# After any of the above: loop back to Step 4a
-# - Quote this step: "**Current Step:** Step 4b: Await Approval"
+# After any of the above: loop back to Step 3a
+# - Quote this step: "**Current Step:** Step 3b: Await Approval"
 #   followed by the loop-back instruction from this section
-# - Re-present results per Step 4a pattern
+# - Re-present results per Step 3a pattern
 # - End with "**May I proceed?**"
 ```
 
 ---
 
-## Step 5: Post-Approval Actions
+## Step 4: Post-Approval Actions
 
-Step 5 has sub-steps (5a-5c) shown in the mermaid diagram. Execute sequentially.
+Step 4 has sub-steps (4a-4c) shown in the mermaid diagram. Execute sequentially.
 
 ---
 
-### Step 5a: Log Approval
+### Step 4a: Log Approval
 
 ```python
 # Log Completion entry for phase approval
@@ -507,7 +489,7 @@ append_to_log("plan-log.md", approval_entry)
 
 ---
 
-### Step 5b: Commit Deliverable
+### Step 4b: Commit Deliverable
 
 Commit deliverable AND the updated plan-log.md together.
 
@@ -529,7 +511,7 @@ Contract: archived to plan-log.md
 
 ---
 
-### Step 5c: Setup Next Phase
+### Step 4c: Setup Next Phase
 
 ```python
 # Telescope tasks: delete all completed tasks for clean slate
@@ -727,7 +709,7 @@ npm test 2>&1 | grep "Time:"
 
 ## Appendix: Grading Rubric
 
-Use this rubric for self-assessment (Step 4) and when user requests grading.
+Use this rubric for self-assessment (Step 3) and when user requests grading.
 
 **Actionability test:** Before each deduction, ask "Can I fix this now?"
 - YES (in scope, fixable this session) → Include as deduction
@@ -862,7 +844,7 @@ Track improvements:
 
 **User approval gates:**
 - Step 1: Approve plan before starting
-- Step 4: Approve results before finalizing
+- Step 3: Approve results before finalizing
 - Never proceed without explicit "yes"/"approved"/"proceed"
 
 **Scope management - user controls deferrals:**
@@ -877,11 +859,11 @@ Track improvements:
 **Feedback = Plan Change = Return to Step 1:**
 - User feedback that changes scope, approach, or requirements = plan change
 - Plan changes require returning to Step 1 for re-validation
-- Distinguish: "fix this bug in my implementation" (stay at Step 4) vs "also add feature X" (return to Step 1)
+- Distinguish: "fix this bug in my implementation" (stay at Step 3) vs "also add feature X" (return to Step 1)
 
 **BLOCKING checkpoints:**
-- Multi-phase tasks: Log Completion after EACH sub-phase
-- Cannot proceed without logging progress
+- Step 2b: Log Completion entry with all criteria met before presenting
+- Step 3b: Cannot proceed to Step 4 without user approval
 
 **Tasks API hierarchical telescoping pattern:**
 - Always show the full hierarchy: remaining phases → remaining steps → current substeps
@@ -963,4 +945,4 @@ Phase 2 start (blow out steps and substeps):
 - Plan mode enables read-only exploration: codebase, patterns, dependencies
 - Exit plan mode upon approval (Step 1c) via ExitPlanMode
 - This applies to every phase, ensuring proper analysis before commitment
-- Multi-phase work naturally gets plan mode at each phase transition (Step 5c → Plan Mode → Step 1)
+- Multi-phase work naturally gets plan mode at each phase transition (Step 4c → Plan Mode → Step 1)

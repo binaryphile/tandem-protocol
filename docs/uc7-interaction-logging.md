@@ -77,11 +77,11 @@ LLM reaches a logging point: phase start (Contract), step completion (Completion
 
 | Protocol Step | Event Type | Example |
 |---------------|------------|---------|
-| Step 1d | Contract | `Contract: Phase 1 - implement X, 3 success criteria` |
-| Step 1e | Completion | `Completion: Step 1 - plan validated, approval received` |
-| Step 2 | Completion | `Completion: Step 2 - deliverable created` |
-| Step 4b | Interaction | `Interaction: /w grade → A-/91` |
-| Step 5 | Completion | `Completion: Phase 1 approved` |
+| Step 1d | Contract | `Contract: Phase 1 - implement X, 3 criteria` |
+| Step 1e | Completion | `Completion: Step 1 - plan validated` |
+| Step 2b | Completion | `Completion: Step 2 - 3/3 criteria met (...)` |
+| Step 3b | Interaction | `Interaction: /w grade → A-/91` |
+| Step 4a | Completion | `Completion: Phase 1 approved` |
 
 ## Project Info
 

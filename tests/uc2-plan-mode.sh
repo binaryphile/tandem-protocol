@@ -1,13 +1,13 @@
 #!/bin/bash
 # UC2 Plan Mode & File Distinction - Document Tests
-# Tests verify tandem-protocol.md contains required guidance in Step 1c
+# Tests verify tandem-protocol.md contains required guidance in Step 2c
 
 PROTOCOL="../tandem-protocol.md"
 PASSED=0
 FAILED=0
 
-# Extract Step 1c section
-STEP1C=$(sed -n '/### Step 1c/,/### Step 1d/p' "$PROTOCOL")
+# Extract Step 2c section
+STEP1C=$(sed -n '/### Step 2c/,/### Step 2d/p' "$PROTOCOL")
 
 test_section() {
     local test_id="$1"
@@ -25,7 +25,7 @@ test_section() {
 }
 
 echo "=== UC2 Plan Mode & File Distinction Tests ==="
-echo "Testing: $PROTOCOL (Step 1c section)"
+echo "Testing: $PROTOCOL (Step 2c section)"
 echo ""
 
 # T1: Plan file = HOW

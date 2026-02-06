@@ -113,8 +113,14 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 | Methodology | Plan file | "Deferred planning, efficiency constraints" |
 | Research notes | Plan file | "Need to investigate X before Y" |
 | Scope | Contract | "Implement Step 1b sequencing rule" |
-| Success criteria | Contract | "Tests pass, line budget maintained" |
+| Success criteria | Contract | "1. [ ] Step 2: Complete deliverable" |
 | Deliverables | Contract | "Modified tandem-protocol.md" |
+
+**Protocol format requirements:**
+- Step numbering starts at 1 (not 0)
+- All steps in Mermaid diagram must have "Step X" format (e.g., "Step 6a: Mark APPROVED")
+- Logically grouped steps use subletters for telescoping (6a, 6b, 6c, 6d)
+- Success criteria should be numbered and reference protocol step numbers (e.g., "Step 3: Complete deliverable")
 
 ## Integration Points in Protocol
 

@@ -1,13 +1,13 @@
 #!/bin/bash
 # UC3 Plan Mode Entry Sequence - Document Tests
-# Tests verify tandem-protocol.md contains required guidance in Step 1
+# Tests verify tandem-protocol.md contains required guidance in Step 2
 
 PROTOCOL="../tandem-protocol.md"
 PASSED=0
 FAILED=0
 
-# Extract Step 1 section (everything before Step 1a)
-STEP1=$(sed -n '/^## Step 1:/,/### Step 1a/p' "$PROTOCOL")
+# Extract Step 2 section (everything before Step 2a)
+STEP1=$(sed -n '/^## Step 2:/,/### Step 2a/p' "$PROTOCOL")
 
 test_section() {
     local test_id="$1"
@@ -25,7 +25,7 @@ test_section() {
 }
 
 echo "=== UC3 Plan Mode Entry Sequence Tests ==="
-echo "Testing: $PROTOCOL (Step 1 section)"
+echo "Testing: $PROTOCOL (Step 2 section)"
 echo ""
 
 # T1: Quote verbatim guidance

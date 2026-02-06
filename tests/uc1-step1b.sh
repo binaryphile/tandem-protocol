@@ -1,5 +1,5 @@
 #!/bin/bash
-# UC1 Step 1b Sequencing Rule - Behavioral Tests
+# UC1 Step 2b Sequencing Rule - Behavioral Tests
 # Tests verify tandem-protocol.md contains required guidance
 
 PROTOCOL="../tandem-protocol.md"
@@ -22,27 +22,27 @@ test_grep() {
     fi
 }
 
-# Test helper for multi-pattern (both must match in Step 1b section)
+# Test helper for multi-pattern (both must match in Step 2b section)
 test_grep_section() {
     local test_id="$1"
     local description="$2"
     local pattern1="$3"
     local pattern2="$4"
 
-    # Extract Step 1b section (between "### Step 1b" and next "### Step")
-    local section=$(sed -n '/### Step 1b/,/### Step 1c/p' "$PROTOCOL")
+    # Extract Step 2b section (between "### Step 2b" and next "### Step")
+    local section=$(sed -n '/### Step 2b/,/### Step 2c/p' "$PROTOCOL")
 
     if echo "$section" | grep -qE "$pattern1" && echo "$section" | grep -qE "$pattern2"; then
         echo "PASS: $test_id - $description"
         ((PASSED++))
     else
         echo "FAIL: $test_id - $description"
-        echo "      Patterns not found in Step 1b section"
+        echo "      Patterns not found in Step 2b section"
         ((FAILED++))
     fi
 }
 
-echo "=== UC1 Step 1b Sequencing Tests ==="
+echo "=== UC1 Step 2b Sequencing Tests ==="
 echo "Testing: $PROTOCOL"
 echo ""
 
@@ -54,7 +54,7 @@ test_grep "T1" "Explicit ASKED not embedded rule" \
 test_grep "T2" "AskUserQuestion tool integration" \
     "tool_available.*AskUserQuestion"
 
-# T3: Fallback for no-tool case (both patterns in Step 1b)
+# T3: Fallback for no-tool case (both patterns in Step 2b)
 test_grep_section "T3" "Fallback for no-tool case" \
     "else:" "present.*[Qq]uestions"
 

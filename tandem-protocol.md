@@ -4,73 +4,73 @@
 
 ```mermaid
 flowchart TD
-    S0[● Step 0: Check Contract Files] --> E0{Contract exists?<br/>Check for incomplete work}
+    S1[● Step 1: Check Contract Files] --> E1{Contract exists?<br/>Check for incomplete work}
 
-    E0 -->|"None - Clean slate"| PLAN[Enter Plan Mode]
-    PLAN --> S1[▶ Step 1: Plan Validation]
-    E0 -->|"Found - Protocol violation"| R0{Recovery Options<br/>Complete/Abandon/Investigate}
+    E1 -->|"None - Clean slate"| PLAN[Step 1b: Enter Plan Mode]
+    PLAN --> S2[▶ Step 2: Plan Validation]
+    E1 -->|"Found - Protocol violation"| R1{Recovery Options<br/>Complete/Abandon/Investigate}
 
-    %% ARC does same operation as S5B (archive) but for recovery path
-    R0 -->|"Complete previous work"| ARC[Archive contract to log]
-    R0 -->|"Abandon previous work"| DEL[Delete contract file]
-    R0 -->|"Investigate first"| READ[Read contract file]
+    %% Recovery sub-steps (same archive operation as S6B but for recovery path)
+    R1 -->|"Complete previous work"| ARC[Step 1a-complete: Archive contract]
+    R1 -->|"Abandon previous work"| DEL[Step 1a-abandon: Delete contract]
+    R1 -->|"Investigate first"| READ[Step 1a-investigate: Read contract]
 
     ARC --> PLAN
     DEL --> PLAN
-    READ --> R0
+    READ --> R1
 
-    S1 --> S1a[Step 1a: Present understanding]
-    S1a --> S1b[⛔ Step 1b: Clarifying questions<br/>BLOCKING - must ask]
-    S1b --> S1bw{Answers received?}
-    S1bw -->|"No - wait"| S1b
-    S1bw -->|"Yes"| S1c[Step 1c: Request approval]
-    S1c --> A1{User approves?<br/>GATE 1}
-    A1 -->|"Yes - proceed"| EXIT[Exit Plan Mode]
-    EXIT --> S1d[Step 1d: Create contract]
-    S1d --> S1e[Step 1e: Archive plan + contract]
-    S1e --> S2[▶ Step 2: Complete Deliverable]
-    A1 -->|"Correct understanding"| S1a
+    S2 --> S2a[Step 2a: Present understanding]
+    S2a --> S2b[⛔ Step 2b: Clarifying questions<br/>BLOCKING - must ask]
+    S2b --> S2bw{Answers received?}
+    S2bw -->|"No - wait"| S2b
+    S2bw -->|"Yes"| S2c[Step 2c: Request approval]
+    S2c --> A2{User approves?<br/>GATE 1}
+    A2 -->|"Yes - proceed"| EXIT[Step 2c-exit: Exit Plan Mode]
+    EXIT --> S2d[Step 2d: Create contract]
+    S2d --> S2e[Step 2e: Archive plan + contract]
+    S2e --> S3[▶ Step 3: Complete Deliverable]
+    A2 -->|"Correct understanding"| S2a
 
-    S2 --> CX{Complex with<br/>sub-phases?}
-    CX -->|"Simple task"| S3
-    CX -->|"Multiple sub-phases"| SUB[Complete one sub-phase]
-    SUB --> BLK[⛔ BLOCKING: Update contract<br/>Cannot proceed without this]
+    S3 --> CX{Complex with<br/>sub-phases?}
+    CX -->|"Simple task"| S4
+    CX -->|"Multiple sub-phases"| SUB[Step 3a: Complete one sub-phase]
+    SUB --> BLK[⛔ Step 3b: Update contract<br/>BLOCKING - cannot proceed without]
     BLK --> MORE{More sub-phases<br/>remaining?}
     MORE -->|"Yes - continue"| SUB
-    MORE -->|"No - all done"| S3
+    MORE -->|"No - all done"| S4
 
-    S3[▶ Step 3: Update Contract] --> S4[▶ Step 4: Present and Await]
+    S4[▶ Step 4: Update Contract] --> S5[▶ Step 5: Present and Await]
 
-    S4 --> S4a[Step 4a: Present results]
-    S4a --> S4b[⛔ Step 4b: Await approval<br/>BLOCKING]
-    S4b --> A4{User response?<br/>GATE 2}
-    A4 -->|"Approve - finalize"| S5[▶ Step 5: Post-Approval]
-    A4 -->|"Grade first"| GR[Provide honest grade]
-    A4 -->|"Improve work"| IMP[Make improvements]
-    A4 -->|"Address feedback"| FB[Respond to comments]
-    A4 -->|"Change plan"| PLAN
+    S5 --> S5a[Step 5a: Present results]
+    S5a --> S5b[⛔ Step 5b: Await approval<br/>BLOCKING]
+    S5b --> A5{User response?<br/>GATE 2}
+    A5 -->|"Approve - finalize"| S6[▶ Step 6: Post-Approval]
+    A5 -->|"Grade first"| GR[Step 5c: Provide honest grade]
+    A5 -->|"Improve work"| IMP[Step 5d: Make improvements]
+    A5 -->|"Address feedback"| FB[Step 5e: Respond to comments]
+    A5 -->|"Change plan"| PLAN
 
-    GR --> S4a
-    IMP --> S4a
-    FB --> S4a
+    GR --> S5a
+    IMP --> S5a
+    FB --> S5a
 
-    S5 --> S5A[5a: Mark APPROVED]
-    S5A --> S5B[5b: Archive to plan-log.md]
-    S5B --> S5C[5c: Commit deliverable + archive]
-    S5C --> S5D[5d: Setup next phase]
-    S5D --> S0
+    S6 --> S6A[Step 6a: Mark APPROVED]
+    S6A --> S6B[Step 6b: Archive to plan-log.md]
+    S6B --> S6C[Step 6c: Commit deliverable + archive]
+    S6C --> S6D[Step 6d: Setup next phase]
+    S6D --> S1
 
-    style S0 stroke:#4caf50,stroke-width:3px
-    style S5D stroke:#4caf50,stroke-width:3px
-    style S1e fill:#e8f5e9,stroke:#4caf50
+    style S1 stroke:#4caf50,stroke-width:3px
+    style S6D stroke:#4caf50,stroke-width:3px
+    style S2e fill:#e8f5e9,stroke:#4caf50
     style BLK fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style S1b fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style S4b fill:#ffebee,stroke:#f44336,stroke-width:3px
-    style A1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style A4 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style E0 fill:#fff3e0
-    style R0 fill:#fff3e0
-    style S1bw fill:#fff3e0
+    style S2b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style S5b fill:#ffebee,stroke:#f44336,stroke-width:3px
+    style A2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style A5 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style E1 fill:#fff3e0
+    style R1 fill:#fff3e0
+    style S2bw fill:#fff3e0
     style CX fill:#fff3e0
     style MORE fill:#fff3e0
     style PLAN fill:#e3f2fd,stroke:#2196f3
@@ -79,7 +79,7 @@ flowchart TD
 
 ---
 
-## Step 0: Check Contract Files
+## Step 1: Check Contract Files
 **Only required for persistent filesystem (Claude Code, Cursor, etc.) - skip for web UI**
 
 ```python
@@ -144,9 +144,9 @@ if plan_file_exists:
 
 ---
 
-## Step 1: Plan Validation
+## Step 2: Plan Validation
 
-**Enter plan mode before Step 1.** Plan mode enables exploration and design before committing to a contract:
+**Enter plan mode before Step 2.** Plan mode enables exploration and design before committing to a contract:
 
 ```python
 # Enter plan mode for exploration and design
@@ -174,10 +174,10 @@ if plan_file:
             address_deductions()
             # Loop back to re-grade
         else:
-            break  # proceed to Step 1a
+            break  # proceed to Step 2a
 ```
 
-Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
+Step 2 is broken into atomic sub-steps to prevent skimming. Execute each sub-step fully before proceeding.
 
 **Sub-steps:**
 - **1a:** Present plan understanding
@@ -194,7 +194,7 @@ Iterate on the plan until approved, then lock scope into a contract.
 
 ---
 
-### Step 1a: Present Understanding
+### Step 2a: Present Understanding
 
 ```python
 # Present understanding to user
@@ -205,7 +205,7 @@ present("Approach: [specific actions]")
 
 ---
 
-### Step 1b: Clarifying Questions ⛔ BLOCKING
+### Step 2b: Clarifying Questions ⛔ BLOCKING
 
 Questions must be ASKED (via conversation or AskUserQuestion tool), not embedded in plan file.
 The plan file should contain ANSWERS, not open questions.
@@ -234,7 +234,7 @@ update_understanding_with_answers()
 
 ---
 
-### Step 1c: Request Approval (Exit Plan Mode)
+### Step 2c: Request Approval (Exit Plan Mode)
 
 ```python
 # Present plan summary for approval
@@ -248,7 +248,7 @@ present(f"""
 **Upon your approval, I will:**
 1. Create contract file capturing this scope
 2. Archive plan + contract
-3. Proceed to Step 2 (implementation)
+3. Proceed to Step 3 (implementation)
 
 **May I proceed?**
 """)
@@ -267,7 +267,7 @@ if tool_available("ExitPlanMode"):
 
 ---
 
-### Step 1d: Create Contract
+### Step 2d: Create Contract
 
 **Filename format:** `phase-N-contract.md` (e.g., `phase-1-contract.md`, `phase-2-contract.md`)
 **Location:** Project directory (where the deliverable will be created, to make it git-able)
@@ -282,7 +282,7 @@ write_to_contract("""
 
 **Created:** [date]
 
-## Step 1 Checklist
+## Step 2 Checklist
 - [x] 1a: Presented understanding
 - [x] 1b: Asked clarifying questions
 - [x] 1b-answer: Received answers
@@ -294,8 +294,9 @@ write_to_contract("""
 [What this phase accomplishes]
 
 ## Success Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
+1. [ ] Step 3: Complete deliverable
+2. [ ] Step 4: Update contract with results
+3. [ ] Step 6d: Archive contract and log progress
 
 ## Approach
 [Specific implementation steps]
@@ -308,12 +309,12 @@ Estimated: XX-XXK tokens
 if tool_available("TodoWrite"):
     TodoWrite({
         "todos": [
-            # Current step (Step 1) blown out to substeps
-            {"content": "Step 1a: Present plan understanding", "status": "completed", "activeForm": "Presenting plan understanding"},
-            {"content": "Step 1b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
-            {"content": "Step 1c: Request approval", "status": "completed", "activeForm": "Requesting approval"},
-            {"content": "Step 1d: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
-            {"content": "Step 1e: Archive plan + contract", "status": "pending", "activeForm": "Archiving plan and contract"},
+            # Current step (Step 2) blown out to substeps
+            {"content": "Step 2a: Present plan understanding", "status": "completed", "activeForm": "Presenting plan understanding"},
+            {"content": "Step 2b: Ask clarifying questions", "status": "completed", "activeForm": "Asking clarifying questions"},
+            {"content": "Step 2c: Request approval", "status": "completed", "activeForm": "Requesting approval"},
+            {"content": "Step 2d: Create contract file", "status": "in_progress", "activeForm": "Creating contract file"},
+            {"content": "Step 2e: Archive plan + contract", "status": "pending", "activeForm": "Archiving plan and contract"},
             # Remaining steps (collapsed)
             {"content": "Step 2: Complete deliverable", "status": "pending", "activeForm": "Completing deliverable"},
             {"content": "Step 3: Update contract", "status": "pending", "activeForm": "Updating contract"},
@@ -321,7 +322,7 @@ if tool_available("TodoWrite"):
             {"content": "Step 5: Post-approval actions", "status": "pending", "activeForm": "Post-approval actions"}
         ]
     })
-    # After Step 1 complete: telescope (remove substeps, mark Step 1 complete, blow out Step 2)
+    # After Step 2 complete: telescope (remove substeps, mark Step 2 complete, blow out Step 3)
 ```
 
 ---
@@ -334,7 +335,7 @@ When generating a phase plan for code implementation, automatically extract veri
 1. Identify which guides apply to this phase (Go Dev, FP, ES, Khorikov, etc.)
 2. Read each guide and extract invariants that require verification
 3. Generate TodoWrite items for each invariant at the appropriate step
-4. Insert these as substeps within Step 2 (implementation) or Step 3 (verification)
+4. Insert these as substeps within Step 3 (implementation) or Step 4 (verification)
 
 **Common Guide Invariants (extract when applicable):**
 
@@ -354,9 +355,9 @@ When generating a phase plan for code implementation, automatically extract veri
 
 Guide invariants stay collapsed as "Step 2b: Verify compliance" until implementation substeps complete. This keeps the main todo list uncluttered while ensuring verification isn't forgotten.
 
-**Example: Entering Step 2 for Go implementation with Khorikov testing**
+**Example: Entering Step 3 for Go implementation with Khorikov testing**
 
-Step 2 blowout shows implementation substeps + collapsed verification:
+Step 3 blowout shows implementation substeps + collapsed verification:
 
 ```
 [x] Step 1: Plan validation
@@ -436,7 +437,7 @@ TodoWrite({
 
 ---
 
-### Step 1e: Archive Approved Plan + Contract
+### Step 2e: Archive Approved Plan + Contract
 
 Archive the approved plan and contract BEFORE starting implementation. This captures "what we agreed to."
 
@@ -474,7 +475,7 @@ cat phase-N-contract.md >> plan-log.md
 
 ---
 
-## Step 2: Complete Deliverable
+## Step 3: Complete Deliverable
 
 ```python
 # Execute the work
@@ -499,7 +500,7 @@ else:
 
 ---
 
-## Step 3: Update Contract
+## Step 4: Update Contract
 
 ```python
 # After edits: verify line references still accurate (numbers shift)
@@ -510,9 +511,9 @@ update_contract("""
 **Completed:** [date]
 
 ### Success Criteria Status
-- [x] Criterion 1 - COMPLETE (reference: lines X-Y)
-- [x] Criterion 2 - COMPLETE (reference: specific details)
-...
+1. [x] Step 2: Complete deliverable - DONE (reference: lines X-Y)
+2. [x] Step 3: Update contract - DONE (this section)
+3. [ ] Step 5d: Archive contract and log progress
 
 ### Deliverable Details
 - Path: [full path]
@@ -554,9 +555,9 @@ Deductions:
 - [issue]: -X points
 """)
 
-# Add Step 4 Checklist (tracks approval state)
+# Add Step 5 Checklist (tracks approval state)
 append_to_contract("""
-## Step 4 Checklist
+## Step 5 Checklist
 - [ ] 4a: Results presented to user
 - [ ] 4b: Approval received
 """)
@@ -564,13 +565,13 @@ append_to_contract("""
 
 ---
 
-## Step 4: Present and Await Approval
+## Step 5: Present and Await Approval
 
-Step 4 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
+Step 5 is broken into atomic sub-steps. Execute each sub-step fully before proceeding.
 
 ---
 
-### Step 4a: Present Results
+### Step 6a: Present Results
 
 ```python
 # Mark checklist item
@@ -589,7 +590,7 @@ present(f"""
 3. [Notable outcome]
 
 **Upon your approval, I will:**
-1. Mark Step 4 checklist complete (4b checked)
+1. Mark Step 5 checklist complete (5b checked)
 2. Proceed to Step 5 (commit and finalize)
 
 **May I proceed?**
@@ -598,7 +599,7 @@ present(f"""
 
 ---
 
-### Step 4b: Await Approval ⛔ BLOCKING
+### Step 6b: Await Approval ⛔ BLOCKING
 
 ```python
 # WAIT for user response
@@ -624,13 +625,13 @@ elif user_response == "feedback":
 
 ---
 
-## Step 5: Post-Approval Actions
+## Step 6: Post-Approval Actions
 
 Step 5 has sub-steps (5a-5d) shown in the mermaid diagram. Execute sequentially.
 
 ---
 
-### Step 5a: Mark Approved
+### Step 6a: Mark Approved
 
 ```python
 # Add approval record to contract
@@ -643,7 +644,7 @@ Final results: [summary]
 
 ---
 
-### Step 5b: Archive Contract + Write Log Entry
+### Step 6b: Archive Contract + Write Log Entry
 
 Archive the contract BEFORE committing so the history is included in the commit. Also write a standalone log entry for readers unfamiliar with the conversation.
 
@@ -704,7 +705,7 @@ EOF
 
 ---
 
-### Step 5c: Commit Deliverable
+### Step 6c: Commit Deliverable
 
 Commit deliverable AND the updated plan-log.md together.
 
@@ -726,19 +727,19 @@ Contract: archived to plan-log.md
 
 ---
 
-### Step 5d: Setup Next Phase
+### Step 6d: Setup Next Phase
 
 ```python
-# Clear Step 5 sub-steps, prepare for next phase
+# Clear Step 6 sub-steps, prepare for next phase
 if tool_available("TodoWrite"):
-    # Clear current phase todos, start Step 0/1 for next phase
+    # Clear current phase todos, start Step 1/2 for next phase
     TodoWrite({
-        "todos": []  # Empty - will be populated at Step 1 of next phase
+        "todos": []  # Empty - will be populated at Step 2 of next phase
     })
-    # Note: Next phase will blow out Step 1's sub-steps (1a, 1b, 1c, 1d)
+    # Note: Next phase will blow out Step 2's sub-steps (2a, 2b, 2c, 2d)
 
-# Transition to Step 0 for next phase
-# Step 0 → Step 1 will enter plan mode automatically
+# Transition to Step 1 for next phase
+# Step 1 → Step 2 will enter plan mode automatically
 ```
 
 ---
@@ -924,7 +925,7 @@ npm test 2>&1 | grep "Time:"
 
 ## Appendix: Grading Rubric
 
-Use this rubric for self-assessment (Step 3) and when user requests grading.
+Use this rubric for self-assessment (Step 4) and when user requests grading.
 
 ### Grade Scale
 
@@ -1045,17 +1046,17 @@ Track improvements:
 - Each contract covers ONE phase only
 - Planning for subsequent phases is deferred until the current phase is approved
 - This structurally prevents skipping checkpoints between phases
-- After Phase N approval → Step 1 for Phase N+1 (plan, clarify, get approval)
+- After Phase N approval → Step 2 for Phase N+1 (plan, clarify, get approval)
 - Never pre-plan multiple phases in one contract
 
 **Deliverable contracts are the primary artifact:**
-- Create at Step 1, update at Step 3, finalize at Step 5
+- Create at Step 2, update at Step 4, finalize at Step 6
 - Commit to git or output to chat (for web UI)
 - Serves as phase completion history
 
 **User approval gates:**
-- Step 1: Approve plan before starting
-- Step 4: Approve results before finalizing
+- Step 2: Approve plan before starting
+- Step 5: Approve results before finalizing
 - Never proceed without explicit "yes"/"approved"/"proceed"
 
 **Scope management - user controls deferrals:**
@@ -1067,10 +1068,10 @@ Track improvements:
 - "Deferred" in a contract means "user approved moving this out of scope" - never "Claude decided to skip this"
 - Marking work as "deferred" without user approval is a protocol violation
 
-**Feedback = Plan Change = Return to Step 1:**
+**Feedback = Plan Change = Return to Step 2:**
 - User feedback that changes scope, approach, or requirements = plan change
-- Plan changes require returning to Step 1 for re-validation
-- Distinguish: "fix this bug in my implementation" (stay at Step 4) vs "also add feature X" (return to Step 1)
+- Plan changes require returning to Step 2 for re-validation
+- Distinguish: "fix this bug in my implementation" (stay at Step 5) vs "also add feature X" (return to Step 2)
 
 **BLOCKING checkpoints:**
 - Multi-phase tasks: Update contract after EACH sub-phase
@@ -1146,14 +1147,14 @@ Phase 2 start (blow out steps and substeps):
 - Refer to diagram for "what comes next"
 
 **Two-checkpoint archiving:**
-- Checkpoint 1 (Step 1e): Copies approved plan + contract as "what we agreed to"
-- Checkpoint 2 (Step 5b): Archives completed contract as "what we delivered", then deletes
+- Checkpoint 1 (Step 2e): Copies approved plan + contract as "what we agreed to"
+- Checkpoint 2 (Step 6b): Archives completed contract as "what we delivered", then deletes
 - Plan file: Managed by Claude Code, protocol just copies for history
 - Contract file: Kept as working document until completion
 
 **Plan mode precedes Step 1:**
 - Always enter plan mode before Step 1 (Plan Validation)
 - Plan mode enables read-only exploration: codebase, patterns, dependencies
-- Exit plan mode upon approval (Step 1c) via ExitPlanMode
+- Exit plan mode upon approval (Step 2c) via ExitPlanMode
 - This applies to every phase, ensuring proper analysis before commitment
-- Multi-phase work naturally gets plan mode at each phase transition (Step 5d → Step 0 → Plan Mode → Step 1)
+- Multi-phase work naturally gets plan mode at each phase transition (Step 6d → Step 1 → Plan Mode → Step 2)

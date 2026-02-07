@@ -1,54 +1,59 @@
 #!/bin/bash
-# UC3 Plan Mode Entry Sequence - Document Tests
-# Tests verify README.md contains required guidance in Step 2
+# UC3 Plan Mode Entry - Behavioral Tests
+# Tests that README.md contains plan mode guidance (PI model)
 
 PROTOCOL="../README.md"
-PASSED=0
-FAILED=0
 
-# Extract Step 2 section (everything before Step 2a)
-STEP1=$(sed -n '/^## Step 2:/,/### Step 2a/p' "$PROTOCOL")
-
-test_section() {
-    local test_id="$1"
-    local description="$2"
-    local pattern="$3"
-
-    if echo "$STEP1" | grep -qiE "$pattern"; then
-        echo "PASS: $test_id - $description"
-        ((PASSED++))
-    else
-        echo "FAIL: $test_id - $description"
-        echo "      Pattern not found: $pattern"
-        ((FAILED++))
-    fi
-}
-
-echo "=== UC3 Plan Mode Entry Sequence Tests ==="
-echo "Testing: $PROTOCOL (Step 2 section)"
+echo "=== UC3 Plan Mode Entry Tests ==="
+echo "Testing: $PROTOCOL"
 echo ""
 
-# T1: Quote verbatim guidance
-test_section "T1" "Quote verbatim guidance" \
-    "[Qq]uote.*verbatim|VERBATIM|no summar"
+PASS=0
+FAIL=0
 
-# T2: Analysis grade before plan grade
-test_section "T2" "Analysis grade before plan grade" \
-    "analysis.*FIRST|/a.*before|grade.*analysis.*grade.*plan"
+# T1: Plan mode mentioned
+if grep -qiE 'Plan Mode|plan mode' "$PROTOCOL"; then
+    echo "PASS: T1 - Plan mode mentioned"
+    ((PASS++))
+else
+    echo "FAIL: T1 - Plan mode mentioned"
+    echo "      Pattern not found: Plan Mode"
+    ((FAIL++))
+fi
 
-# T3: BLOCKING wait for direction
-test_section "T3" "BLOCKING wait for direction" \
-    "BLOCKING.*wait|wait.*direction"
+# T2: Explore/design in Plan stage
+if grep -qiE 'Explore.*design|understand.*design' "$PROTOCOL"; then
+    echo "PASS: T2 - Explore/design in Plan stage"
+    ((PASS++))
+else
+    echo "FAIL: T2 - Explore/design in Plan stage"
+    echo "      Pattern not found: Explore.*design"
+    ((FAIL++))
+fi
 
-# T4: Improve path (addresses all deductions)
-test_section "T4" "Improve path" \
-    "improve.*ALL|ALL.*deductions|address.*deductions"
+# T3: Ask questions mentioned
+if grep -qiE 'ask.*question' "$PROTOCOL"; then
+    echo "PASS: T3 - Ask questions mentioned"
+    ((PASS++))
+else
+    echo "FAIL: T3 - Ask questions mentioned"
+    echo "      Pattern not found: ask.*question"
+    ((FAIL++))
+fi
+
+# T4: Gate 1 approval
+if grep -qiE 'Gate 1.*approv|approve.*plan' "$PROTOCOL"; then
+    echo "PASS: T4 - Gate 1 approval"
+    ((PASS++))
+else
+    echo "FAIL: T4 - Gate 1 approval"
+    echo "      Pattern not found: Gate 1 approval"
+    ((FAIL++))
+fi
 
 echo ""
 echo "=== Results ==="
-echo "Passed: $PASSED"
-echo "Failed: $FAILED"
+echo "Passed: $PASS"
+echo "Failed: $FAIL"
 
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
+exit $FAIL

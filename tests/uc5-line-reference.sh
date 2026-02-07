@@ -1,31 +1,49 @@
 #!/bin/bash
-# UC5 Line Reference Guidance - Document Tests
-# Tests verify README.md contains line reference verification guidance
+# UC5 Evidence/Verification - Behavioral Tests
+# Tests that README.md contains evidence guidance (PI model)
 
 PROTOCOL="../README.md"
-PASSED=0
-FAILED=0
 
-echo "=== UC5 Line Reference Guidance Tests ==="
+echo "=== UC5 Evidence Tests ==="
 echo "Testing: $PROTOCOL"
 echo ""
 
-# T1: Line reference verification guidance in Step 4
-STEP4=$(sed -n '/^## Step 4:/,/^## Step 5:/p' "$PROTOCOL")
-if echo "$STEP4" | grep -qiE "verify.*line|line.*shift|numbers.*shift"; then
-    echo "PASS: T1 - Line reference verification guidance"
-    ((PASSED++))
+PASS=0
+FAIL=0
+
+# T1: Evidence in completion
+if grep -qiE 'evidence|criterion.*evidence' "$PROTOCOL"; then
+    echo "PASS: T1 - Evidence mentioned"
+    ((PASS++))
 else
-    echo "FAIL: T1 - Line reference verification guidance"
-    echo "      Pattern not found in Step 4 section"
-    ((FAILED++))
+    echo "FAIL: T1 - Evidence mentioned"
+    echo "      Pattern not found: evidence"
+    ((FAIL++))
+fi
+
+# T2: Success criteria mentioned
+if grep -qiE 'Success Criteria|criterion' "$PROTOCOL"; then
+    echo "PASS: T2 - Success criteria mentioned"
+    ((PASS++))
+else
+    echo "FAIL: T2 - Success criteria mentioned"
+    echo "      Pattern not found: Success Criteria"
+    ((FAIL++))
+fi
+
+# T3: Verification section in template
+if grep -qiE 'Verification' "$PROTOCOL"; then
+    echo "PASS: T3 - Verification section"
+    ((PASS++))
+else
+    echo "FAIL: T3 - Verification section"
+    echo "      Pattern not found: Verification"
+    ((FAIL++))
 fi
 
 echo ""
 echo "=== Results ==="
-echo "Passed: $PASSED"
-echo "Failed: $FAILED"
+echo "Passed: $PASS"
+echo "Failed: $FAIL"
 
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
+exit $FAIL

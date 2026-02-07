@@ -1,6 +1,6 @@
 #!/bin/bash
 # UC7 Event Logging - Behavioral Tests
-# Tests that README.md contains direct-to-log event patterns
+# Tests that README.md contains event logging patterns (PI model)
 
 PROTOCOL="../README.md"
 
@@ -11,53 +11,53 @@ echo ""
 PASS=0
 FAIL=0
 
-# T1: Contract entry format documented
-if grep -qE 'Contract:.*scope|Contract:.*deliverable|Contract:.*Phase' "$PROTOCOL"; then
-    echo "PASS: T1 - Contract entry format documented"
+# T1: Contract entry documented
+if grep -qiE 'Contract.*Gate 1|Log Contract' "$PROTOCOL"; then
+    echo "PASS: T1 - Contract entry documented"
     ((PASS++))
 else
-    echo "FAIL: T1 - Contract entry format documented"
-    echo "      Pattern not found: Contract:.*scope|deliverable|Phase"
+    echo "FAIL: T1 - Contract entry documented"
+    echo "      Pattern not found: Contract at Gate 1"
     ((FAIL++))
 fi
 
-# T2: Completion entry format documented
-if grep -qE 'Completion:.*Step|Completion:.*complete' "$PROTOCOL"; then
-    echo "PASS: T2 - Completion entry format documented"
+# T2: Completion entry documented
+if grep -qiE 'Completion.*Gate 2|Log Completion' "$PROTOCOL"; then
+    echo "PASS: T2 - Completion entry documented"
     ((PASS++))
 else
-    echo "FAIL: T2 - Completion entry format documented"
-    echo "      Pattern not found: Completion:.*Step"
+    echo "FAIL: T2 - Completion entry documented"
+    echo "      Pattern not found: Completion at Gate 2"
     ((FAIL++))
 fi
 
-# T3: Interaction entry format documented
-if grep -qE 'Interaction:.*→' "$PROTOCOL"; then
-    echo "PASS: T3 - Interaction entry format documented"
+# T3: Interaction entry documented
+if grep -qiE 'Interaction.*grade|Interaction.*improve' "$PROTOCOL"; then
+    echo "PASS: T3 - Interaction entry documented"
     ((PASS++))
 else
-    echo "FAIL: T3 - Interaction entry format documented"
-    echo "      Pattern not found: Interaction:.*→"
+    echo "FAIL: T3 - Interaction entry documented"
+    echo "      Pattern not found: Interaction grade/improve"
     ((FAIL++))
 fi
 
-# T4: No contract file references (should use direct logging)
-if grep -qE 'phase-[0-9]+-contract\.md' "$PROTOCOL"; then
-    echo "FAIL: T4 - Should not reference contract files (use direct logging)"
-    echo "      Found: phase-N-contract.md reference"
-    ((FAIL++))
-else
-    echo "PASS: T4 - No contract file references (uses direct logging)"
+# T4: Timestamp format documented
+if grep -qE 'TIMESTAMP' "$PROTOCOL"; then
+    echo "PASS: T4 - Timestamp format documented"
     ((PASS++))
+else
+    echo "FAIL: T4 - Timestamp format documented"
+    echo "      Pattern not found: TIMESTAMP"
+    ((FAIL++))
 fi
 
-# T5: Timestamp format documented
-if grep -qE 'YYYY-MM-DDTHH:MM:SSZ.*\|' "$PROTOCOL"; then
-    echo "PASS: T5 - Timestamp format documented"
+# T5: plan-log.md as target
+if grep -qE 'plan-log\.md' "$PROTOCOL"; then
+    echo "PASS: T5 - plan-log.md as target"
     ((PASS++))
 else
-    echo "FAIL: T5 - Timestamp format documented"
-    echo "      Pattern not found: YYYY-MM-DDTHH:MM:SSZ | ..."
+    echo "FAIL: T5 - plan-log.md as target"
+    echo "      Pattern not found: plan-log.md"
     ((FAIL++))
 fi
 

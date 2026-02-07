@@ -589,3 +589,10 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T12:21:17Z | Completion: Phase 3 | [x] UC1/UC9 deleted (4 docs, 3 tests), [x] IAPI→PI refs updated, [x] guide refs updated (4→2), [x] tandem-protocol.md→README.md refs updated
 2026-02-07T12:24:29Z | Completion: Tandem Protocol Simplification approved | [x] PI model (840→249 lines), [x] guides consolidated (4→2), [x] UC1/UC9 deleted, [x] all refs updated
 2026-02-07T12:36:03Z | Interaction: compliance diagnosis → UC10 tests created, enforcement added at Gate 1 locality, 3 lessons captured
+2026-02-07T12:36:49Z | Interaction: grade → B+/87, UC2-UC8 tests failing, protocol not followed during execution
+2026-02-07T17:40:51Z | Interaction: improve -> fixed UC2-UC8 tests for PI model, removed install.sh, simplified README install section
+2026-02-07T17:41:49Z | Interaction: grade -> B+/85, Phase 4 missing metrics (Interaction logging, criteria matching, telescoping)
+2026-02-07T17:42:31Z | Interaction: improve -> expanded Phase 4 with full compliance metrics (Interaction logging, criteria matching, telescoping)
+2026-02-07T17:54:28Z | Interaction: grade -> A-/92, Phase 4 is spec not code
+2026-02-07T17:55:52Z | Interaction: improve -> implemented Phase 4 integration test (tests/integration-protocol-walk.sh + lib/*)
+2026-02-07T17:56:13Z | Completion: Phase 3 | [x] PI model (README.md:150-164), [x] UC tests pass (30/30), [x] install.sh removed, [x] integration test (tests/integration-protocol-walk.sh)

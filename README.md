@@ -21,42 +21,19 @@ The `/tandem` command re-activates the protocol when compliance drifts.
 
 ## Installation
 
-### Quick Install (Recommended)
-
 ```bash
-bash <(curl -fsSL https://codeberg.org/binaryphile/tandem-protocol/raw/branch/main/install.sh)
-```
-
-This clones to `~/tandem-protocol` and creates the `/tandem` command. Then add to your project's CLAUDE.md:
-
-```markdown
-# Tandem Protocol
-@~/tandem-protocol/README.md
-```
-
-### Manual Install
-
-If you prefer manual setup:
-
-```bash
-# 1. Clone to home directory
+# Clone to home directory
 cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
 
-# 2. Create command symlink
+# Create /tandem command
 mkdir -p ~/.claude/commands
 ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
 
-# 3. Add to your project's CLAUDE.md
-echo "" >> CLAUDE.md
-echo "# Tandem Protocol" >> CLAUDE.md
-echo "@~/tandem-protocol/README.md" >> CLAUDE.md
+# Add to your project's CLAUDE.md
+echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> CLAUDE.md
 ```
 
 **Verify:** Start Claude Code, then run `/tandem`
-
-**For custom locations:**
-Install anywhere, then reference with tilde or absolute path in your project's CLAUDE.md:
-`@~/your/path/README.md`
 
 ## Usage
 

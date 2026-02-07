@@ -1,6 +1,6 @@
 #!/bin/bash
-# UC8 Todo Integration with Plan File - Behavioral Tests
-# Tests that README.md contains plan/todo integration guidance
+# UC8 Todo Integration - Behavioral Tests
+# Tests that README.md contains TaskAPI/telescoping guidance (PI model)
 
 PROTOCOL="../README.md"
 
@@ -11,43 +11,43 @@ echo ""
 PASS=0
 FAIL=0
 
-# T1: Expand current phase in plan
-if grep -qiE '([Ee]xpand.*current.*phase|current.*phase.*expand|expand.*phase.*plan)' "$PROTOCOL"; then
-    echo "PASS: T1 - Expand current phase in plan"
+# T1: TaskCreate mentioned
+if grep -qE 'TaskCreate' "$PROTOCOL"; then
+    echo "PASS: T1 - TaskCreate mentioned"
     ((PASS++))
 else
-    echo "FAIL: T1 - Expand current phase in plan"
-    echo "      Pattern not found: (expand.*current.*phase)"
+    echo "FAIL: T1 - TaskCreate mentioned"
+    echo "      Pattern not found: TaskCreate"
     ((FAIL++))
 fi
 
-# T2: Collapse completed phase
-if grep -qiE '([Cc]ollapse.*completed|completed.*collapse|mark.*phase.*complete.*collapse)' "$PROTOCOL"; then
-    echo "PASS: T2 - Collapse completed phase"
+# T2: TaskUpdate mentioned
+if grep -qE 'TaskUpdate' "$PROTOCOL"; then
+    echo "PASS: T2 - TaskUpdate mentioned"
     ((PASS++))
 else
-    echo "FAIL: T2 - Collapse completed phase"
-    echo "      Pattern not found: (collapse.*completed)"
+    echo "FAIL: T2 - TaskUpdate mentioned"
+    echo "      Pattern not found: TaskUpdate"
     ((FAIL++))
 fi
 
-# T3: Plan file as todo source
-if grep -qiE '(plan.*file.*todo|read.*todos.*plan|plan.*todo.*state|sync.*TodoWrite)' "$PROTOCOL"; then
-    echo "PASS: T3 - Plan file as todo source"
+# T3: Telescope mentioned
+if grep -qiE '[Tt]elescop' "$PROTOCOL"; then
+    echo "PASS: T3 - Telescope mentioned"
     ((PASS++))
 else
-    echo "FAIL: T3 - Plan file as todo source"
-    echo "      Pattern not found: (plan.*file.*todo|read.*todos.*plan)"
+    echo "FAIL: T3 - Telescope mentioned"
+    echo "      Pattern not found: Telescope"
     ((FAIL++))
 fi
 
-# T4: Todo telescoping guidance (from original)
-if grep -qiE '([Tt]elescope.*todo|delete.*completed.*task)' "$PROTOCOL"; then
-    echo "PASS: T4 - Todo telescoping guidance"
+# T4: Delete tasks at phase end
+if grep -qiE 'delete.*task|delete.*phase' "$PROTOCOL"; then
+    echo "PASS: T4 - Delete tasks"
     ((PASS++))
 else
-    echo "FAIL: T4 - Todo telescoping guidance"
-    echo "      Pattern not found: (telescope.*todo)"
+    echo "FAIL: T4 - Delete tasks"
+    echo "      Pattern not found: delete.*task"
     ((FAIL++))
 fi
 

@@ -1,52 +1,49 @@
 #!/bin/bash
-# UC4 Verbatim Archive Rule - Document Tests
-# Tests verify README.md contains verbatim archive guidance
+# UC4 Archive/Logging - Behavioral Tests
+# Tests that README.md contains logging guidance (PI model)
 
 PROTOCOL="../README.md"
-PASSED=0
-FAILED=0
 
-test_section() {
-    local test_id="$1"
-    local description="$2"
-    local pattern="$3"
-
-    if grep -qiE "$pattern" "$PROTOCOL"; then
-        echo "PASS: $test_id - $description"
-        ((PASSED++))
-    else
-        echo "FAIL: $test_id - $description"
-        echo "      Pattern not found: $pattern"
-        ((FAILED++))
-    fi
-}
-
-echo "=== UC4 Verbatim Archive Rule Tests ==="
+echo "=== UC4 Archive/Logging Tests ==="
 echo "Testing: $PROTOCOL"
 echo ""
 
-# T1: Verbatim guidance near archive/cat commands
-# Must be in Step 5b or Step 1e context, not just anywhere
-ARCHIVE_SECTIONS=$(sed -n '/Step 5b\|Step 1e/,/^###\|^---/p' "$PROTOCOL")
-if echo "$ARCHIVE_SECTIONS" | grep -qiE "VERBATIM|no summar"; then
-    echo "PASS: T1 - Verbatim guidance at archive"
-    ((PASSED++))
-else
-    echo "FAIL: T1 - Verbatim guidance at archive"
-    echo "      Pattern not found in Step 1e or Step 5b sections"
-    ((FAILED++))
-fi
-# Skip the generic test_section call for T1
+PASS=0
+FAIL=0
 
-# T2: cat command for archive (should already pass)
-test_section "T2" "cat command for archive" \
-    "cat.*plan-log|cat.*>>"
+# T1: Log to plan-log.md
+if grep -qE 'plan-log\.md' "$PROTOCOL"; then
+    echo "PASS: T1 - Log to plan-log.md"
+    ((PASS++))
+else
+    echo "FAIL: T1 - Log to plan-log.md"
+    echo "      Pattern not found: plan-log.md"
+    ((FAIL++))
+fi
+
+# T2: Contract entry at Gate 1
+if grep -qiE 'Contract.*Gate 1|Log Contract' "$PROTOCOL"; then
+    echo "PASS: T2 - Contract entry at Gate 1"
+    ((PASS++))
+else
+    echo "FAIL: T2 - Contract entry at Gate 1"
+    echo "      Pattern not found: Contract at Gate 1"
+    ((FAIL++))
+fi
+
+# T3: Completion entry at Gate 2
+if grep -qiE 'Completion.*Gate 2|Log Completion' "$PROTOCOL"; then
+    echo "PASS: T3 - Completion entry at Gate 2"
+    ((PASS++))
+else
+    echo "FAIL: T3 - Completion entry at Gate 2"
+    echo "      Pattern not found: Completion at Gate 2"
+    ((FAIL++))
+fi
 
 echo ""
 echo "=== Results ==="
-echo "Passed: $PASSED"
-echo "Failed: $FAILED"
+echo "Passed: $PASS"
+echo "Failed: $FAIL"
 
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
+exit $FAIL

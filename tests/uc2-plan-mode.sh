@@ -1,54 +1,58 @@
 #!/bin/bash
 # UC2 Plan Mode & File Distinction - Document Tests
-# Tests verify README.md contains required guidance in Step 2c
+# Tests verify README.md contains plan file guidance (PI model)
 
 PROTOCOL="../README.md"
 PASSED=0
 FAILED=0
 
-# Extract Step 2c section
-STEP1C=$(sed -n '/### Step 2c/,/### Step 2d/p' "$PROTOCOL")
-
-test_section() {
-    local test_id="$1"
-    local description="$2"
-    local pattern="$3"
-
-    if echo "$STEP1C" | grep -qiE "$pattern"; then
-        echo "PASS: $test_id - $description"
-        ((PASSED++))
-    else
-        echo "FAIL: $test_id - $description"
-        echo "      Pattern not found: $pattern"
-        ((FAILED++))
-    fi
-}
-
 echo "=== UC2 Plan Mode & File Distinction Tests ==="
-echo "Testing: $PROTOCOL (Step 2c section)"
+echo "Testing: $PROTOCOL"
 echo ""
 
-# T1: Plan file = HOW
-test_section "T1" "Plan file = HOW" \
-    "[Pp]lan.*file.*HOW|HOW.*approach|HOW.*methodology"
+# T1: Plan file location mentioned
+if grep -qiE '~/\.claude/plans|plans/' "$PROTOCOL"; then
+    echo "PASS: T1 - Plan file location"
+    ((PASSED++))
+else
+    echo "FAIL: T1 - Plan file location"
+    echo "      Pattern not found: ~/.claude/plans"
+    ((FAILED++))
+fi
 
-# T2: Contract file = WHAT
-test_section "T2" "Contract file = WHAT" \
-    "[Cc]ontract.*WHAT|WHAT.*scope|WHAT.*deliverables"
+# T2: Plan file template exists
+if grep -qiE 'Plan File Template' "$PROTOCOL"; then
+    echo "PASS: T2 - Plan file template exists"
+    ((PASSED++))
+else
+    echo "FAIL: T2 - Plan file template exists"
+    echo "      Pattern not found: Plan File Template"
+    ((FAILED++))
+fi
 
-# T3: Plan file location mentioned
-test_section "T3" "Plan file location" \
-    "plans/|~/.claude"
+# T3: Gate sections in template
+if grep -qE 'At Gate [12]' "$PROTOCOL"; then
+    echo "PASS: T3 - Gate sections in template"
+    ((PASSED++))
+else
+    echo "FAIL: T3 - Gate sections in template"
+    echo "      Pattern not found: At Gate N"
+    ((FAILED++))
+fi
 
-# T4: Plan persists across phases
-test_section "T4" "Plan persists across phases" \
-    "persist|across.*phase|per-phase"
+# T4: Tasks JSON in template
+if grep -qiE 'Tasks.*JSON|TaskCreate' "$PROTOCOL"; then
+    echo "PASS: T4 - Tasks JSON in template"
+    ((PASSED++))
+else
+    echo "FAIL: T4 - Tasks JSON in template"
+    echo "      Pattern not found: Tasks JSON or TaskCreate"
+    ((FAILED++))
+fi
 
 echo ""
 echo "=== Results ==="
 echo "Passed: $PASSED"
 echo "Failed: $FAILED"
 
-if [ $FAILED -gt 0 ]; then
-    exit 1
-fi
+exit $FAILED

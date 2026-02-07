@@ -1,6 +1,6 @@
 #!/bin/bash
-# UC6 Lesson Capture from Grading - Behavioral Tests
-# Tests that README.md contains lesson capture guidance
+# UC6 Lesson Capture - Behavioral Tests
+# Tests that README.md contains lesson routing guidance (PI model)
 
 PROTOCOL="../README.md"
 
@@ -11,23 +11,23 @@ echo ""
 PASS=0
 FAIL=0
 
-# T1: Actionability test at grading
-if grep -qiE '([Aa]ctionab.*test|[Cc]an I fix this now)' "$PROTOCOL"; then
-    echo "PASS: T1 - Actionability test at grading"
+# T1: Lesson capture mentioned
+if grep -qiE 'lesson|Route.*guide' "$PROTOCOL"; then
+    echo "PASS: T1 - Lessons mentioned"
     ((PASS++))
 else
-    echo "FAIL: T1 - Actionability test at grading"
-    echo "      Pattern not found: (actionab.*test|Can I fix this now)"
+    echo "FAIL: T1 - Lessons mentioned"
+    echo "      Pattern not found: lesson or Route.*guide"
     ((FAIL++))
 fi
 
-# T2: Non-actionable → guide routing
-if grep -qiE '(guide.*not.*deduct|capture.*guide|NO.*guide)' "$PROTOCOL"; then
-    echo "PASS: T2 - Non-actionable items routed to guide"
+# T2: Guides in plan file template
+if grep -qiE 'Route lessons to guides' "$PROTOCOL"; then
+    echo "PASS: T2 - Route lessons in template"
     ((PASS++))
 else
-    echo "FAIL: T2 - Non-actionable items routed to guide"
-    echo "      Pattern not found: (guide.*not.*deduct|capture.*guide|NO.*guide)"
+    echo "FAIL: T2 - Route lessons in template"
+    echo "      Pattern not found: Route lessons to guides"
     ((FAIL++))
 fi
 

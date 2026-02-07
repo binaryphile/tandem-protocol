@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Appendix: Grading Rubric (after line 928)
+**Location:** README.md - Appendix: Grading Rubric (after line 928)
 
 **Design principle:** Protocol covers main success path only. Exceptional cases omitted.
 

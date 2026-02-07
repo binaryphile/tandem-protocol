@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC3 Plan Mode Entry Sequence - Document Tests
-# Tests verify tandem-protocol.md contains required guidance in Step 2
+# Tests verify README.md contains required guidance in Step 2
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 PASSED=0
 FAILED=0
 

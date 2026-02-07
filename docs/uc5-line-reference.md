@@ -14,7 +14,7 @@
 
 ## System-in-Use Story
 
-> Claude, having just edited tandem-protocol.md to add a new section, realizes the line numbers mentioned in the plan have shifted. Before presenting results, Claude re-reads the affected sections to verify line references still point to the right places. The user likes this because stale line numbers in documentation cause confusion. Claude likes the explicit reminder because it's easy to forget that edits shift line numbers downstream.
+> Claude, having just edited README.md to add a new section, realizes the line numbers mentioned in the plan have shifted. Before presenting results, Claude re-reads the affected sections to verify line references still point to the right places. The user likes this because stale line numbers in documentation cause confusion. Claude likes the explicit reminder because it's easy to forget that edits shift line numbers downstream.
 
 ## Stakeholders & Interests
 

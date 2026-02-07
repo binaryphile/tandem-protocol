@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 4 (Update Contract)
+**Location:** README.md - Step 4 (Update Contract)
 
 **Design principle:** Protocol covers main success path only. Exceptional cases omitted.
 

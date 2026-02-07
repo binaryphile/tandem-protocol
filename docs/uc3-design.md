@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 1 start 
+**Location:** README.md - Step 1 start 
 **Design principle:** Protocol covers the main success path only. Exceptional cases (no existing plan, file too large, etc.) are omitted - Claude can reason through these without explicit guidance. This maintains protocol efficiency.
 
 Step 1 sequence:
@@ -100,7 +100,7 @@ append_to_log("plan-log.md", completion_entry)
 
 ## Integration Points
 
-- **tandem-protocol.md:** Step 1 start - **Mermaid diagram:** Step 1 is Plan Validation (no contract check)
+- **README.md:** Step 1 start - **Mermaid diagram:** Step 1 is Plan Validation (no contract check)
 
 ## Line Budget
 
@@ -119,7 +119,7 @@ Compliance buffer: UC1 (+5) + UC2 (+2) + UC3 (+20) = +27 of +30 available.
 3. Verify tests FAIL
 
 ### Phase 2: GREEN
-1. Add Plan Mode Entry section to tandem-protocol.md
+1. Add Plan Mode Entry section to README.md
 2. Verify tests PASS
 
 ### Phase 3: REFACTOR

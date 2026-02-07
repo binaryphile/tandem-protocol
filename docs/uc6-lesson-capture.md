@@ -88,16 +88,15 @@ LLM identifies a gap during grading that cannot be fixed in the current session.
 
 ## File Routing Guide
 
-Route lessons to the IAPI stage where they apply (see UC9):
+Route lessons to the PI stage where they apply:
 
-| Lesson Type | IAPI Stage | Target Guide |
-|-------------|------------|--------------|
-| "Should have explored X" | Investigate | investigation-guide.md |
-| "Misunderstood Y" | Analyze | analysis-guide.md |
+| Lesson Type | PI Stage | Target Guide |
+|-------------|----------|--------------|
+| "Should have explored X" | Plan | planning-guide.md |
+| "Misunderstood Y" | Plan | planning-guide.md |
 | "Better approach Z" | Plan | planning-guide.md |
 | Code quality patterns | Implement | (domain-specific guide) |
-| Grading methodology | Analyze | self-grading-guide.md |
-| Protocol compliance | (meta) | enhancement-notes.md |
+| Protocol compliance | (meta) | protocol-guide.md |
 
 ## Integration Points in Protocol
 

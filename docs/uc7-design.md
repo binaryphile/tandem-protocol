@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - multiple steps (1d, 1e, 2b, 3b, 4a)
+**Location:** README.md - multiple steps (1d, 1e, 2b, 3b, 4a)
 
 **Design principle:** Log to plan-log.md at step boundaries, not intermediate files.
 

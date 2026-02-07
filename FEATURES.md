@@ -9,7 +9,7 @@ flowchart TD
     G2{"GATE 2<br/>May I proceed?"} -->|"Grade your work"| GRADE["Grade: A- (93/100)<br/>- deduction 1<br/>- deduction 2"]
     GRADE -->|"Improve"| IMPROVE["Address deductions"]
     IMPROVE --> G2
-    G2 -->|"Approve"| S4["Step 4: Log + Commit"]
+    G2 -->|"Approve"| S4["Commit"]
 
     style G2 fill:#fff3e0,stroke:#ff9800
     style GRADE fill:#e8f5e9,stroke:#388e3c
@@ -19,16 +19,14 @@ The grading cycle works at both gates. Use it for complex or high-stakes work.
 
 ## Lesson Capture
 
-As you work, the protocol captures lessons learned and routes them to stage-specific guides:
+As you work, the protocol captures lessons learned and routes them to guides:
 
-| Guide | Stage | Example Lessons |
+| Guide | Focus | Example Lessons |
 |-------|-------|-----------------|
-| `investigation-guide.md` | Explore | Search patterns, codebase navigation |
-| `analysis-guide.md` | Understand | Requirement interpretation, edge cases |
-| `planning-guide.md` | Design | Approach selection, success criteria |
+| `planning-guide.md` | Exploration, understanding, design | Search patterns, assumptions, success criteria |
 | `protocol-guide.md` | Meta | Protocol improvements, process fixes |
 
-Lessons accumulate across sessions, so Claude gets better at your specific project over time. Each guide includes usage examples showing how lessons should be applied.
+Lessons accumulate across sessions, so Claude gets better at your specific project over time.
 
 ## Event Logging
 
@@ -36,26 +34,24 @@ All protocol events are logged directly to `plan-log.md` using timestamped entri
 
 | Entry Type | When | Example |
 |------------|------|---------|
-| **Contract** | Step 1d (phase start) | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests` |
-| **Completion** | Results delivered | `Completion: Step 2 \| [x] middleware (auth.go:45)` |
-| **Interaction** | User feedback | `Interaction: grade → B/84, missing edge case` |
+| **Contract** | Gate 1 approval | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests` |
+| **Completion** | Gate 2 approval | `Completion: Phase 1 \| [x] middleware (auth.go:45)` |
+| **Interaction** | User feedback | `Interaction: grade -> B/84, missing edge case` |
 
 **Format:** `YYYY-MM-DDTHH:MM:SSZ | Type: description`
 
-The Contract/Completion checkbox pattern ensures criteria verification is explicit - can't claim "3/3 met" without evidence.
+The Contract/Completion checkbox pattern ensures criteria verification is explicit.
 
-## IAPI Cognitive Stages
+## PI Cognitive Model
 
-The protocol uses the IAPI model for cognitive stages:
+The protocol uses the PI model for cognitive stages:
 
-| Stage | Step | Description |
-|-------|------|-------------|
-| **I**nvestigate | Plan Mode | Explore codebase, gather context |
-| **A**nalyze | 1a-1b | Understand requirements, ask questions |
-| **P**lan | 1c-1e | Design approach, get approval |
-| **I**mplement | 2 | Execute the work |
+| Stage | What Happens | Gate |
+|-------|--------------|------|
+| **Plan** | Explore, understand, ask questions, design | Gate 1 |
+| **Implement** | Execute, present results | Gate 2 |
 
-Each I/A/P stage can use subagents that read domain guides and return structured output with lessons applied/missed.
+Each stage can use subagents that read domain guides and return structured output with lessons applied/missed.
 
 ## Multi-Phase Projects
 
@@ -63,19 +59,19 @@ For projects spanning multiple sessions or requiring distinct phases:
 
 ```mermaid
 flowchart TD
-    START(["Start"]) -->|"Make a plan to..."| S1["Step 1: Plan Validation"]
-    S1 --> G1{"GATE 1<br/>May I proceed?"}
-    G1 -->|"Approve"| S2["Step 2: Implementation"]
-    S2 --> S3["Step 3: Present Results"]
-    S3 --> G2{"GATE 2<br/>May I proceed?"}
-    G2 -->|"Approve"| S4["Step 4: Log + Commit"]
-    S4 --> DONE(["Done / Next phase"])
+    START(["Start"]) -->|"Make a plan to..."| PLAN["Plan Stage"]
+    PLAN --> G1{"GATE 1"}
+    G1 -->|"Approve"| IMPL["Implement Stage"]
+    IMPL --> PRESENT["Present Results"]
+    PRESENT --> G2{"GATE 2"}
+    G2 -->|"Approve"| COMMIT["Commit"]
+    COMMIT --> DONE(["Done / Next phase"])
 
     style G1 fill:#fff3e0,stroke:#ff9800
     style G2 fill:#fff3e0,stroke:#ff9800
 ```
 
-Each phase follows the same 4-step workflow. Plan files persist across sessions, and the event log maintains continuity.
+Each phase follows the same PI workflow. Plan files persist across sessions, and the event log maintains continuity.
 
 ## Design Philosophy
 

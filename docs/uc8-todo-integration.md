@@ -29,21 +29,20 @@
 
 | State | Plan File Content |
 |-------|-------------------|
-| **Skeleton** | Future phases: IAPI substeps listed, no detail |
-| **Expanded** | Current phase: substeps shown with `[ ]` |
-| **Collapsed** | Completed phases: substeps removed, parent marked `[x]` |
+| **Skeleton** | Future phases: description + expansion instruction |
+| **Expanded** | Current phase: tasks shown with `[ ]` |
+| **Collapsed** | Completed phases: tasks removed, parent marked `[x]` |
 
-**Collapse = remove substeps, keep parent with checkmark.** History visible.
+**Collapse = remove tasks, keep parent with checkmark.** History visible.
 
 ```
-[x] Phase 1: Auth middleware           ← collapsed (substeps removed)
-[x] Phase 2: Event logging             ← collapsed (substeps removed)
+[x] Phase 1: Auth middleware           ← collapsed (tasks removed)
+[x] Phase 2: Event logging             ← collapsed (tasks removed)
 [ ] Phase 3: README update             ← current (expanded below)
-    [ ] Step 1a: Present understanding
-    [ ] Step 1b: Ask questions
-    [ ] Step 1c: Request approval
+    [ ] Task A
+    [ ] Task B
     ...
-[ ] Phase 4: Future work               ← skeleton (IAPI substeps, no detail)
+[ ] Phase 4: Future work               ← skeleton (expand when reached)
 ```
 
 ## System-in-Use Story
@@ -65,7 +64,7 @@
 
 - Plan file lifecycle: skeleton → expand → collapse
 - Tasks API syncs from plan file state
-- Completed phases collapsed (substeps removed, parent `[x]`)
+- Completed phases collapsed (tasks removed, parent `[x]`)
 - Active phase expanded with `[ ]` checkboxes
 - Future phases as skeletons
 
@@ -79,19 +78,18 @@ LLM enters a new phase or completes a step within current phase.
 
 ## Main Success Scenario
 
-1. LLM creates plan with phase skeletons (IAPI substeps listed)
+1. LLM creates plan with phase skeletons
 2. LLM enters first phase, expands it:
    **Plan file:**
    ```
    [ ] Phase 1: Auth middleware
-       [ ] Step 1a: Present understanding
-       [ ] Step 1b: Ask questions
-       [ ] Step 1c: Request approval
+       [ ] Task A
+       [ ] Task B
        ...
    [ ] Phase 2: Event logging          ← skeleton
    [ ] Phase 3: README update          ← skeleton
    ```
-   **Tasks API:** Creates tasks with `pending` status, marks Step 1a `in_progress`
+   **Tasks API:** Creates tasks with `pending` status, marks first task `in_progress`
 3. LLM completes Step 1a, marks `[x]` in plan, updates Tasks API to `completed`
 4. LLM continues through steps, checking off `[x]` and syncing Tasks API
 5. When Phase 1 complete, collapse in plan file (remove substeps, mark parent `[x]`):

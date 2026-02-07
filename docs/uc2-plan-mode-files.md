@@ -113,7 +113,7 @@ LLM begins Tandem Protocol execution under tool-enabled environment.
 | Research notes | Plan file | "Need to investigate X before Y" |
 | Scope | Contract entry | "Implement Step 1b sequencing rule" |
 | Success criteria | Contract entry | "`[ ] middleware, [ ] tests, [ ] docs`" |
-| Deliverables | Contract entry | "Modified tandem-protocol.md" |
+| Deliverables | Contract entry | "Modified README.md" |
 
 **Protocol format requirements:**
 - Step numbering: Steps 1-4 (see protocol for substeps)

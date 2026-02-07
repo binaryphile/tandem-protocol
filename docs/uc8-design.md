@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** tandem-protocol.md - Step 1 (start) and Step 4c
+**Location:** README.md - Step 1 (start) and Step 4c
 
 **Design principle:** Plan file (document) and Tasks API (tool) are separate but synchronized.
 
@@ -24,7 +24,7 @@
 **Key Principles:**
 - **Collapse = purge**: Completed phase detail is removed entirely, not just marked done
 - **Deferred planning**: Future phases are NOT planned until they become current
-- **Fresh Step 1**: Each phase starts with plan mode entry and IAPI analysis
+- **Fresh Plan stage**: Each phase starts with plan mode entry and exploration
 
 ```
 [x] Phase 1: Auth middleware           ← collapsed (detail PURGED)
@@ -33,7 +33,7 @@
     [Objective, Success Criteria, Changes, Tasks, Verification sections]
 
 [ ] Phase 3: README update             ← skeleton (NOT planned yet)
-*(Expand when this phase starts: run IAPI, define success criteria, tasks)*
+*(Expand when this phase starts: run Plan stage, define success criteria, tasks)*
 ```
 
 ## Telescoping Pattern
@@ -55,7 +55,7 @@
 
 ```
 [completed] Step 1: Plan Validation
-[in_progress] Step 2a: Update tandem-protocol.md
+[in_progress] Step 2a: Update README.md
 [pending] Step 2b: Update UC7 docs
 [pending] Step 2c: Create protocol-guide.md
 [pending] Step 3: Present and await approval

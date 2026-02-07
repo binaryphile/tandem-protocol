@@ -2,7 +2,7 @@
 
 **Focus:** Meta-level lessons about protocol design and structure
 
-**Note:** This is the sensible place to put lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, grade/improve cycles, feedback patterns). IAPI guides are for cognitive stages; this guide is for protocol process improvements.
+**Note:** This is the place for lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, grade/improve cycles, feedback patterns). The planning guide is for cognitive stages; this guide is for protocol process improvements.
 
 ## Lessons
 
@@ -41,6 +41,21 @@
 **Context:** When structuring multi-phase plan files
 **Lesson:** Future phases should be one-line skeletons with expansion instructions. Planning happens when the phase arrives, not before.
 **Source:** README restructure session - pre-planning future phases
+
+### Enforcement at Locality: Templates need enforcement where used
+**Context:** When protocol has templates for plan files or other artifacts
+**Lesson:** A template sitting in a "Template" section won't be used. Add enforcement instruction AT the point where the artifact is created/finalized (e.g., "Before Gate 1, verify plan includes X").
+**Source:** UC10 compliance testing - T1 failed, template existed but no enforcement at Gate 1
+
+### Verification Gate: Checklist before approval request
+**Context:** Before requesting "May I proceed?"
+**Lesson:** Include explicit verification checklist immediately before approval requests. Without this, compliance drifts.
+**Source:** UC10 compliance testing - T5 failed, no verification before approval
+
+### Behavioral Testing: Grep patterns for compliance
+**Context:** When defining protocol requirements
+**Lesson:** If it can't be grep-tested, it's not enforceable. Define requirements as testable patterns.
+**Source:** UC10 differential diagnosis - empirical tests revealed template vs enforcement gap
 
 ## Usage Example
 

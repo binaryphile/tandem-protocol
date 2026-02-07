@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC2 Plan Mode & File Distinction - Document Tests
-# Tests verify tandem-protocol.md contains required guidance in Step 2c
+# Tests verify README.md contains required guidance in Step 2c
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 PASSED=0
 FAILED=0
 

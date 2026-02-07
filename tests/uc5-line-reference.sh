@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC5 Line Reference Guidance - Document Tests
-# Tests verify tandem-protocol.md contains line reference verification guidance
+# Tests verify README.md contains line reference verification guidance
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 PASSED=0
 FAILED=0
 

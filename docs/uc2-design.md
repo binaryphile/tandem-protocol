@@ -2,7 +2,7 @@
 
 ## Current State Analysis
 
-**Location:** tandem-protocol.md Step 1c
+**Location:** README.md Step 1c
 
 **Current pseudocode:**
 ```python
@@ -27,7 +27,7 @@ No changes needed - the protocol already contains the HOW vs WHAT distinction.
 
 ## Behavioral Test Cases (for UC2-C)
 
-Tests verify tandem-protocol.md contains the required guidance.
+Tests verify README.md contains the required guidance.
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
@@ -36,4 +36,4 @@ Tests verify tandem-protocol.md contains the required guidance.
 | T3 | Plan file location | `~/.claude/plans/\|plans/` |
 | T4 | Plan persists across phases | `persist.*phase\|across.*phase` |
 
-**Test Logic:** PASS if pattern found in Step 1c section of tandem-protocol.md
+**Test Logic:** PASS if pattern found in Step 1c section of README.md

@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC7 Event Logging - Behavioral Tests
-# Tests that tandem-protocol.md contains direct-to-log event patterns
+# Tests that README.md contains direct-to-log event patterns
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 
 echo "=== UC7 Event Logging Tests ==="
 echo "Testing: $PROTOCOL"

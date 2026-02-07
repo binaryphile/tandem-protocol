@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC8 Todo Integration with Plan File - Behavioral Tests
-# Tests that tandem-protocol.md contains plan/todo integration guidance
+# Tests that README.md contains plan/todo integration guidance
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 
 echo "=== UC8 Todo Integration Tests ==="
 echo "Testing: $PROTOCOL"

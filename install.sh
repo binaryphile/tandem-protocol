@@ -34,8 +34,8 @@ else
 fi
 
 # Verify required files exist
-if [ ! -f "$PROTOCOL_DIR/tandem-protocol.md" ]; then
-    echo "❌ Error: tandem-protocol.md not found in $PROTOCOL_DIR"
+if [ ! -f "$PROTOCOL_DIR/README.md" ]; then
+    echo "❌ Error: README.md not found in $PROTOCOL_DIR"
     exit 1
 fi
 
@@ -72,7 +72,7 @@ if [[ "$PROTOCOL_DIR" == "$HOME"* ]]; then
     PROTOCOL_REF="~${PROTOCOL_DIR#$HOME}"
 fi
 
-REFERENCE_LINE="@$PROTOCOL_REF/tandem-protocol.md"
+REFERENCE_LINE="@$PROTOCOL_REF/README.md"
 
 # Check if CLAUDE file exists
 if [ -f "$CLAUDE_FILE" ]; then

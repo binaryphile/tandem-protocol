@@ -583,3 +583,9 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T04:09:56Z | Completion: Step 2 | [x] Phase 1 plan grades (8 entries), [x] Phase 1 results grades (3 entries), [x] Phase 2 results grades (2 entries), [x] meta entry
 2026-02-07T04:12:39Z | Completion: Step 3 - results presented, lesson capture benefit added
 2026-02-07T04:12:40Z | Completion: Phase 4 approved - 14 retroactive entries + lesson capture benefit
+2026-02-07T12:13:26Z | Contract: Phase 1 File Restructure | [ ] merge protocol into README, [ ] update install refs, [ ] update CLAUDE.md, [ ] delete tandem-protocol.md
+2026-02-07T12:16:51Z | Completion: Phase 1 | [x] merge protocol into README (840 lines), [x] update install refs (install.sh, README.md), [x] update CLAUDE.md, [x] delete tandem-protocol.md
+2026-02-07T12:18:55Z | Completion: Phase 2 | [x] PI model (README 840→249 lines), [x] FEATURES.md updated, [x] guides consolidated (4→2), [x] tandem.md simplified
+2026-02-07T12:21:17Z | Completion: Phase 3 | [x] UC1/UC9 deleted (4 docs, 3 tests), [x] IAPI→PI refs updated, [x] guide refs updated (4→2), [x] tandem-protocol.md→README.md refs updated
+2026-02-07T12:24:29Z | Completion: Tandem Protocol Simplification approved | [x] PI model (840→249 lines), [x] guides consolidated (4→2), [x] UC1/UC9 deleted, [x] all refs updated
+2026-02-07T12:36:03Z | Interaction: compliance diagnosis → UC10 tests created, enforcement added at Gate 1 locality, 3 lessons captured

@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC6 Lesson Capture from Grading - Behavioral Tests
-# Tests that tandem-protocol.md contains lesson capture guidance
+# Tests that README.md contains lesson capture guidance
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 
 echo "=== UC6 Lesson Capture Tests ==="
 echo "Testing: $PROTOCOL"

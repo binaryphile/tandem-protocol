@@ -1,8 +1,8 @@
 #!/bin/bash
 # UC4 Verbatim Archive Rule - Document Tests
-# Tests verify tandem-protocol.md contains verbatim archive guidance
+# Tests verify README.md contains verbatim archive guidance
 
-PROTOCOL="../tandem-protocol.md"
+PROTOCOL="../README.md"
 PASSED=0
 FAILED=0
 

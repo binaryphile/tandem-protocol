@@ -543,3 +543,12 @@ Note: Work committed without approval gates. Lesson: follow protocol even when m
 2026-02-07T03:57:57Z | Completion: Step 2 | [x] explicit append_to_log in Step 3b (tandem-protocol.md:502-510), [x] UC8 skeleton instruction (uc8-design.md:35), [x] UC8 purge principle (uc8-design.md:27), [x] UC8 deferred planning (uc8-design.md:28), [x] format example inline, [x] Step 2a/2b/2c naming pattern
 2026-02-07T04:02:08Z | Completion: Step 3 - results presented, grade A (96/100) after 1 improve cycle
 2026-02-07T04:02:09Z | Completion: Phase 2 approved - Interaction logging explicit, UC8 design updated with purge/deferred/substep patterns
+2026-02-07T04:03:33Z | Contract: Phase 3 - Route session lessons | [ ] 5 lessons to protocol-guide.md, [ ] 1 lesson to planning-guide.md, [ ] correct format
+2026-02-07T04:03:34Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T04:04:29Z | Completion: Step 2 | [x] 5 lessons to protocol-guide.md, [x] 1 lesson to planning-guide.md, [x] correct format (Title, Context, Lesson, Source)
+2026-02-07T04:04:58Z | Interaction: grade → A/96, typo in plan file, missing improve example
+2026-02-07T04:04:58Z | Interaction: improve → added improve example to Event Logging table
+2026-02-07T04:05:57Z | Interaction: grade → A/95, Interaction Logging wording imprecise, Usage Examples not updated
+2026-02-07T04:05:57Z | Interaction: improve → refined wording, added new lessons to Usage Examples in both guides
+2026-02-07T04:06:29Z | Completion: Step 3 - results presented, grade A+ (98/100) after 1 improve cycle
+2026-02-07T04:06:31Z | Completion: Phase 3 approved - 6 lessons routed to guides (5 protocol, 1 planning)

@@ -20,6 +20,11 @@
 **Lesson:** List risks with mitigation strategies; don't defer risk identification to implementation
 **Source:** UC9 seed
 
+### Value Proposition First: Lead with benefits
+**Context:** When structuring documentation or presentations
+**Lesson:** Lead with problem/solution and benefits. Move detailed mechanics to supporting documents.
+**Source:** README restructure session - 259 → 114 lines by leading with value
+
 ## Usage Example
 
 Subagent returns structured output referencing lessons:
@@ -27,6 +32,7 @@ Subagent returns structured output referencing lessons:
 ```markdown
 ### Lessons Applied
 - "Criteria: Define success criteria before implementation": Specified 4 measurable criteria
+- "Value Proposition First: Lead with benefits": README opens with Why/What You Get, details in FEATURES.md
 
 ### Lessons Missed
 - "Simplicity: Consider simpler alternatives before complex ones": Jumped to complex solution without evaluating alternatives

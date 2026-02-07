@@ -57,6 +57,11 @@
 **Lesson:** If it can't be grep-tested, it's not enforceable. Define requirements as testable patterns.
 **Source:** UC10 differential diagnosis - empirical tests revealed template vs enforcement gap
 
+### Integration Test ≠ Post-hoc Verification
+**Context:** When asked for "integration test" for protocol compliance
+**Lesson:** Integration implies checking at integration points (gates), not just final state. Post-hoc artifact analysis misses timing/sequence violations.
+**Source:** UC6+UC8 improvement session - built final-state checker when step-by-step verification was requested
+
 ## Usage Example
 
 When reviewing protocol changes:

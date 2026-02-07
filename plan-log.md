@@ -596,3 +596,14 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T17:54:28Z | Interaction: grade -> A-/92, Phase 4 is spec not code
 2026-02-07T17:55:52Z | Interaction: improve -> implemented Phase 4 integration test (tests/integration-protocol-walk.sh + lib/*)
 2026-02-07T17:56:13Z | Completion: Phase 3 | [x] PI model (README.md:150-164), [x] UC tests pass (30/30), [x] install.sh removed, [x] integration test (tests/integration-protocol-walk.sh)
+2026-02-07T18:15:13Z | Interaction: grade -> B+/86, test not independent, checks presence not sequence
+2026-02-07T18:22:55Z | Contract: UC6 Lesson Triggers | [ ] README Lesson entry, [ ] UC6 Entry Format, [ ] UC6 Integration Points, [ ] UC6 test, [ ] delete enhancement-notes.md
+2026-02-07T19:12:01Z | Lesson: Integration test ≠ post-hoc verification -> protocol-guide.md | Asked for step-by-step compliance check, built final-state artifact analyzer
+2026-02-07T19:12:01Z | Lesson: TaskAPI needs three-level hierarchy -> docs/uc8-todo-integration.md | Created flat deliverable tasks, should show Phase -> Stage -> Task
+2026-02-07T19:14:41Z | Interaction: /p grade plan -> B-/81, scope creep (UC6+purge combined), overkill on purge
+2026-02-07T19:14:41Z | Interaction: /i improve -> rewrote plan focused on UC6, read UC7 patterns for exact format
+2026-02-07T19:14:41Z | Interaction: /w grade results -> B+/87, README missing three-level hierarchy, TaskAPI not demonstrated, lessons not logged
+2026-02-07T19:14:41Z | Interaction: /i improve -> added three-level hierarchy to README, logged lesson entries
+2026-02-07T19:14:41Z | Interaction: /w grade results -> A-/91, lessons not routed to guide files
+2026-02-07T19:14:41Z | Interaction: /i improve -> routed lessons to protocol-guide.md and uc8-design.md
+2026-02-07T19:15:03Z | Completion: UC6+UC8 Improvement | [x] UC6 Entry Format (uc6-lesson-capture.md:47-55), [x] UC6 Integration Points with Gate 2 (uc6-lesson-capture.md:101-119), [x] UC8 three-level hierarchy (uc8-todo-integration.md:122-151), [x] README telescoping (README.md:194-224), [x] UC6 test 5/5 pass, [x] all UC tests 33/33 pass, [x] Lesson entries routed (protocol-guide.md, uc8-design.md), [x] enhancement-notes.md deleted

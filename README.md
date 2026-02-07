@@ -33,7 +33,7 @@ ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
 echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> CLAUDE.md
 ```
 
-**Verify:** Start Claude Code, then run `/tandem`
+**Verify:** Start Claude Code, then run `/tandem plan to X so Y`
 
 ## Usage
 
@@ -43,7 +43,6 @@ Invoke 1-2 times early in your session, or whenever you notice protocol drift:
 
 - At session start (before planning): `/tandem make a plan to...`
 - When Claude skips steps or you've lost track of the current step
-- After context compaction
 
 ### How it works
 
@@ -149,6 +148,7 @@ All events logged to `plan-log.md`:
 | Contract | Gate 1 approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
 | Completion | Gate 2 approval | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
 | Interaction | Any grade/improve | `TIMESTAMP \| Interaction: grade -> B+/88, reason` |
+| Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
 
 ## Plan File Template
 
@@ -193,19 +193,37 @@ Plan files live in `~/.claude/plans/`. **Explicit admin instructions at trigger 
 
 ## Tasks API Telescoping
 
-Manage task hierarchy as you progress:
+Three-level hierarchy: Phase → Stage → Task
+
+| Level | What | When Visible |
+|-------|------|--------------|
+| Phase | From plan file | Always (future phases as skeletons) |
+| Stage | Plan, Implement | Current phase only |
+| Task | Deliverables | Current stage only |
+
+**Plan file structure:**
+```
+[x] Phase 1: Auth middleware        <- collapsed
+[ ] Phase 2: Event logging          <- current phase
+    [x] Plan                        <- completed stage
+    [ ] Implement                   <- current stage (expanded)
+        [ ] Add middleware
+        [ ] Update tests
+[ ] Phase 3: Future work            <- skeleton
+```
+
+**Tasks API mirrors current stage only:**
+```
+[in_progress] Add middleware
+[pending] Update tests
+```
 
 | Event | Action |
 |-------|--------|
-| Enter phase | Create tasks, set first in_progress |
-| Complete task | Mark completed, set next in_progress |
-| Exit phase | Delete phase tasks (clean slate for next) |
-
-```
-[in_progress] Phase 1 Task A
-[pending] Phase 1 Task B
-[pending] Phase 2              <- collapsed, expand when reached
-```
+| Enter phase | Add Plan/Implement stages to plan file |
+| Gate 1 | Mark Plan `[x]`, expand Implement tasks, TaskCreate for each, first `in_progress` |
+| Task done | Mark `[x]` in plan, TaskUpdate `completed`, next `in_progress` |
+| Gate 2 | Mark Implement `[x]`, collapse phase, TaskUpdate `deleted` for all |
 
 ## Protocol Principles
 

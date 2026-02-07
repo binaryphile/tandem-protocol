@@ -44,6 +44,15 @@
 
 LLM identifies a gap during grading that cannot be fixed in the current session.
 
+## Lesson Entry Format
+
+| Type | When | Format |
+|------|------|--------|
+| Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
+
+**Example:**
+`2026-02-07T15:30:00Z | Lesson: Integration test ≠ post-hoc verification -> protocol-guide.md | Asked for step-by-step, built final-state`
+
 ## Main Success Scenario
 
 1. LLM performs grading on completed work
@@ -98,13 +107,21 @@ Route lessons to the PI stage where they apply:
 | Code quality patterns | Implement | (domain-specific guide) |
 | Protocol compliance | (meta) | protocol-guide.md |
 
-## Integration Points in Protocol
+## Integration Points
 
-| Step | Guidance Needed |
-|------|-----------------|
-| Step 3b | During grading, apply actionability test |
-| Any /w | Same rule applies to ad-hoc grading |
-| Step 4 | Route non-actionable lessons to stage guides |
+| Event | Lesson Action | Example |
+|-------|---------------|---------|
+| Grading (/w, /p) | Identify non-actionable gaps, queue for capture | "Integration ≠ verification" noted |
+| Gate 2 Approval | Log Lesson entries to plan-log.md | `Lesson: X -> guide \| context` |
+| Gate 2 Approval | Append lesson content to target guide file | Add section to planning-guide.md |
+
+**Locality:** Plan files should include explicit lesson routing instructions at Gate 2:
+```markdown
+## At Gate 2 Approval
+- Review session for gaps between ask and delivery
+- Log Lesson entries to plan-log.md for non-actionable insights
+- Append lesson content to appropriate guide files
+```
 
 ## Project Info
 

@@ -181,3 +181,10 @@ Step 2 deliverables (copy to TaskCreate calls after approval):
 
 ### Phase 3: REFACTOR
 1. Ensure plan file template example is clear
+
+## Lessons Learned
+
+### Three-Level Hierarchy Required
+**Context:** When creating tasks for a phase
+**Lesson:** TaskAPI should mirror three-level hierarchy: Phase → Stage (Plan/Implement) → Task. Creating flat deliverable tasks skips the Stage level, losing visibility into protocol progression.
+**Source:** UC6+UC8 improvement session - created deliverable tasks directly without Plan/Implement stage tasks

@@ -79,29 +79,40 @@ LLM enters a new phase or completes a step within current phase.
 ## Main Success Scenario
 
 1. LLM creates plan with phase skeletons
-2. LLM enters first phase, expands it:
+2. LLM enters first phase, expands Plan/Implement stages:
    **Plan file:**
    ```
    [ ] Phase 1: Auth middleware
-       [ ] Task A
-       [ ] Task B
-       ...
+       [ ] Plan
+       [ ] Implement
    [ ] Phase 2: Event logging          ← skeleton
    [ ] Phase 3: README update          ← skeleton
    ```
-   **Tasks API:** Creates tasks with `pending` status, marks first task `in_progress`
-3. LLM completes Step 1a, marks `[x]` in plan, updates Tasks API to `completed`
-4. LLM continues through steps, checking off `[x]` and syncing Tasks API
-5. When Phase 1 complete, collapse in plan file (remove substeps, mark parent `[x]`):
+3. LLM completes Plan stage, reaches Gate 1, user approves
+4. LLM marks Plan `[x]`, expands Implement with deliverable tasks, syncs to Tasks API:
+   **Plan file:**
+   ```
+   [ ] Phase 1: Auth middleware
+       [x] Plan                        ← completed
+       [ ] Implement                   ← current (expanded)
+           [ ] Add middleware
+           [ ] Add tests
+           [ ] Update docs
+   [ ] Phase 2: Event logging          ← skeleton
+   ```
+   **Tasks API:** TaskCreate for each deliverable, first `in_progress`
+5. LLM completes deliverables, marks `[x]` in plan, updates Tasks API to `completed`
+6. LLM reaches Gate 2, user approves
+7. LLM collapses phase (removes stages, marks parent `[x]`), deletes Tasks API entries:
+   **Plan file:**
    ```
    [x] Phase 1: Auth middleware        ← collapsed
-   [ ] Phase 2: Event logging          ← now expanding
-       [ ] Step 1a: Present understanding
-       ...
+   [ ] Phase 2: Event logging          ← now entering
+       [ ] Plan
+       [ ] Implement
    [ ] Phase 3: README update          ← skeleton
    ```
-6. LLM deletes old tasks, creates new ones for Phase 2
-7. Repeat until all phases complete
+8. Repeat until all phases complete
 
 ## Extensions
 
@@ -114,55 +125,91 @@ LLM enters a new phase or completes a step within current phase.
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Phase started | Plan file: substeps expanded with `[ ]` |
-| Step completed | Plan file: `[x]`, Tasks API: `completed` |
-| Phase completed | Plan file: collapse (remove substeps, `[x]` parent) |
+| Phase entered | Plan file: Plan/Implement stages added with `[ ]` |
+| Gate 1 approved | Plan `[x]`, Implement expanded with tasks, Tasks API synced |
+| Task completed | Plan file: task `[x]`, Tasks API: `completed` |
+| Gate 2 approved | Plan file: collapse phase, Tasks API: all tasks `deleted` |
 | Multiple phases | Current expanded, completed collapsed, future as skeletons |
 
-## Parallel Structure
+## Three-Level Hierarchy
+
+Telescoping operates at three levels:
+
+| Level | What | Expanded When |
+|-------|------|---------------|
+| **Phase** | From plan file (UC6, UC7, etc.) | Always visible |
+| **Stage** | Protocol stages (Plan, Implement) | Current phase |
+| **Task** | Deliverables for current stage | Current stage |
 
 **Plan file** (document):
 ```
-[x] Phase 1: Auth middleware        ← collapsed
-[ ] Phase 2: Event logging          ← current (expanded)
-    [x] Step 1: Plan validation
-    [ ] Step 2: Implementation
-    [ ] Step 3: Present
-    [ ] Step 4: Post-approval
-[ ] Phase 3: README update          ← skeleton
+[x] Phase 1: Auth middleware        ← collapsed (stages removed)
+[ ] Phase 2: Event logging          ← current phase
+    [x] Plan                        ← completed stage (tasks removed)
+    [ ] Implement                   ← current stage (expanded)
+        [ ] Add logging middleware
+        [ ] Update tests
+        [ ] Update docs
+[ ] Phase 3: README update          ← skeleton (stages not yet created)
 ```
 
-**Tasks API** (tool):
+**Tasks API** (tool) - mirrors current stage only:
 ```
-[completed] Step 1: Plan validation
-[in_progress] Step 2: Implementation
-[pending] Step 3: Present and await approval
-[pending] Step 4: Post-approval actions
-[pending] Phase 3: README update
+[in_progress] Add logging middleware
+[pending] Update tests
+[pending] Update docs
 ```
 
-**Note:** Collapsed phases don't appear in Tasks API (history is in plan file).
+**Telescoping rules:**
+- **Enter phase:** Create Plan and Implement stage entries in plan file
+- **Gate 1 (Plan → Implement):** Mark Plan `[x]`, expand Implement with deliverable tasks, sync to Tasks API
+- **Gate 2 (phase complete):** Mark Implement `[x]`, collapse phase (remove stages), delete all Tasks API entries
 
-## Protocol Step Mapping
+## Protocol Stage Mapping
 
-Each sub-phase maps to protocol steps:
+Each phase follows the PI model:
 
-| Sub-phase | Protocol Steps |
-|-----------|----------------|
-| UC*-A (Use Case) | Step 1 (plan + present) |
-| UC*-B (Design) | Step 1 (plan + present) |
-| UC*-C (Implementation) | Steps 1-4 (full cycle with TDD) |
+| Stage | What Happens | Gate |
+|-------|--------------|------|
+| Plan | Explore, design, present approach | Gate 1: approve plan |
+| Implement | Execute deliverables, present results | Gate 2: approve results |
+
+For complex phases (like UC implementations), the Tasks API tracks deliverables within Implement stage.
 
 ## Integration Points in Protocol
 
-| Step | Plan File Action | Tasks API Action |
-|------|-----------------|------------------|
-| Plan mode | Define Tasks JSON section with deliverables | (none yet) |
-| Step 1 (approval) | Expand current phase (`[ ]` substeps) | Create tasks from plan's Tasks JSON |
-| Step completion | Mark `[x]` | Update to `completed` |
-| Step 4c | Collapse phase (remove substeps, `[x]` parent) | Delete completed, create next |
+| Event | Plan File Action | Tasks API Action |
+|-------|-----------------|------------------|
+| Enter phase | Add Plan/Implement stages with `[ ]` | (none yet) |
+| Gate 1 approval | Mark Plan `[x]`, expand Implement tasks | TaskCreate for each deliverable, first `in_progress` |
+| Task completion | Mark task `[x]` | TaskUpdate to `completed`, next to `in_progress` |
+| Gate 2 approval | Mark Implement `[x]`, collapse phase | TaskUpdate `deleted` for all phase tasks |
 
-**Critical:** Plan file must include a `## Tasks` section with pre-formatted TaskCreate JSON array. After approval, these are copied verbatim to TaskCreate calls. This ensures deliverable-specific tasks are defined during planning (when context is fresh), not improvised during execution.
+## Locality: TaskAPI Calls in Plan File
+
+**Critical:** Plan files must include explicit TaskAPI instructions at trigger points. Claude executes what it sees at the moment of action.
+
+**Plan file template with locality:**
+```markdown
+## At Gate 1 Approval
+- Mark Plan stage `[x]}` in this file
+- Expand Implement stage with deliverable tasks
+- TaskCreate for each task in Tasks JSON below
+- TaskUpdate first task to `in_progress`
+- Log Contract entry to plan-log.md
+
+## At Gate 2 Approval
+- Mark Implement stage `[x]` in this file
+- Collapse phase (remove stages, mark phase `[x]`)
+- TaskUpdate `deleted` for each task (telescope clean)
+- Log Completion entry to plan-log.md
+- Commit deliverable + plan-log.md
+
+## Tasks
+[JSON array copied verbatim to TaskCreate calls after Gate 1]
+```
+
+**Why locality matters:** Without explicit instructions at the trigger point, Claude may forget to sync Tasks API even if the protocol mentions it elsewhere.
 
 ## Project Info
 

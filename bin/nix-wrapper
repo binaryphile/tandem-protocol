@@ -3,14 +3,35 @@
 # Symlink to this file with the name of the command you want to wrap.
 # Example: ln -s nix-wrapper node
 
-progName=$(basename "$0")
-scriptDir=$(cd "$(dirname "$0")" && pwd)
-# Find the real program, excluding our bin/ directory
-prog=$(type -Pa "$progName" | grep -v "^$scriptDir/" | head -1)
-# IN_NIX_DEVELOP is set by flake.nix shellHook
-# Change to PROJECT_ROOT if defined (useful for subprojects)
-if (( IN_NIX_DEVELOP )); then
-    [[ -n "$PROJECT_ROOT" ]] && echo -e "\e[93mcd $PROJECT_ROOT\e[0m" && cd "$PROJECT_ROOT"
-    exec $prog "$@"
-fi
-exec nix develop -c $progName "$@"
+main() {
+  asCalled=$(basename "$0")
+  folder=$(cd "$(dirname "$0")"; pwd)
+
+  # Find the real program, excluding our bin/ directory
+  # empty if not found, but then exec fails with an error
+  prog=$(type -Pa "$asCalled" | grep -v "^$folder/" | head -1)
+
+  # IN_NIX_DEVELOP is set by flake.nix shellHook
+  # Change to PROJECT_ROOT if defined and not currently there (useful for subprojects)
+  (( IN_NIX_DEVELOP )) && [[ -n "$PROJECT_ROOT" && $PWD != "$PROJECT_ROOT" ]] &&
+    cue cd "$PROJECT_ROOT"
+
+  (( IN_NIX_DEVELOP )) && exec "$prog" "$@" || exec nix develop -c "$asCalled" "$@"
+}
+
+Yellow=$'\e[93m'
+Reset=$'\e[0m'
+
+# cue runs its arguments as a command after echoing them to stdout in yellow.
+cue() {
+  local output
+  printf -v output '%q ' "$@"
+  echo "$Yellow${output% }$Reset"
+
+  "$@"
+}
+
+: ${IN_NIX_DEVELOP:=0}
+
+set -eu
+main "$@"

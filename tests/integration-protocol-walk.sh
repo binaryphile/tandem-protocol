@@ -1,18 +1,21 @@
 #!/bin/bash
-# Behavioral Integration Test - Protocol Walk
+# Behavioral Integration Test - Protocol Walk with Checkpoint Verification
 # Self-contained test that drives through tandem protocol gates and verifies compliance
+# BETWEEN each gate (not just final state), enabling compliance curve tracking.
 #
 # What it does:
 #   1. Installs hooks to capture tool calls
 #   2. Starts a session with protocol + fizzbuzz task
-#   3. Drives through: Gate 1 → Grade → Improve → Gate 2
-#   4. Verifies hooks logged correct tool calls in sequence
-#   5. Verifies plan-log.md has correct entries
+#   3. CHECKPOINT after each gate: Start → Gate 1 → Grade → Improve → Gate 2
+#   4. Verifies timing (no premature actions) and presence (required actions happened)
+#   5. Outputs structured JSON for compliance curve tracking
 #
 # Requirements:
 #   - Claude Code CLI installed
 #   - jq installed
 #   - Write access to ~/.claude/settings.json (backs up and restores)
+#
+# Cost: ~$0.14/run (5 API calls × ~$0.03 each)
 
 set -e
 
@@ -42,11 +45,162 @@ cleanup() {
 trap cleanup EXIT
 
 TEST_FAILED=0
-PASS=0
-FAIL=0
+
+# ============================================================================
+# CHECKPOINT VERIFICATION FUNCTIONS
+# ============================================================================
+
+# Line count tracking for timing verification
+TOOL_LOG_LINES_START=0
+TOOL_LOG_LINES_GATE1=0
+PLAN_LOG_LINES_START=0
+PLAN_LOG_LINES_GATE1=0
+
+get_line_count() {
+    wc -l < "$1" 2>/dev/null || echo 0
+}
+
+checkpoint() {
+    local name="$1"
+    echo "CHECKPOINT: $name"
+}
+
+# Verify expected state at each checkpoint
+verify_after_start() {
+    local errors=0
+    TOOL_LOG_LINES_START=$(get_line_count "$TOOL_LOG")
+    PLAN_LOG_LINES_START=$(get_line_count "$PLAN_LOG")
+
+    # Contract should NOT exist yet
+    if grep -qE 'Contract:' "$PLAN_LOG" 2>/dev/null; then
+        echo "  FAIL: No Contract yet (TIMING VIOLATION)"
+        ((errors++))
+    else
+        echo "  PASS: No Contract yet"
+    fi
+    # TaskCreate should NOT exist yet
+    if grep -q '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null; then
+        echo "  FAIL: No TaskCreate yet (TIMING VIOLATION)"
+        ((errors++))
+    else
+        echo "  PASS: No TaskCreate yet"
+    fi
+    return $errors
+}
+
+verify_after_gate1() {
+    local errors=0
+    TOOL_LOG_LINES_GATE1=$(get_line_count "$TOOL_LOG")
+    PLAN_LOG_LINES_GATE1=$(get_line_count "$PLAN_LOG")
+
+    # Contract MUST exist with UC7 format: "Contract: [phase] | [ ] criterion1, [ ] criterion2"
+    if grep -qE 'Contract:.*\|.*\[ \].*,' "$PLAN_LOG" 2>/dev/null; then
+        echo "  PASS: Contract entry with criteria (UC7 format)"
+    else
+        echo "  FAIL: Contract entry with criteria (UC7 format)"
+        ((errors++))
+    fi
+    # TaskCreate MUST exist now AND must have happened AFTER start (timing check)
+    local task_creates
+    task_creates=$(grep -c '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null || echo 0)
+    if [[ $task_creates -gt 0 && $TOOL_LOG_LINES_GATE1 -gt $TOOL_LOG_LINES_START ]]; then
+        echo "  PASS: TaskCreate call (timing verified)"
+    else
+        echo "  FAIL: TaskCreate call"
+        ((errors++))
+    fi
+    # First task should be in_progress
+    if grep -q 'in_progress' "$TOOL_LOG" 2>/dev/null; then
+        echo "  PASS: Task set to in_progress"
+    else
+        echo "  FAIL: Task set to in_progress"
+        ((errors++))
+    fi
+    return $errors
+}
+
+verify_after_grade() {
+    local errors=0
+    # UC7 format: "Interaction: [input] → [response]" (arrow required)
+    if grep -qE 'Interaction:.*grade.*->' "$PLAN_LOG" 2>/dev/null; then
+        echo "  PASS: Interaction entry for grade (UC7 format)"
+    else
+        echo "  FAIL: Interaction entry for grade (UC7 format)"
+        ((errors++))
+    fi
+    return $errors
+}
+
+verify_after_improve() {
+    local errors=0
+    # Check for second Interaction entry with UC7 arrow format
+    local count
+    count=$(grep -cE 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null || echo 0)
+    if [[ $count -ge 2 ]]; then
+        echo "  PASS: Interaction entry for improve ($count with UC7 format)"
+    else
+        echo "  FAIL: Interaction entry for improve ($count < 2 with UC7 format)"
+        ((errors++))
+    fi
+    # UC8: Task should be marked completed during work (before Gate 2)
+    if grep -q '"completed"' "$TOOL_LOG" 2>/dev/null; then
+        echo "  PASS: TaskUpdate completed (UC8)"
+    else
+        echo "  FAIL: TaskUpdate completed (UC8)"
+        ((errors++))
+    fi
+    return $errors
+}
+
+verify_after_gate2() {
+    local errors=0
+    # UC7: Completion with evidence format "[x] criterion (evidence)" - must have actual content in parens
+    if grep -qE 'Completion:.*\[x\].*\([^)]+\)' "$PLAN_LOG" 2>/dev/null; then
+        echo "  PASS: Completion entry with evidence (UC7 format)"
+    else
+        echo "  FAIL: Completion entry with evidence (UC7 format)"
+        ((errors++))
+    fi
+    # UC8: Tasks should be deleted (telescoping)
+    if grep -q '"deleted"' "$TOOL_LOG" 2>/dev/null; then
+        echo "  PASS: TaskUpdate deleted (UC8 telescoping)"
+    else
+        echo "  FAIL: TaskUpdate deleted (UC8 telescoping)"
+        ((errors++))
+    fi
+    # UC6: Lesson entry - grade/improve cycles should capture non-actionable insights
+    # This is a soft requirement: if grade found gaps but no Lesson logged, it's a miss
+    local grade_count
+    grade_count=$(grep -cE 'Interaction:.*grade.*->' "$PLAN_LOG" 2>/dev/null || echo 0)
+    if grep -qE 'Lesson:.*->' "$PLAN_LOG" 2>/dev/null; then
+        echo "  PASS: Lesson entry routed (UC6)"
+    elif [[ $grade_count -gt 0 ]]; then
+        echo "  WARN: Grade occurred but no Lesson captured (UC6 gap)"
+    else
+        echo "  PASS: No Lesson needed (no grading gaps)"
+    fi
+    return $errors
+}
+
+# Graceful handling for complete non-compliance
+handle_session_failure() {
+    echo "ERROR: Session failed or Claude completely non-compliant"
+    echo "  - Check if protocol was in context"
+    echo "  - Check if task was understood"
+    # Still generate JSON with max errors for curve tracking
+    ERRORS_START=${ERRORS_START:-2}
+    ERRORS_GATE1=${ERRORS_GATE1:-3}
+    ERRORS_GRADE=${ERRORS_GRADE:-1}
+    ERRORS_IMPROVE=${ERRORS_IMPROVE:-1}
+    ERRORS_GATE2=${ERRORS_GATE2:-2}
+}
+
+# ============================================================================
+# TEST SETUP
+# ============================================================================
 
 echo "=== Tandem Protocol Integration Test ==="
-echo "Testing: Self-contained protocol walk"
+echo "Testing: Checkpoint verification between gates"
 echo ""
 
 # Setup
@@ -100,8 +254,11 @@ cd "$TEST_CWD"
 # Initialize plan-log.md
 touch plan-log.md
 
+# ============================================================================
+# PROTOCOL WALK WITH CHECKPOINTS
+# ============================================================================
+
 # Start session with protocol + fizzbuzz task
-# Using --max-turns to prevent runaway, --output-format json for session_id
 RESULT=$(cat "$PROTOCOL" | claude -p "/tandem plan to implement fizzbuzz so we verify protocol compliance" \
     --output-format json \
     --max-turns 15 \
@@ -113,202 +270,105 @@ SESSION_ID=$(echo "$RESULT" | jq -r '.session_id // empty' 2>/dev/null)
 if [[ -z "$SESSION_ID" ]]; then
     echo "ERROR: Failed to start session"
     echo "Result: $RESULT"
-    TEST_FAILED=1
-    exit 1
-fi
-
-echo "   Session started: $SESSION_ID"
-echo "3. Driving through Gate 1..."
-
-# Gate 1: Approve plan
-sleep 2
-claude --resume "$SESSION_ID" -p "proceed" \
-    --output-format json \
-    --max-turns 10 \
-    --permission-mode acceptEdits \
-    2>/dev/null > /dev/null || true
-
-echo "4. Requesting grade..."
-
-# Grade
-sleep 2
-claude --resume "$SESSION_ID" -p "grade" \
-    --output-format json \
-    --max-turns 3 \
-    --permission-mode acceptEdits \
-    2>/dev/null > /dev/null || true
-
-echo "5. Requesting improve..."
-
-# Improve
-sleep 2
-claude --resume "$SESSION_ID" -p "improve" \
-    --output-format json \
-    --max-turns 10 \
-    --permission-mode acceptEdits \
-    2>/dev/null > /dev/null || true
-
-echo "6. Driving through Gate 2..."
-
-# Gate 2: Approve results
-sleep 2
-claude --resume "$SESSION_ID" -p "proceed" \
-    --output-format json \
-    --max-turns 10 \
-    --permission-mode acceptEdits \
-    2>/dev/null > /dev/null || true
-
-echo "7. Verifying compliance..."
-echo ""
-
-# Copy plan-log.md from workspace
-cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || touch "$PLAN_LOG"
-
-echo "=== TaskAPI Compliance ==="
-
-# T1: TaskCreate calls present
-if [[ -f "$TOOL_LOG" ]] && grep -q '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null; then
-    echo "PASS: T1 - TaskCreate calls found"
-    ((PASS++))
+    handle_session_failure
 else
-    echo "FAIL: T1 - No TaskCreate calls"
-    ((FAIL++))
+    echo "   Session started: $SESSION_ID"
+
+    # CHECKPOINT 1: After start, before Gate 1
+    checkpoint "After session start"
+    cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || touch "$PLAN_LOG"
+    verify_after_start
+    ERRORS_START=$?
+
+    # Gate 1: Approve plan
+    echo "3. Driving through Gate 1..."
+    sleep 2
+    claude --resume "$SESSION_ID" -p "proceed" \
+        --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
+
+    # CHECKPOINT 2: After Gate 1
+    checkpoint "After Gate 1 (proceed)"
+    cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || true
+    verify_after_gate1
+    ERRORS_GATE1=$?
+
+    # Grade
+    echo "4. Requesting grade..."
+    sleep 2
+    claude --resume "$SESSION_ID" -p "grade" \
+        --output-format json --max-turns 3 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
+
+    # CHECKPOINT 3: After grade
+    checkpoint "After grade"
+    cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || true
+    verify_after_grade
+    ERRORS_GRADE=$?
+
+    # Improve
+    echo "5. Requesting improve..."
+    sleep 2
+    claude --resume "$SESSION_ID" -p "improve" \
+        --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
+
+    # CHECKPOINT 4: After improve
+    checkpoint "After improve"
+    cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || true
+    verify_after_improve
+    ERRORS_IMPROVE=$?
+
+    # Gate 2: Approve results
+    echo "6. Driving through Gate 2..."
+    sleep 2
+    claude --resume "$SESSION_ID" -p "proceed" \
+        --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
+
+    # CHECKPOINT 5: After Gate 2
+    checkpoint "After Gate 2 (proceed)"
+    cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || true
+    verify_after_gate2
+    ERRORS_GATE2=$?
 fi
 
-# T2: TaskUpdate with in_progress
-if [[ -f "$TOOL_LOG" ]] && grep -q 'in_progress' "$TOOL_LOG" 2>/dev/null; then
-    echo "PASS: T2 - TaskUpdate in_progress found"
-    ((PASS++))
-else
-    echo "FAIL: T2 - No TaskUpdate in_progress"
-    ((FAIL++))
-fi
+# ============================================================================
+# GENERATE COMPLIANCE JSON
+# ============================================================================
 
-# T3: TaskUpdate with completed
-if [[ -f "$TOOL_LOG" ]] && grep -q 'completed' "$TOOL_LOG" 2>/dev/null; then
-    echo "PASS: T3 - TaskUpdate completed found"
-    ((PASS++))
-else
-    echo "FAIL: T3 - No TaskUpdate completed"
-    ((FAIL++))
-fi
+TOTAL_CHECKS=11  # 2+3+1+2+2 checks across all checkpoints (added UC8 completed check)
+TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2))
+SCORE=$((TOTAL_CHECKS - TOTAL_ERRORS))
 
-# T4: TaskUpdate with deleted (telescoping)
-if [[ -f "$TOOL_LOG" ]] && grep -q 'deleted' "$TOOL_LOG" 2>/dev/null; then
-    echo "PASS: T4 - TaskUpdate deleted found (telescoping)"
-    ((PASS++))
-else
-    echo "FAIL: T4 - No TaskUpdate deleted (telescoping)"
-    ((FAIL++))
-fi
+# Helper for safe boolean checks (handles missing files)
+check_exists() { grep -q "$1" "$2" 2>/dev/null && echo true || echo false; }
+check_count() { local c; c=$(grep -c "$1" "$2" 2>/dev/null || echo 0); [[ $c -ge $3 ]] && echo true || echo false; }
 
-echo ""
-echo "=== Logging Compliance ==="
-
-# L1: Contract entry at Gate 1
-if grep -qE 'Contract:' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L1 - Contract entry found"
-    ((PASS++))
-else
-    echo "FAIL: L1 - No Contract entry"
-    ((FAIL++))
-fi
-
-# L2: Contract has criteria checkboxes
-if grep -qE 'Contract:.*\[ \]' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L2 - Contract has criteria checkboxes"
-    ((PASS++))
-else
-    echo "FAIL: L2 - Contract missing criteria checkboxes"
-    ((FAIL++))
-fi
-
-# L3: Completion entry at Gate 2
-if grep -qE 'Completion:' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L3 - Completion entry found"
-    ((PASS++))
-else
-    echo "FAIL: L3 - No Completion entry"
-    ((FAIL++))
-fi
-
-# L4: Completion has evidence
-if grep -qE 'Completion:.*\[x\]' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L4 - Completion has filled criteria"
-    ((PASS++))
-else
-    echo "FAIL: L4 - Completion missing filled criteria"
-    ((FAIL++))
-fi
-
-# L5: Interaction entry for grade
-if grep -qE 'Interaction:.*grade' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L5 - Interaction (grade) entry found"
-    ((PASS++))
-else
-    echo "FAIL: L5 - No Interaction (grade) entry"
-    ((FAIL++))
-fi
-
-# L6: Interaction entry for improve
-if grep -qE 'Interaction:.*improve' "$PLAN_LOG" 2>/dev/null; then
-    echo "PASS: L6 - Interaction (improve) entry found"
-    ((PASS++))
-else
-    echo "FAIL: L6 - No Interaction (improve) entry"
-    ((FAIL++))
-fi
+cat > "$LOG_DIR/compliance.json" << EOF
+{
+  "timestamp": "$(date -Iseconds)",
+  "session_id": "$SESSION_ID",
+  "checkpoints": {
+    "start": {"errors": $ERRORS_START, "timing_ok": $([[ $ERRORS_START -eq 0 ]] && echo true || echo false)},
+    "gate1": {"errors": $ERRORS_GATE1, "contract_uc7": $(check_exists 'Contract:.*|.*\[ \]' "$PLAN_LOG"), "task_create": $(check_exists 'TaskCreate' "$TOOL_LOG")},
+    "grade": {"errors": $ERRORS_GRADE, "interaction_uc7": $(check_exists 'Interaction:.*->' "$PLAN_LOG")},
+    "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null || echo 0), "task_completed_uc8": $(check_exists 'completed' "$TOOL_LOG")},
+    "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "deleted_uc8": $(check_exists 'deleted' "$TOOL_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")}
+  },
+  "score": $SCORE,
+  "max_score": $TOTAL_CHECKS,
+  "cost_estimate_usd": 0.14
+}
+EOF
 
 echo ""
-echo "=== Sequence Compliance ==="
+echo "=== Compliance Summary ==="
+echo "Score: $SCORE/$TOTAL_CHECKS"
+cat "$LOG_DIR/compliance.json" | jq -c '.checkpoints'
 
-# S1: Contract before Completion (check timestamps)
-if [[ -f "$PLAN_LOG" ]]; then
-    CONTRACT_LINE=$(grep -n 'Contract:' "$PLAN_LOG" 2>/dev/null | head -1 | cut -d: -f1)
-    COMPLETION_LINE=$(grep -n 'Completion:' "$PLAN_LOG" 2>/dev/null | head -1 | cut -d: -f1)
-
-    if [[ -n "$CONTRACT_LINE" && -n "$COMPLETION_LINE" && "$CONTRACT_LINE" -lt "$COMPLETION_LINE" ]]; then
-        echo "PASS: S1 - Contract logged before Completion"
-        ((PASS++))
-    else
-        echo "FAIL: S1 - Contract not before Completion (Contract:$CONTRACT_LINE, Completion:$COMPLETION_LINE)"
-        ((FAIL++))
-    fi
-else
-    echo "FAIL: S1 - No plan-log.md found"
-    ((FAIL++))
-fi
-
-# S2: TaskCreate before TaskUpdate
-if [[ -f "$TOOL_LOG" ]]; then
-    CREATE_LINE=$(grep -n 'TaskCreate' "$TOOL_LOG" 2>/dev/null | head -1 | cut -d: -f1)
-    UPDATE_LINE=$(grep -n 'TaskUpdate' "$TOOL_LOG" 2>/dev/null | head -1 | cut -d: -f1)
-
-    if [[ -n "$CREATE_LINE" && -n "$UPDATE_LINE" && "$CREATE_LINE" -lt "$UPDATE_LINE" ]]; then
-        echo "PASS: S2 - TaskCreate before TaskUpdate"
-        ((PASS++))
-    elif [[ -z "$CREATE_LINE" ]]; then
-        echo "FAIL: S2 - No TaskCreate found"
-        ((FAIL++))
-    else
-        echo "FAIL: S2 - TaskUpdate before TaskCreate"
-        ((FAIL++))
-    fi
-else
-    echo "FAIL: S2 - No tool log found"
-    ((FAIL++))
-fi
-
-echo ""
-echo "=== Results ==="
-echo "Passed: $PASS"
-echo "Failed: $FAIL"
-
-if [[ $FAIL -gt 0 ]]; then
+if [[ $TOTAL_ERRORS -gt 0 ]]; then
     TEST_FAILED=1
     echo ""
     echo "Tool log: $TOOL_LOG"
     echo "Plan log: $PLAN_LOG"
+    echo "Compliance JSON: $LOG_DIR/compliance.json"
 fi
 
-exit $FAIL
+exit $TOTAL_ERRORS

@@ -62,6 +62,11 @@
 **Lesson:** Integration implies checking at integration points (gates), not just final state. Post-hoc artifact analysis misses timing/sequence violations.
 **Source:** UC6+UC8 improvement session - built final-state checker when step-by-step verification was requested
 
+### Checkpoint Polling vs FIFO Streaming
+**Context:** When deciding test architecture for timing verification
+**Lesson:** Checkpoint polling (verify after each gate) is sufficient for gate-level compliance. FIFO streaming adds complexity without proportional benefit - we need "did it happen at the right gate?" not millisecond precision.
+**Source:** Integration test improvement - analyzed FIFO option, chose simpler approach
+
 ## Usage Example
 
 When reviewing protocol changes:

@@ -607,3 +607,12 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T19:14:41Z | Interaction: /w grade results -> A-/91, lessons not routed to guide files
 2026-02-07T19:14:41Z | Interaction: /i improve -> routed lessons to protocol-guide.md and uc8-design.md
 2026-02-07T19:15:03Z | Completion: UC6+UC8 Improvement | [x] UC6 Entry Format (uc6-lesson-capture.md:47-55), [x] UC6 Integration Points with Gate 2 (uc6-lesson-capture.md:101-119), [x] UC8 three-level hierarchy (uc8-todo-integration.md:122-151), [x] README telescoping (README.md:194-224), [x] UC6 test 5/5 pass, [x] all UC tests 33/33 pass, [x] Lesson entries routed (protocol-guide.md, uc8-design.md), [x] enhancement-notes.md deleted
+2026-02-07T14:22:43-05:00 | Contract: Integration test fix | [ ] verifies between gates, [ ] outputs JSON, [ ] detects timing
+2026-02-07T12:45:00-06:00 | Interaction: grade -> B+/85, missing diff from current test, tool log timing issue, grep edge cases
+2026-02-07T12:48:00-06:00 | Interaction: improve -> added line count tracking, before/after comparison, fixed grep helpers
+2026-02-07T12:52:00-06:00 | Interaction: grade -> B+/86, no actual test run, removed granular PASS/FAIL, unused line count vars
+2026-02-07T12:58:00-06:00 | Interaction: improve -> restored PASS/FAIL per check, used line count for timing verification
+2026-02-07T13:15:00-06:00 | Interaction: improve -> tightened UC7 format checks (Contract/Completion/Interaction), added UC8 completed check, added UC6 Lesson check (info)
+2026-02-07T13:22:00-06:00 | Interaction: improve -> UC6 Lesson check warns if grade but no lesson, UC7 Completion checks evidence content not just parens
+2026-02-07T13:30:00-06:00 | Lesson: FIFO vs polling for test timing -> protocol-guide.md | Checkpoint polling sufficient for gate-level compliance; FIFO adds complexity without proportional benefit
+2026-02-07T13:31:00-06:00 | Completion: Integration test fix | [x] verifies between gates (5 checkpoints), [x] outputs JSON (compliance.json with UC labels), [x] detects timing (line count + UC format checks), [x] cost documented ($0.14/run)

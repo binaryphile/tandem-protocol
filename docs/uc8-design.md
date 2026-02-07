@@ -17,46 +17,52 @@
 
 | State | Definition | Content |
 |-------|------------|---------|
-| **Skeleton** | Future phases | IAPI substeps listed, no detail |
-| **Expanded** | Current phase | Substeps shown with `[ ]` checkboxes |
-| **Collapsed** | Completed phases | Substeps REMOVED, parent marked `[x]` |
+| **Skeleton** | Future phases | Description + local expansion instruction (planning deferred) |
+| **Expanded** | Current phase | Full plan: objective, success criteria, changes, tasks, verification |
+| **Collapsed** | Completed phases | Single line with `[x]`, detail PURGED |
 
-**Collapse = remove substeps, keep parent with `[x]`**
+**Key Principles:**
+- **Collapse = purge**: Completed phase detail is removed entirely, not just marked done
+- **Deferred planning**: Future phases are NOT planned until they become current
+- **Fresh Step 1**: Each phase starts with plan mode entry and IAPI analysis
 
 ```
-[x] Phase 1: Auth middleware           ← collapsed (was 4 substeps, now 1 line)
-[ ] Phase 2: Event logging             ← expanded (showing substeps)
-    [ ] Step 1a: Present understanding
-    [ ] Step 1b: Ask questions
-    ...
-[ ] Phase 3: README update             ← skeleton (no substeps yet)
+[x] Phase 1: Auth middleware           ← collapsed (detail PURGED)
+
+[ ] Phase 2: Event logging             ← expanded (full plan below)
+    [Objective, Success Criteria, Changes, Tasks, Verification sections]
+
+[ ] Phase 3: README update             ← skeleton (NOT planned yet)
+*(Expand when this phase starts: run IAPI, define success criteria, tasks)*
 ```
 
 ## Telescoping Pattern
 
 **In Plan File (checkboxes):**
-- **Collapsed completed phases**: Substeps removed, parent marked `[x]`
-- **Expanded current phase**: Substeps shown with `[ ]`
-- **Skeleton future phases**: Listed but not expanded
+- **Collapsed completed phases**: Detail purged, single `[x]` line remains
+- **Expanded current phase**: Full plan with objective, criteria, changes, tasks
+- **Skeleton future phases**: Description + expansion instruction (planning deferred)
 
 **In Tasks API (status):**
 - **Collapse completed steps**: Mark `completed`, then delete at phase end
-- **Expand current step**: Show deliverables with `in_progress`/`pending`
+- **Expand current step**: Show deliverables as `Step Xa:`, `Step Xb:`, etc.
 - **Keep pending steps**: Show as `pending`
 - **Show future phases**: Single `pending` task per phase
+
+**Substep naming:** When a step expands, substeps use letter suffixes: `Step 2a:`, `Step 2b:`, `Step 2c:`, etc.
 
 **Example: Phase 1, Step 2 with 3 deliverables and 3 more phases**
 
 ```
 [completed] Step 1: Plan Validation
-[in_progress] Step 2: Update tandem-protocol.md
-[pending] Step 2: Update UC7 docs
-[pending] Step 2: Create protocol-guide.md
+[in_progress] Step 2a: Update tandem-protocol.md
+[pending] Step 2b: Update UC7 docs
+[pending] Step 2c: Create protocol-guide.md
 [pending] Step 3: Present and await approval
 [pending] Step 4: Post-approval actions
-[pending] Phase 2: Plan File Lifecycle      ← future phase (collapsed)
-[pending] Phase 3: UC Audit                 ← future phase (collapsed)
-[pending] Phase 4: README Rewrite           ← future phase (collapsed)
+[pending] Phase 2: Plan File Lifecycle      ← future phase (skeleton)
+[pending] Phase 3: UC Audit                 ← future phase (skeleton)
+[pending] Phase 4: README Rewrite           ← future phase (skeleton)
 ```
 
 **Note:** Use Tasks API status (completed/in_progress/pending), not checkbox markers in task subjects.

@@ -538,3 +538,8 @@ Note: Work committed without approval gates. Lesson: follow protocol even when m
 2026-02-07T03:47:00Z | Completion: Step 2 | [x] Core benefits prominent (README:1-18), [x] Installation near top (README:21-58), [x] Advanced features in FEATURES.md (79 lines), [x] README ≤200 lines (131)
 2026-02-07T03:51:47Z | Completion: Step 3 - results presented, grade A (96/100) after 2 improve cycles
 2026-02-07T03:51:48Z | Completion: Phase 1 approved - README restructured (114 lines), FEATURES.md created (79 lines)
+2026-02-07T03:55:33Z | Contract: Phase 2 - Interaction logging fixes | [ ] explicit append_to_log in Step 3b, [ ] UC8 skeleton instruction, [ ] UC8 purge principle, [ ] UC8 deferred planning, [ ] format example
+2026-02-07T03:55:34Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T03:57:57Z | Completion: Step 2 | [x] explicit append_to_log in Step 3b (tandem-protocol.md:502-510), [x] UC8 skeleton instruction (uc8-design.md:35), [x] UC8 purge principle (uc8-design.md:27), [x] UC8 deferred planning (uc8-design.md:28), [x] format example inline, [x] Step 2a/2b/2c naming pattern
+2026-02-07T04:02:08Z | Completion: Step 3 - results presented, grade A (96/100) after 1 improve cycle
+2026-02-07T04:02:09Z | Completion: Phase 2 approved - Interaction logging explicit, UC8 design updated with purge/deferred/substep patterns

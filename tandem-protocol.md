@@ -74,7 +74,8 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description
 |------|------|---------|
 | Contract | Step 1d (phase start) | `Contract: Phase 1 - implement auth, 3 success criteria` |
 | Completion | Results delivered against contract | `Completion: Step 2 - auth.go created, 45 lines` |
-| Interaction | User feedback (any step) | `Interaction: grade → B/84, missing edge case` |
+| Interaction | User feedback (any step) | `Interaction: grade → B+/88, missing validation` |
+| | | `Interaction: improve → added input validation` |
 
 ---
 
@@ -499,15 +500,18 @@ if user_response in ["approve", "proceed", "yes"]:
 elif user_response == "grade":
     # Check: unmet criteria, errors/bugs, quality issues, skipped steps
     # Grade deliverable not journey; cite evidence; be honest not generous
-    log_interaction(f"grade → {grade}")
+    timestamp = datetime.now().isoformat() + "Z"
+    append_to_log("plan-log.md", f"{timestamp} | Interaction: grade → {grade}")
 
 elif user_response == "improve":
     make_improvements()
-    log_interaction(f"improve → {changes_made}")
+    timestamp = datetime.now().isoformat() + "Z"
+    append_to_log("plan-log.md", f"{timestamp} | Interaction: improve → {changes_made}")
 
 elif user_response == "feedback":
     address_feedback()
-    log_interaction(f"feedback → {response}")
+    timestamp = datetime.now().isoformat() + "Z"
+    append_to_log("plan-log.md", f"{timestamp} | Interaction: feedback → {response}")
 
 # After any of the above: loop back to Step 3a
 # - Quote this step: "**Current Step:** Step 3b: Await Approval"

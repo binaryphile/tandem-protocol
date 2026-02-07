@@ -533,3 +533,8 @@ Note: Work committed without approval gates. Lesson: follow protocol even when m
 2026-02-07T03:16:08Z | Completion: Step 2 | [x] YOUR_ORG fixed (README.md→Codeberg URLs), [x] tandem.md updated (6 edits), [x] experiments/ removed (17 files), [x] old tests removed (6 files), [x] plan-log.md truncated (532 lines)
 2026-02-07T03:25:25Z | Completion: Step 3 - results presented, grade A+/98
 2026-02-07T03:25:38Z | Completion: Repo Cleanup approved | [x] YOUR_ORG fixed, [x] tandem.md updated, [x] experiments/ removed, [x] old tests removed, [x] plan-log.md truncated, [x] Tasks JSON template added
+2026-02-07T03:42:56Z | Contract: Phase 1 README Restructure | [ ] core benefits first screenful, [ ] installation near top, [ ] advanced in FEATURES.md, [ ] README ≤200 lines
+2026-02-07T03:42:57Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T03:47:00Z | Completion: Step 2 | [x] Core benefits prominent (README:1-18), [x] Installation near top (README:21-58), [x] Advanced features in FEATURES.md (79 lines), [x] README ≤200 lines (131)
+2026-02-07T03:51:47Z | Completion: Step 3 - results presented, grade A (96/100) after 2 improve cycles
+2026-02-07T03:51:48Z | Completion: Phase 1 approved - README restructured (114 lines), FEATURES.md created (79 lines)

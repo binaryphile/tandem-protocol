@@ -108,25 +108,43 @@ if tool_available("TaskCreate"):
 
 ## Plan File Template
 
-When sketching initial plan:
+Plan file must include a **Tasks section** with pre-formatted TaskCreate JSON. This ensures deliverable-specific tasks are defined during planning (when context is fresh), not improvised during execution.
+
+**Rationale:** Without pre-defined JSON, Claude must generate TaskCreate calls from scratch at Step 2, leading to inconsistent task definitions and missed deliverables. Defining tasks in the plan file provides locality - the task definitions live with the plan that created them.
 
 ```markdown
-## Phase List (Todo State)
+# [Phase Name] Plan
 
-### Completed
-(none yet)
+## Objective
+[1-2 sentence summary]
 
-### Current Phase
-- [pending] UC1-A: Use case doc
-- [pending] UC1-B: Design doc
-- [pending] UC1-C: Implementation
+## Success Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 
-### Pending Phases (collapsed)
-- [pending] UC2: Plan/contract distinction
-- [pending] UC3: Plan mode entry
-- [pending] UC4-UC5: Compliance fixes
-- [pending] UC6-UC7: New features (may cut)
+## Changes
+### 1. [Change description]
+[Details, file:line references]
+
+## Tasks
+Step 2 deliverables (copy to TaskCreate calls after approval):
+
+    [
+      {"subject": "[Deliverable 1]", "description": "[Details]", "activeForm": "[Verb]ing [noun]"},
+      {"subject": "[Deliverable 2]", "description": "[Details]", "activeForm": "[Verb]ing [noun]"}
+    ]
+
+## Verification
+[Commands to verify success criteria]
+
+## Commit
+[Commit message]
 ```
+
+**Key requirement:** The Tasks JSON array is copied verbatim to TaskCreate calls after plan approval. This provides:
+- **Locality:** Task definitions live with the plan
+- **Consistency:** Same tasks every time the plan is executed
+- **Completeness:** All deliverables captured during planning when context is fresh
 
 ## Line Budget
 

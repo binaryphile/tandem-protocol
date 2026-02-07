@@ -159,9 +159,12 @@ Each sub-phase maps to protocol steps:
 
 | Step | Plan File Action | Tasks API Action |
 |------|-----------------|------------------|
-| Step 1 (start) | Expand current phase (`[ ]` substeps) | Create tasks with `pending` |
+| Plan mode | Define Tasks JSON section with deliverables | (none yet) |
+| Step 1 (approval) | Expand current phase (`[ ]` substeps) | Create tasks from plan's Tasks JSON |
 | Step completion | Mark `[x]` | Update to `completed` |
 | Step 4c | Collapse phase (remove substeps, `[x]` parent) | Delete completed, create next |
+
+**Critical:** Plan file must include a `## Tasks` section with pre-formatted TaskCreate JSON array. After approval, these are copied verbatim to TaskCreate calls. This ensures deliverable-specific tasks are defined during planning (when context is fresh), not improvised during execution.
 
 ## Project Info
 

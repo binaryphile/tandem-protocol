@@ -18,7 +18,7 @@ This implementation uses **attention activation** - the protocol is always in co
 ### Quick Install (Recommended)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_ORG/tandem-protocol/main/install.sh)
+bash <(curl -fsSL https://codeberg.org/binaryphile/tandem-protocol/raw/branch/main/install.sh)
 ```
 
 This clones to `~/tandem-protocol` and creates the `/tandem` command. Then add to your project's CLAUDE.md:
@@ -34,7 +34,7 @@ If you prefer manual setup:
 
 ```bash
 # 1. Clone to home directory
-cd ~ && git clone https://github.com/YOUR_ORG/tandem-protocol.git
+cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
 
 # 2. Create command symlink
 mkdir -p ~/.claude/commands
@@ -245,19 +245,14 @@ The grading cycle works at both gates. Add grading at both gates for complex or 
 
 ## Testing
 
-This repository includes automated tests to verify installation and protocol compliance.
-
-### Run All Tests
+This repository includes use case tests (`tests/uc*.sh`) that verify protocol compliance patterns:
 
 ```bash
-bash tests/run_all.sh
+# Run a specific test
+bash tests/uc1-step1b.sh
+
+# Run all UC tests
+for t in tests/uc*.sh; do bash "$t"; done
 ```
 
-### What's Tested
-
-- Protocol format verification (4-step structure)
-- Event logging patterns (Contract/Completion/Interaction)
-- No outdated references (Step 5, contract files)
-- Installation scripts
-
-See [tests/README.md](./tests/README.md) for details.
+Tests verify: Step 1b sequencing, plan mode handling, phase transitions, interaction logging, and IAPI stages.

@@ -129,13 +129,16 @@ if plan_file:
             break  # proceed to Step 1a
 
 # Create tasks for protocol steps (telescoped: Step 1 expanded, rest collapsed)
+# After approval, expand Step 2 using Tasks JSON from plan file
 if tool_available("TaskCreate"):
     TaskCreate({"subject": "Step 1a: Present plan understanding", "activeForm": "Presenting understanding"})
     TaskCreate({"subject": "Step 1b: Ask clarifying questions", "activeForm": "Asking questions"})
     TaskCreate({"subject": "Step 1c: Request approval", "activeForm": "Requesting approval"})
     TaskCreate({"subject": "Step 1d: Log Contract entry", "activeForm": "Logging contract"})
     TaskCreate({"subject": "Step 1e: Log Completion entry", "activeForm": "Logging completion"})
-    TaskCreate({"subject": "Step 2: Complete deliverable", "activeForm": "Completing deliverable"})
+    # Step 2 deliverables: copy from plan file's Tasks section
+    for task in plan_file.tasks:
+        TaskCreate(task)  # Pre-defined JSON from plan file
     TaskCreate({"subject": "Step 3: Present and await approval", "activeForm": "Presenting for approval"})
     TaskCreate({"subject": "Step 4: Post-approval actions", "activeForm": "Post-approval actions"})
 ```
@@ -154,6 +157,39 @@ Step 1 is broken into atomic sub-steps to prevent skimming. Execute each sub-ste
 - **Contract entry** (plan-log.md): WHAT - scope, deliverables, success criteria
 
 Iterate on the plan until approved, then log scope as Contract entry.
+
+**Plan File Template:**
+
+```
+# [Phase Name] Plan
+
+## Objective
+[1-2 sentence summary]
+
+## Success Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+
+## Changes
+### 1. [Change description]
+[Details, file:line references]
+
+## Tasks
+Step 2 deliverables (copy to TaskCreate calls after approval):
+
+    [
+      {"subject": "[Deliverable 1]", "description": "[Details]", "activeForm": "[Verb]ing [noun]"},
+      {"subject": "[Deliverable 2]", "description": "[Details]", "activeForm": "[Verb]ing [noun]"}
+    ]
+
+## Verification
+[Commands to verify success criteria]
+
+## Commit
+[Commit message]
+```
+
+The Tasks section ensures deliverable-specific TaskCreate calls are defined during planning, not improvised during execution.
 
 ---
 

@@ -13,6 +13,7 @@ Without structure, Claude Code sessions can feel chaotic:
 
 - **Approval gates** - You decide when to proceed, not Claude
 - **Self-grading** - Ask Claude to evaluate and improve its own work
+- **Lesson capture** - Claude learns your project's patterns as you work
 - **Event logging** - Audit trail of what was agreed and delivered
 - **Multi-phase support** - Structure for projects spanning multiple sessions
 
@@ -105,6 +106,7 @@ Claude: [commits, sets up next phase]
 
 See [FEATURES.md](FEATURES.md) for details on:
 - **Self-grading cycles** - Grade and improve work before committing
+- **Lesson capture** - Route learnings to guides for future sessions
 - **Event logging** - Audit trail with Contract/Completion/Interaction entries
 - **IAPI cognitive stages** - Structured thinking for complex tasks
 - **Multi-phase projects** - Maintain coherence across sessions

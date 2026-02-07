@@ -17,6 +17,19 @@ flowchart TD
 
 The grading cycle works at both gates. Use it for complex or high-stakes work.
 
+## Lesson Capture
+
+As you work, the protocol captures lessons learned and routes them to stage-specific guides:
+
+| Guide | Stage | Example Lessons |
+|-------|-------|-----------------|
+| `investigation-guide.md` | Explore | Search patterns, codebase navigation |
+| `analysis-guide.md` | Understand | Requirement interpretation, edge cases |
+| `planning-guide.md` | Design | Approach selection, success criteria |
+| `protocol-guide.md` | Meta | Protocol improvements, process fixes |
+
+Lessons accumulate across sessions, so Claude gets better at your specific project over time. Each guide includes usage examples showing how lessons should be applied.
+
 ## Event Logging
 
 All protocol events are logged directly to `plan-log.md` using timestamped entries:

@@ -15,7 +15,6 @@
 #   - jq installed
 #   - Write access to ~/.claude/settings.json (backs up and restores)
 #
-# Cost: ~$0.14/run (5 API calls × ~$0.03 each)
 
 set -e
 
@@ -57,7 +56,9 @@ PLAN_LOG_LINES_START=0
 PLAN_LOG_LINES_GATE1=0
 
 get_line_count() {
-    wc -l < "$1" 2>/dev/null || echo 0
+    local count
+    count=$(wc -l < "$1" 2>/dev/null) || count=0
+    echo "${count//[[:space:]]/}"
 }
 
 checkpoint() {
@@ -102,8 +103,10 @@ verify_after_gate1() {
     fi
     # TaskCreate MUST exist now AND must have happened AFTER start (timing check)
     local task_creates
-    task_creates=$(grep -c '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null || echo 0)
-    if [[ $task_creates -gt 0 && $TOOL_LOG_LINES_GATE1 -gt $TOOL_LOG_LINES_START ]]; then
+    task_creates=$(grep -c '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null | tr -d '[:space:]')
+    task_creates=${task_creates:-0}
+    # Debug: echo "DEBUG: task_creates=$task_creates GATE1=$TOOL_LOG_LINES_GATE1 START=$TOOL_LOG_LINES_START"
+    if [[ ${task_creates:-0} -gt 0 && ${TOOL_LOG_LINES_GATE1:-0} -gt ${TOOL_LOG_LINES_START:-0} ]]; then
         echo "  PASS: TaskCreate call (timing verified)"
     else
         echo "  FAIL: TaskCreate call"
@@ -135,7 +138,8 @@ verify_after_improve() {
     local errors=0
     # Check for second Interaction entry with UC7 arrow format
     local count
-    count=$(grep -cE 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null || echo 0)
+    count=$(grep -cE 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]')
+    count=${count:-0}
     if [[ $count -ge 2 ]]; then
         echo "  PASS: Interaction entry for improve ($count with UC7 format)"
     else
@@ -171,13 +175,32 @@ verify_after_gate2() {
     # UC6: Lesson entry - grade/improve cycles should capture non-actionable insights
     # This is a soft requirement: if grade found gaps but no Lesson logged, it's a miss
     local grade_count
-    grade_count=$(grep -cE 'Interaction:.*grade.*->' "$PLAN_LOG" 2>/dev/null || echo 0)
+    grade_count=$(grep -cE 'Interaction:.*grade.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]')
+    grade_count=${grade_count:-0}
     if grep -qE 'Lesson:.*->' "$PLAN_LOG" 2>/dev/null; then
         echo "  PASS: Lesson entry routed (UC6)"
     elif [[ $grade_count -gt 0 ]]; then
         echo "  WARN: Grade occurred but no Lesson captured (UC6 gap)"
     else
         echo "  PASS: No Lesson needed (no grading gaps)"
+    fi
+    return $errors
+}
+
+verify_isolation() {
+    local errors=0
+    # Check if any files leaked to real project
+    if [[ -f "$PROJECT_DIR/bin/fizzbuzz" ]]; then
+        echo "  FAIL: Isolation - bin/fizzbuzz created in real project"
+        ((errors++))
+    else
+        echo "  PASS: Isolation - no files leaked to real project"
+    fi
+    # Check that files were created in workspace
+    if ls "$TEST_CWD"/*.sh "$TEST_CWD"/bin/* 2>/dev/null | grep -q .; then
+        echo "  PASS: Files created in workspace"
+    else
+        echo "  INFO: No deliverables in workspace (may be OK if test failed early)"
     fi
     return $errors
 }
@@ -206,6 +229,10 @@ echo ""
 # Setup
 mkdir -p "$LOG_DIR"
 mkdir -p ~/.claude
+
+# Clear tool log before installing hooks (fresh start for this trial)
+rm -f "$TOOL_LOG"
+touch "$TOOL_LOG"
 
 # Backup existing settings
 if [[ -f ~/.claude/settings.json ]]; then
@@ -246,10 +273,19 @@ sed -i "s/PLACEHOLDER/$$/g" ~/.claude/settings.json
 echo "1. Hooks installed"
 echo "2. Starting session..."
 
-# Create test working directory
+# Create isolated workspace with CLAUDE.md (so Claude treats this as project root)
 TEST_CWD="$LOG_DIR/workspace"
 mkdir -p "$TEST_CWD"
 cd "$TEST_CWD"
+
+# Embed protocol in CLAUDE.md (no @reference - self-contained)
+echo "# Test Project" > "$TEST_CWD/CLAUDE.md"
+cat "$PROTOCOL" >> "$TEST_CWD/CLAUDE.md"
+
+# Initialize git repo (Claude uses git root to determine project)
+git init -q
+git add CLAUDE.md
+git commit -q -m "init"
 
 # Initialize plan-log.md
 touch plan-log.md
@@ -258,8 +294,9 @@ touch plan-log.md
 # PROTOCOL WALK WITH CHECKPOINTS
 # ============================================================================
 
-# Start session with protocol + fizzbuzz task
-RESULT=$(cat "$PROTOCOL" | claude -p "/tandem plan to implement fizzbuzz so we verify protocol compliance" \
+# Start session - CLAUDE.md provides protocol context (no piping)
+# Override PROJECT_ROOT so nix wrapper doesn't cd back to real project
+PROJECT_ROOT="$TEST_CWD" RESULT=$(claude -p "/tandem plan to implement fizzbuzz so we verify protocol compliance" \
     --output-format json \
     --max-turns 15 \
     --permission-mode acceptEdits \
@@ -274,6 +311,9 @@ if [[ -z "$SESSION_ID" ]]; then
 else
     echo "   Session started: $SESSION_ID"
 
+    # Disable set -e for verification section (we want to capture errors, not exit)
+    set +e
+
     # CHECKPOINT 1: After start, before Gate 1
     checkpoint "After session start"
     cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || touch "$PLAN_LOG"
@@ -283,7 +323,7 @@ else
     # Gate 1: Approve plan
     echo "3. Driving through Gate 1..."
     sleep 2
-    claude --resume "$SESSION_ID" -p "proceed" \
+    PROJECT_ROOT="$TEST_CWD" claude --resume "$SESSION_ID" -p "proceed" \
         --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
 
     # CHECKPOINT 2: After Gate 1
@@ -295,7 +335,7 @@ else
     # Grade
     echo "4. Requesting grade..."
     sleep 2
-    claude --resume "$SESSION_ID" -p "grade" \
+    PROJECT_ROOT="$TEST_CWD" claude --resume "$SESSION_ID" -p "grade" \
         --output-format json --max-turns 3 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
 
     # CHECKPOINT 3: After grade
@@ -307,7 +347,7 @@ else
     # Improve
     echo "5. Requesting improve..."
     sleep 2
-    claude --resume "$SESSION_ID" -p "improve" \
+    PROJECT_ROOT="$TEST_CWD" claude --resume "$SESSION_ID" -p "improve" \
         --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
 
     # CHECKPOINT 4: After improve
@@ -319,7 +359,7 @@ else
     # Gate 2: Approve results
     echo "6. Driving through Gate 2..."
     sleep 2
-    claude --resume "$SESSION_ID" -p "proceed" \
+    PROJECT_ROOT="$TEST_CWD" claude --resume "$SESSION_ID" -p "proceed" \
         --output-format json --max-turns 10 --permission-mode acceptEdits 2>/dev/null > /dev/null || true
 
     # CHECKPOINT 5: After Gate 2
@@ -327,19 +367,28 @@ else
     cp "$TEST_CWD/plan-log.md" "$PLAN_LOG" 2>/dev/null || true
     verify_after_gate2
     ERRORS_GATE2=$?
+
+    # CHECKPOINT 6: Isolation
+    checkpoint "Isolation"
+    verify_isolation
+    ERRORS_ISOLATION=$?
+
+    # Re-enable set -e
+    set -e
 fi
 
 # ============================================================================
 # GENERATE COMPLIANCE JSON
 # ============================================================================
 
-TOTAL_CHECKS=11  # 2+3+1+2+2 checks across all checkpoints (added UC8 completed check)
-TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2))
+ERRORS_ISOLATION=${ERRORS_ISOLATION:-0}
+TOTAL_CHECKS=12  # 2+3+1+2+2+1 checks across all checkpoints (added isolation check)
+TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2 + ERRORS_ISOLATION))
 SCORE=$((TOTAL_CHECKS - TOTAL_ERRORS))
 
 # Helper for safe boolean checks (handles missing files)
 check_exists() { grep -q "$1" "$2" 2>/dev/null && echo true || echo false; }
-check_count() { local c; c=$(grep -c "$1" "$2" 2>/dev/null || echo 0); [[ $c -ge $3 ]] && echo true || echo false; }
+check_count() { local c; c=$(grep -c "$1" "$2" 2>/dev/null | tr -d '[:space:]'); c=${c:-0}; [[ $c -ge $3 ]] && echo true || echo false; }
 
 cat > "$LOG_DIR/compliance.json" << EOF
 {
@@ -349,12 +398,12 @@ cat > "$LOG_DIR/compliance.json" << EOF
     "start": {"errors": $ERRORS_START, "timing_ok": $([[ $ERRORS_START -eq 0 ]] && echo true || echo false)},
     "gate1": {"errors": $ERRORS_GATE1, "contract_uc7": $(check_exists 'Contract:.*|.*\[ \]' "$PLAN_LOG"), "task_create": $(check_exists 'TaskCreate' "$TOOL_LOG")},
     "grade": {"errors": $ERRORS_GRADE, "interaction_uc7": $(check_exists 'Interaction:.*->' "$PLAN_LOG")},
-    "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null || echo 0), "task_completed_uc8": $(check_exists 'completed' "$TOOL_LOG")},
-    "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "deleted_uc8": $(check_exists 'deleted' "$TOOL_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")}
+    "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(c=$(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]'); echo ${c:-0}), "task_completed_uc8": $(check_exists 'completed' "$TOOL_LOG")},
+    "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "deleted_uc8": $(check_exists 'deleted' "$TOOL_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")},
+    "isolation": {"errors": $ERRORS_ISOLATION, "no_leak": $([[ ! -f "$PROJECT_DIR/bin/fizzbuzz" ]] && echo true || echo false)}
   },
   "score": $SCORE,
-  "max_score": $TOTAL_CHECKS,
-  "cost_estimate_usd": 0.14
+  "max_score": $TOTAL_CHECKS
 }
 EOF
 

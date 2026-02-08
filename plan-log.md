@@ -616,3 +616,12 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T13:22:00-06:00 | Interaction: improve -> UC6 Lesson check warns if grade but no lesson, UC7 Completion checks evidence content not just parens
 2026-02-07T13:30:00-06:00 | Lesson: FIFO vs polling for test timing -> protocol-guide.md | Checkpoint polling sufficient for gate-level compliance; FIFO adds complexity without proportional benefit
 2026-02-07T13:31:00-06:00 | Completion: Integration test fix | [x] verifies between gates (5 checkpoints), [x] outputs JSON (compliance.json with UC labels), [x] detects timing (line count + UC format checks), [x] cost documented ($0.14/run)
+2026-02-07T14:00:00-06:00 | Contract: Phase 2 - Test isolation | [ ] CLAUDE.md embedded, [ ] git repo in workspace, [ ] no piping, [ ] verify_isolation added, [ ] PROJECT_ROOT override
+2026-02-07T15:50:00-06:00 | Interaction: debug -> nix wrapper PROJECT_ROOT override defeats cd isolation
+2026-02-07T15:55:00-06:00 | Interaction: improve -> added PROJECT_ROOT="$TEST_CWD" to all claude invocations
+2026-02-07T16:00:00-06:00 | Interaction: debug -> set -e exits before capturing verify_* return values
+2026-02-07T16:05:00-06:00 | Interaction: improve -> added set +e/set -e around verification section
+2026-02-07T16:10:00-06:00 | Interaction: debug -> grep -c outputs newlines causing arithmetic errors
+2026-02-07T16:15:00-06:00 | Interaction: improve -> added tr -d sanitization to all grep -c calls
+2026-02-07T16:20:00-06:00 | Completion: Phase 2 - Test isolation | [x] CLAUDE.md embedded (lines 271-273), [x] git repo in workspace (lines 275-278), [x] no piping (line 292), [x] verify_isolation added (lines 184-202), [x] PROJECT_ROOT override (lines 292,317,329,341,353), [x] set +e around verification (lines 316,372), [x] grep sanitization (lines 106,141,178), [x] test score 7/12 with isolation PASS
+2026-02-07T20:15:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] tests/fizzbuzz.sh passes 6/6

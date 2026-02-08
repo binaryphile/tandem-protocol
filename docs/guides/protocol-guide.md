@@ -67,6 +67,21 @@
 **Lesson:** Checkpoint polling (verify after each gate) is sufficient for gate-level compliance. FIFO streaming adds complexity without proportional benefit - we need "did it happen at the right gate?" not millisecond precision.
 **Source:** Integration test improvement - analyzed FIFO option, chose simpler approach
 
+### Environment Isolation: Override wrapper variables
+**Context:** When running Claude sessions in isolated test directories
+**Lesson:** `cd` alone doesn't isolate - nix wrappers may reset working directory via PROJECT_ROOT. Set `PROJECT_ROOT="$TEST_CWD"` before invoking claude. Also need CLAUDE.md + git init in workspace for Claude to recognize project root.
+**Source:** Integration test isolation - traced bin/claude wrapper overriding test directory
+
+### Test Infrastructure: Disable set -e around error capture
+**Context:** When capturing return values from verification functions
+**Lesson:** `set -e` causes script exit before `$?` is captured if function returns non-zero. Use `set +e` before verification calls, `set -e` after, or use `! command` to bypass errexit while preserving return value.
+**Source:** Integration test debugging - verify_* functions exiting script, cleanup deleting evidence
+
+### Hook Hygiene: Clear logs after hooks installed
+**Context:** When using PreToolUse hooks to capture tool calls
+**Lesson:** Install hooks first (pointing to test directory), then clear the log file. Otherwise stale hooks from previous runs capture unrelated sessions. Also sanitize grep -c output with `tr -d '[:space:]'` - it can contain newlines.
+**Source:** Integration test debugging - tool log contained commands from interactive session
+
 ## Usage Example
 
 When reviewing protocol changes:

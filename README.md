@@ -147,8 +147,12 @@ All events logged to `plan-log.md`:
 |-------|------|--------|
 | Contract | Gate 1 approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
 | Completion | Gate 2 approval | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
-| Interaction | Any grade/improve | `TIMESTAMP \| Interaction: grade -> B+/88, reason` |
+| Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
 | Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
+
+Interaction examples:
+- `Interaction: grade -> B+/88, missing edge case`
+- `Interaction: improve -> added edge case handling`
 
 ## Plan File Template
 

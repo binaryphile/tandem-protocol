@@ -59,10 +59,10 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description | [checkboxes with evidence]
 ```
 2026-02-06T14:30:00Z | Contract: Phase 1 - auth middleware | [ ] middleware, [ ] tests, [ ] docs
 2026-02-06T14:35:00Z | Completion: Step 1 - plan validated, approval received
-2026-02-06T15:00:00Z | Interaction: /p grade → B/84, missing edge case handling
-2026-02-06T15:05:00Z | Interaction: /i improve → added edge case
+2026-02-06T15:00:00Z | Interaction: /p grade -> B/84, missing edge case handling
+2026-02-06T15:05:00Z | Interaction: /i improve -> added edge case
 2026-02-06T15:30:00Z | Completion: Step 2 | [x] middleware (auth.go:45), [x] tests (auth_test.go), [x] docs (README:12)
-2026-02-06T15:45:00Z | Interaction: /w grade → A-/91; /i → fixed edge case
+2026-02-06T15:45:00Z | Interaction: /w grade -> A-/91; /i -> fixed edge case
 2026-02-06T15:50:00Z | Completion: Phase 1 approved
 
 # Example with changes:
@@ -75,7 +75,7 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description | [checkboxes with evidence]
 |---------|---------------------------|--------------|
 | T1 | Contract entry format with checkboxes | `Contract:.*\[ \]` |
 | T2 | Completion entry format with filled checkboxes | `Completion:.*\[x\]` |
-| T3 | Interaction entry format | `Interaction:.*→` |
+| T3 | Interaction entry format | `Interaction:.*->` |
 | T4 | No contract file references | NOT `phase-.*-contract.md` |
 | T5 | Completion copies Contract criteria | `copy.*Contract.*criteria\|criteria.*verbatim` |
 

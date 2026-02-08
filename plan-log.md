@@ -627,4 +627,19 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-07T16:45:00-06:00 | Contract: Phase 3 - Fix Interaction format | [ ] README generic format, [ ] README examples, [ ] uc7-interaction-logging.md ASCII, [ ] uc7-design.md ASCII, [ ] test score 9/12+
 2026-02-07T16:50:00-06:00 | Interaction: implement -> 5 edits (README format+examples, uc7-interaction-logging, uc7-design replace_all)
 2026-02-07T16:55:00-06:00 | Completion: Phase 3 | [x] README generic format (line 150), [x] README examples (lines 152-154), [x] uc7-interaction-logging.md ASCII (replace_all), [x] uc7-design.md ASCII (replace_all), [x] test score 8/12 (improved from 7, Interaction checks now PASS)
+2026-02-07T17:00:00-06:00 | Contract: Phase 4 - TaskAPI compliance | [ ] test TaskCreate at Gate 1, [ ] test in_progress at Gate 1, [ ] test completed during work, [ ] test deleted at Gate 2, [ ] test score 10/12+
 2026-02-07T20:15:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] tests/fizzbuzz.sh passes 6/6
+2026-02-08T05:45:00Z | Contract: Phase 4 - TaskAPI Compliance | [ ] README.md has TaskAPI section in main flow, [ ] Test score 10/12+, [ ] tool-calls.log shows TaskCreate, [ ] tool-calls.log shows TaskUpdate
+2026-02-08T06:30:00Z | Interaction: grade -> C/70, instructions not precise enough, repeated feedback about format
+2026-02-08T06:31:00Z | Interaction: improve -> changed TaskAPI format from key=value to JSON objects
+2026-02-08T06:35:00Z | Interaction: grade -> C/70, instructions still not producing TaskAPI calls
+2026-02-08T06:36:00Z | Lesson: Format alone insufficient -> protocol-guide.md | precise JSON format added but test Claude still doesn't invoke TaskCreate/TaskUpdate tools
+2026-02-08T06:45:00Z | Completion: Phase 4 - TaskAPI Investigation | [x] README.md has TaskAPI section (lines 151-183), [x] Bash heredoc format (UC7 8/8), [-] Test score 8/12 (not 10/12+), [-] TaskCreate not invoked, [-] TaskUpdate not invoked
+2026-02-08T06:45:01Z | Lesson: Protocol instructions can't force tool invocation -> protocol-guide.md | UC7 logging works (executable bash commands), UC8 TaskAPI fails (description of tools to invoke) - Claude executes commands but doesn't invoke described tools
+2026-02-08T16:30:00Z | Completion: Phase 5 - Understand the System | [x] Root cause identified (UC8 violated Cockburn), [x] UC8 rewritten with intent language, [x] Design doc updated with mechanism selection, [x] README gate actions updated, [x] Integration test updated for intent verification
+2026-02-08T17:00:00Z | Completion: Phase 6 - Make TaskAPI Reliable | [x] README installation includes system-reminder (heredoc), [x] README gate actions restored with TaskAPI mandatory, [x] UC8 design reflects system-reminder enforcement, [x] tandem.md has backup system-reminder
+2026-02-08T17:30:00Z | Interaction: improve -> empirical test showed system-reminder does NOT reliably trigger TaskCreate (0/2 calls); updated design to reflect plan file as primary, TaskAPI as best-effort; updated integration test to require plan file, report TaskAPI as bonus
+2026-02-08T17:45:00Z | Interaction: debugging TaskAPI compliance -> found interactive=79 calls, automated=0; syntax trigger theory
+2026-02-08T17:50:00Z | Interaction: improve (Agans Rule 9 verification) -> system-reminder test: 2 TaskAPI calls WITH vs 0 WITHOUT
+2026-02-08T17:50:01Z | Lesson: Rigorous empirical testing required -> protocol-guide | Before concluding "can't be fixed", run controlled A/B test with instrumentation
+2026-02-08T17:50:02Z | Lesson: Rule 9 verification critical -> protocol-guide | "If you didn't fix it, it ain't fixed" applies to debugging conclusions too - must verify "unfixable" claims

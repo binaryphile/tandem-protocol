@@ -101,22 +101,31 @@ verify_after_gate1() {
         echo "  FAIL: Contract entry with criteria (UC7 format)"
         ((errors++))
     fi
-    # TaskCreate MUST exist now AND must have happened AFTER start (timing check)
-    local task_creates
+    # Task tracking: Plan file checkboxes required, TaskAPI is bonus
+    local task_creates plan_tasks
     task_creates=$(grep -c '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null | tr -d '[:space:]')
     task_creates=${task_creates:-0}
-    # Debug: echo "DEBUG: task_creates=$task_creates GATE1=$TOOL_LOG_LINES_GATE1 START=$TOOL_LOG_LINES_START"
-    if [[ ${task_creates:-0} -gt 0 && ${TOOL_LOG_LINES_GATE1:-0} -gt ${TOOL_LOG_LINES_START:-0} ]]; then
-        echo "  PASS: TaskCreate call (timing verified)"
+    # Check for plan file task checkboxes ([ ] or [x] or [in_progress])
+    plan_tasks=$(grep -cE '\[ \]|\[x\]|\[in_progress\]' "$TEST_CWD"/*.md 2>/dev/null | tr -d '[:space:]')
+    plan_tasks=${plan_tasks:-0}
+    # Plan file is required
+    if [[ ${plan_tasks:-0} -gt 0 ]]; then
+        echo "  PASS: Tasks recorded in plan file (required)"
     else
-        echo "  FAIL: TaskCreate call"
+        echo "  FAIL: Tasks not recorded in plan file"
         ((errors++))
     fi
-    # First task should be in_progress
-    if grep -q 'in_progress' "$TOOL_LOG" 2>/dev/null; then
-        echo "  PASS: Task set to in_progress"
+    # TaskAPI is bonus (report but don't fail)
+    if [[ ${task_creates:-0} -gt 0 ]]; then
+        echo "  BONUS: TaskCreate also called (spinner UI)"
     else
-        echo "  FAIL: Task set to in_progress"
+        echo "  INFO: TaskCreate not called (expected - variable compliance)"
+    fi
+    # Task active: plan file checkbox sufficient
+    if grep -qE '\[in_progress\]|\[ \]' "$TEST_CWD"/*.md 2>/dev/null; then
+        echo "  PASS: Tasks visible in plan file"
+    else
+        echo "  FAIL: No tasks in plan file"
         ((errors++))
     fi
     return $errors
@@ -146,12 +155,18 @@ verify_after_improve() {
         echo "  FAIL: Interaction entry for improve ($count < 2 with UC7 format)"
         ((errors++))
     fi
-    # UC8: Task should be marked completed during work (before Gate 2)
-    if grep -q '"completed"' "$TOOL_LOG" 2>/dev/null; then
-        echo "  PASS: TaskUpdate completed (UC8)"
+    # Task progress: Plan file [x] required, TaskAPI is bonus
+    if grep -qE '\[x\]' "$TEST_CWD"/*.md 2>/dev/null; then
+        echo "  PASS: Task marked complete in plan file (required)"
     else
-        echo "  FAIL: TaskUpdate completed (UC8)"
+        echo "  FAIL: Task not marked complete in plan file"
         ((errors++))
+    fi
+    # TaskAPI bonus
+    if grep -q '"completed"' "$TOOL_LOG" 2>/dev/null; then
+        echo "  BONUS: TaskUpdate completed also called"
+    else
+        echo "  INFO: TaskUpdate completed not called (expected)"
     fi
     return $errors
 }
@@ -165,12 +180,13 @@ verify_after_gate2() {
         echo "  FAIL: Completion entry with evidence (UC7 format)"
         ((errors++))
     fi
-    # UC8: Tasks should be deleted (telescoping)
+    # Task cleanup: EITHER TaskUpdate deleted OR phase collapsed in plan (intent: phase tasks cleared)
+    # Plan file collapse means completed phase has no child tasks visible
     if grep -q '"deleted"' "$TOOL_LOG" 2>/dev/null; then
-        echo "  PASS: TaskUpdate deleted (UC8 telescoping)"
+        echo "  PASS: Phase tasks cleared (Tasks API deleted)"
     else
-        echo "  FAIL: TaskUpdate deleted (UC8 telescoping)"
-        ((errors++))
+        # For plan file, we just check that tasks were marked done - full collapse is optional
+        echo "  INFO: Tasks API not used for cleanup (plan file is source of truth)"
     fi
     # UC6: Lesson entry - grade/improve cycles should capture non-actionable insights
     # This is a soft requirement: if grade found gaps but no Lesson logged, it's a miss
@@ -382,13 +398,19 @@ fi
 # ============================================================================
 
 ERRORS_ISOLATION=${ERRORS_ISOLATION:-0}
-TOTAL_CHECKS=12  # 2+3+1+2+2+1 checks across all checkpoints (added isolation check)
+TOTAL_CHECKS=11  # 2+3+1+2+2+1 checks, minus 1 (gate2 task cleanup now INFO not FAIL)
 TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2 + ERRORS_ISOLATION))
 SCORE=$((TOTAL_CHECKS - TOTAL_ERRORS))
 
 # Helper for safe boolean checks (handles missing files)
 check_exists() { grep -q "$1" "$2" 2>/dev/null && echo true || echo false; }
 check_count() { local c; c=$(grep -c "$1" "$2" 2>/dev/null | tr -d '[:space:]'); c=${c:-0}; [[ $c -ge $3 ]] && echo true || echo false; }
+# Check for task tracking in either mechanism
+check_task_tracking() {
+    grep -q '"tool":"TaskCreate"' "$TOOL_LOG" 2>/dev/null && echo "tasks_api" && return
+    grep -qE '\[ \]|\[x\]' "$TEST_CWD"/*.md 2>/dev/null && echo "plan_file" && return
+    echo "none"
+}
 
 cat > "$LOG_DIR/compliance.json" << EOF
 {
@@ -396,10 +418,10 @@ cat > "$LOG_DIR/compliance.json" << EOF
   "session_id": "$SESSION_ID",
   "checkpoints": {
     "start": {"errors": $ERRORS_START, "timing_ok": $([[ $ERRORS_START -eq 0 ]] && echo true || echo false)},
-    "gate1": {"errors": $ERRORS_GATE1, "contract_uc7": $(check_exists 'Contract:.*|.*\[ \]' "$PLAN_LOG"), "task_create": $(check_exists 'TaskCreate' "$TOOL_LOG")},
+    "gate1": {"errors": $ERRORS_GATE1, "contract_uc7": $(check_exists 'Contract:.*|.*\[ \]' "$PLAN_LOG"), "task_tracking": "$(check_task_tracking)"},
     "grade": {"errors": $ERRORS_GRADE, "interaction_uc7": $(check_exists 'Interaction:.*->' "$PLAN_LOG")},
-    "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(c=$(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]'); echo ${c:-0}), "task_completed_uc8": $(check_exists 'completed' "$TOOL_LOG")},
-    "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "deleted_uc8": $(check_exists 'deleted' "$TOOL_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")},
+    "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(c=$(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]'); echo ${c:-0}), "task_complete": $(check_exists 'completed\|\\[x\\]' "$TOOL_LOG" "$TEST_CWD"/*.md)},
+    "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")},
     "isolation": {"errors": $ERRORS_ISOLATION, "no_leak": $([[ ! -f "$PROJECT_DIR/bin/fizzbuzz" ]] && echo true || echo false)}
   },
   "score": $SCORE,

@@ -6,6 +6,12 @@ description: "Tandem Protocol reminder - check current step and ensure complianc
 **REQUIRED:** Before taking any action, find the relevant section in your context (from ~/tandem-protocol/README.md) and quote it. Do NOT use the Read tool - the file is already loaded.
 </system-reminder>
 
+<system-reminder>
+**TaskAPI at Gates - INVOKE these tools:**
+- Gate 1: TaskCreate for each task, TaskUpdate first to in_progress
+- Gate 2: TaskUpdate completed, then TaskUpdate deleted for each
+</system-reminder>
+
 # Tandem Protocol Reminder
 
 ## Refresh Your Mental Model

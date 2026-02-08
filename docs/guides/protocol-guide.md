@@ -82,6 +82,31 @@
 **Lesson:** Install hooks first (pointing to test directory), then clear the log file. Otherwise stale hooks from previous runs capture unrelated sessions. Also sanitize grep -c output with `tr -d '[:space:]'` - it can contain newlines.
 **Source:** Integration test debugging - tool log contained commands from interactive session
 
+### Read Your Own Docs Before Guessing
+**Context:** When documenting tool call formats or API usage
+**Lesson:** Don't guess or invent formats - look up the actual documentation first. Use WebSearch and WebFetch to find official docs (e.g., code.claude.com/docs/en/hooks for tool_input schemas). Multiple wrong guesses waste turns and erode trust.
+**Source:** TaskAPI documentation - tried XML, function-call syntax, and other invented formats before reading the hooks reference
+
+### Format Alone Insufficient for Tool Invocation
+**Context:** When documenting tool calls in protocol
+**Lesson:** Showing precise JSON format matching tool_input schema doesn't guarantee invocation. Claude executes bash commands (directly actionable) but doesn't necessarily invoke described tools (requires interpretation). UC7 logging works; UC8 TaskAPI doesn't.
+**Source:** Phase 4 TaskAPI investigation - JSON format correct but test Claude never called TaskCreate/TaskUpdate
+
+### Commands Execute, Descriptions Don't
+**Context:** When writing protocol instructions
+**Lesson:** Bash heredoc commands get executed verbatim. Tool invocation instructions ("Use TaskCreate tool with these parameters") are interpreted, not executed. For reliable compliance, prefer executable commands over descriptions of actions.
+**Source:** UC7 vs UC8 comparison - bash heredoc 100% compliance, TaskAPI invocation 0% compliance
+
+### Rigorous Empirical Testing Required
+**Context:** Before concluding a mechanism "can't be fixed"
+**Lesson:** Run controlled A/B test with instrumentation before declaring something unfixable. Informal observations are insufficient - need quantifiable comparison (e.g., "2 calls WITH vs 0 calls WITHOUT").
+**Source:** TaskAPI debugging - initial conclusion "system-reminder doesn't work" was based on informal test; rigorous A/B test showed 2 vs 0 difference
+
+### Rule 9 Applies to Debugging Conclusions
+**Context:** When debugging leads to "this can't work" conclusion
+**Lesson:** "If you didn't fix it, it ain't fixed" applies to debugging conclusions too. Before accepting "unfixable", verify the negative claim with same rigor as you'd verify a fix. Otherwise you may abandon a working solution.
+**Source:** TaskAPI debugging - nearly concluded system-reminder ineffective, then rigorous test showed it DOES trigger TaskAPI calls (2 vs 0)
+
 ## Usage Example
 
 When reviewing protocol changes:

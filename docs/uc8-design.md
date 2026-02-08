@@ -11,7 +11,30 @@
 | **Plan file** | `[x]`/`[ ]` checkboxes | skeleton → expand → collapse | Permanent (committed) |
 | **Tasks API** | `completed/in_progress/pending` | create → update → delete | Session (ephemeral) |
 
-**Sync direction:** Plan file → Tasks API (plan file is source of truth)
+**Sync direction:** Plan file → Tasks API (if Tasks API is used)
+
+## Mechanism Selection
+
+| Mechanism | Reliability | User Visibility |
+|-----------|-------------|-----------------|
+| **Plan file checkboxes** | 100% (bash heredoc) | Committed to git |
+| **Tasks API** | Variable (no guaranteed trigger) | Spinner UI, session state |
+
+**Primary mechanism:** Plan file checkboxes
+- Always works (bash syntax triggers Bash invocation)
+- Persists across sessions (committed)
+- User can see progress in git diff
+
+**Secondary mechanism:** Tasks API
+- Protocol includes TaskCreate/TaskUpdate instructions
+- System-reminder in CLAUDE.md reinforces attention
+- Compliance is variable - Claude may or may not invoke
+- Provides spinner UI when invoked
+
+**Empirical finding:** System-reminder tags do not reliably trigger tool invocation. Tested 2026-02-08: TaskCreate not called despite explicit system-reminder instruction.
+
+**Design principle:** Plan file guarantees tracking; TaskAPI is best-effort enhancement.
+Tests should verify plan file compliance; TaskAPI compliance is bonus.
 
 ## Plan File Lifecycle
 

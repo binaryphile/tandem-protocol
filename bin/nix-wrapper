@@ -14,7 +14,7 @@ main() {
   # IN_NIX_DEVELOP is set by flake.nix shellHook
   # Change to PROJECT_ROOT if defined and not currently there (useful for subprojects)
   (( IN_NIX_DEVELOP )) && [[ -n "$PROJECT_ROOT" && $PWD != "$PROJECT_ROOT" ]] &&
-    cue cd "$PROJECT_ROOT"
+    cue cd "$PROJECT_ROOT" >&2
 
   (( IN_NIX_DEVELOP )) && exec "$prog" "$@" || exec nix develop -c "$asCalled" "$@"
 }
@@ -22,7 +22,7 @@ main() {
 Yellow=$'\e[93m'
 Reset=$'\e[0m'
 
-# cue runs its arguments as a command after echoing them to stdout in yellow.
+# cue runs its arguments as a command after echoing them in yellow.
 cue() {
   local output
   printf -v output '%q ' "$@"

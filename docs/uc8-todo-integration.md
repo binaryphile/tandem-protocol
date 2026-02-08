@@ -89,7 +89,7 @@ LLM enters a new phase or completes a step within current phase.
    [ ] Phase 3: README update          ← skeleton
    ```
 3. LLM completes Plan stage, reaches Gate 1, user approves
-4. LLM marks Plan `[x]`, expands Implement with deliverable tasks, syncs to Tasks API:
+4. LLM marks Plan `[x]`, expands Implement with deliverable tasks, records tasks in tracking system:
    **Plan file:**
    ```
    [ ] Phase 1: Auth middleware
@@ -100,10 +100,10 @@ LLM enters a new phase or completes a step within current phase.
            [ ] Update docs
    [ ] Phase 2: Event logging          ← skeleton
    ```
-   **Tasks API:** TaskCreate for each deliverable, first `in_progress`
-5. LLM completes deliverables, marks `[x]` in plan, updates Tasks API to `completed`
+   **Task tracking:** LLM records planned deliverables with first task active
+5. LLM completes deliverables, marks `[x]` in plan, marks tasks complete in tracking system
 6. LLM reaches Gate 2, user approves
-7. LLM collapses phase (removes stages, marks parent `[x]`), deletes Tasks API entries:
+7. LLM collapses phase (removes stages, marks parent `[x]`), clears phase task records:
    **Plan file:**
    ```
    [x] Phase 1: Auth middleware        ← collapsed
@@ -126,9 +126,9 @@ LLM enters a new phase or completes a step within current phase.
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | Phase entered | Plan file: Plan/Implement stages added with `[ ]` |
-| Gate 1 approved | Plan `[x]`, Implement expanded with tasks, Tasks API synced |
-| Task completed | Plan file: task `[x]`, Tasks API: `completed` |
-| Gate 2 approved | Plan file: collapse phase, Tasks API: all tasks `deleted` |
+| Gate 1 approved | Plan `[x]`, Implement expanded with tasks, task tracking updated |
+| Task completed | Plan file: task `[x]`, task marked complete in tracking |
+| Gate 2 approved | Plan file: collapse phase, phase tasks cleared from tracking |
 | Multiple phases | Current expanded, completed collapsed, future as skeletons |
 
 ## Three-Level Hierarchy
@@ -178,38 +178,37 @@ For complex phases (like UC implementations), the Tasks API tracks deliverables 
 
 ## Integration Points in Protocol
 
-| Event | Plan File Action | Tasks API Action |
-|-------|-----------------|------------------|
+| Event | Plan File Action | Task Tracking Action |
+|-------|-----------------|----------------------|
 | Enter phase | Add Plan/Implement stages with `[ ]` | (none yet) |
-| Gate 1 approval | Mark Plan `[x]`, expand Implement tasks | TaskCreate for each deliverable, first `in_progress` |
-| Task completion | Mark task `[x]` | TaskUpdate to `completed`, next to `in_progress` |
-| Gate 2 approval | Mark Implement `[x]`, collapse phase | TaskUpdate `deleted` for all phase tasks |
+| Gate 1 approval | Mark Plan `[x]`, expand Implement tasks | Record deliverables, mark first active |
+| Task completion | Mark task `[x]` | Mark task complete, next active |
+| Gate 2 approval | Mark Implement `[x]`, collapse phase | Clear phase tasks |
 
-## Locality: TaskAPI Calls in Plan File
+## Locality: Gate Instructions in Plan File
 
-**Critical:** Plan files must include explicit TaskAPI instructions at trigger points. Claude executes what it sees at the moment of action.
+**Critical:** Plan files must include explicit gate instructions at trigger points. Claude executes what it sees at the moment of action.
 
 **Plan file template with locality:**
 ```markdown
 ## At Gate 1 Approval
-- Mark Plan stage `[x]}` in this file
+- Mark Plan stage `[x]` in this file
 - Expand Implement stage with deliverable tasks
-- TaskCreate for each task in Tasks JSON below
-- TaskUpdate first task to `in_progress`
+- Record tasks in tracking system (first task active)
 - Log Contract entry to plan-log.md
 
 ## At Gate 2 Approval
 - Mark Implement stage `[x]` in this file
 - Collapse phase (remove stages, mark phase `[x]`)
-- TaskUpdate `deleted` for each task (telescope clean)
+- Clear phase tasks from tracking
 - Log Completion entry to plan-log.md
 - Commit deliverable + plan-log.md
 
 ## Tasks
-[JSON array copied verbatim to TaskCreate calls after Gate 1]
+[Deliverables to track - checkboxes in plan file are the source of truth]
 ```
 
-**Why locality matters:** Without explicit instructions at the trigger point, Claude may forget to sync Tasks API even if the protocol mentions it elsewhere.
+**Why locality matters:** Without explicit instructions at the trigger point, Claude may forget to update tracking even if the protocol mentions it elsewhere.
 
 ## Project Info
 

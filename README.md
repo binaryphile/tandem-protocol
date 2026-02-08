@@ -30,7 +30,18 @@ mkdir -p ~/.claude/commands
 ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
 
 # Add to your project's CLAUDE.md
-echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> CLAUDE.md
+cat >> CLAUDE.md << 'EOF'
+
+# Tandem Protocol
+@~/tandem-protocol/README.md
+
+<system-reminder>
+**TaskAPI at Gates - INVOKE these tools:**
+- Gate 1 approval: Call TaskCreate for each task, then TaskUpdate first to in_progress
+- Gate 2 approval: Call TaskUpdate completed for each, then TaskUpdate deleted for each
+These are Claude Code tools - invoke them directly, do not just describe the calls.
+</system-reminder>
+EOF
 ```
 
 **Verify:** Start Claude Code, then run `/tandem plan to X so Y`
@@ -139,9 +150,71 @@ Checklist before requesting approval:
 
 Do not request "May I proceed?" without these sections in the plan file.
 
+**GATE 1 ACTIONS** (when user says "proceed"):
+
+1. Log Contract:
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
+EOF
+```
+
+2. Use TaskCreate tool for each task:
+```json
+{"subject": "Task 1", "description": "Details", "activeForm": "Working on task 1"}
+{"subject": "Task 2", "description": "Details", "activeForm": "Working on task 2"}
+```
+
+3. Use TaskUpdate tool:
+```json
+{"taskId": "1", "status": "in_progress"}
+```
+
+**STOP: Do not implement until Contract logged AND TaskCreate called AND TaskUpdate called.**
+
+**GATE 2 ACTIONS** (when user approves results):
+
+1. Use TaskUpdate tool for each task:
+```json
+{"taskId": "1", "status": "completed"}
+{"taskId": "2", "status": "completed"}
+```
+
+2. Log Completion:
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:30:00Z | Completion: Phase 1 | [x] criterion1 (evidence), [x] criterion2 (evidence)
+EOF
+```
+
+3. Use TaskUpdate tool to delete:
+```json
+{"taskId": "1", "status": "deleted"}
+{"taskId": "2", "status": "deleted"}
+```
+
+4. Commit:
+```bash
+git add deliverable.py plan-log.md && git commit -m "Phase 1 complete"
+```
+
 ## Event Logging
 
-All events logged to `plan-log.md`:
+All events logged to `plan-log.md` via append:
+
+**On "grade"** (log immediately, then re-present):
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
+EOF
+```
+
+**On "improve"** (log immediately, then make changes):
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
+EOF
+```
 
 | Entry | When | Format |
 |-------|------|--------|
@@ -150,9 +223,16 @@ All events logged to `plan-log.md`:
 | Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
 | Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
 
-Interaction examples:
-- `Interaction: grade -> B+/88, missing edge case`
-- `Interaction: improve -> added edge case handling`
+## TaskAPI at Gates
+
+TaskCreate and TaskUpdate are Claude Code tools. Invoke at gates for spinner UI.
+
+| Gate | Required (bash) | Best-effort (TaskAPI) |
+|------|-----------------|----------------------|
+| Gate 1 | Log Contract | TaskCreate → TaskUpdate in_progress |
+| Gate 2 | Log Completion → Commit | TaskUpdate completed → deleted |
+
+**Note:** Bash commands (Log Contract/Completion) are 100% reliable. TaskAPI invocation is variable - Claude may or may not call the tools. Plan file checkboxes provide guaranteed tracking.
 
 ## Plan File Template
 

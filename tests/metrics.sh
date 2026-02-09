@@ -17,14 +17,16 @@ echo "## Tier 1: Core Compliance"
 echo ""
 
 # Gate logging
-CONTRACTS=$(grep -c "| Contract:" "$PLAN_LOG" 2>/dev/null || echo 0)
-COMPLETIONS=$(grep -c "| Completion:" "$PLAN_LOG" 2>/dev/null || echo 0)
+CONTRACTS=$(grep -c "| Contract:" "$PLAN_LOG" 2>/dev/null) || CONTRACTS=0
+COMPLETIONS_ALL=$(grep -c "| Completion:" "$PLAN_LOG" 2>/dev/null) || COMPLETIONS_ALL=0
+COMPLETIONS_PHASE=$(grep -ciE '\| Completion:.*[Pp]hase' "$PLAN_LOG" 2>/dev/null) || COMPLETIONS_PHASE=0
 echo "Gate Logging:"
-echo "  Contracts logged:   $CONTRACTS"
-echo "  Completions logged: $COMPLETIONS"
+echo "  Contracts (G1):     $CONTRACTS"
+echo "  Phase completions:  $COMPLETIONS_PHASE"
+echo "  All completions:    $COMPLETIONS_ALL"
 if [ "$CONTRACTS" -gt 0 ]; then
-    GATE_RATIO=$((COMPLETIONS * 100 / CONTRACTS))
-    echo "  Completion rate:    ${GATE_RATIO}% (Completions/Contracts)"
+    GATE_RATIO=$((COMPLETIONS_PHASE * 100 / CONTRACTS))
+    echo "  Phase close rate:   ${GATE_RATIO}% (Phase Completions/Contracts)"
 else
     GATE_RATIO=0
 fi
@@ -133,7 +135,7 @@ echo "=== Summary ==="
 echo ""
 echo "| Metric | Value | Target | Status |"
 echo "|--------|-------|--------|--------|"
-echo "| Gate completion rate | ${GATE_RATIO}% | 100% | $([ "$GATE_RATIO" -ge 100 ] && echo '✓' || echo '⚠️') |"
+echo "| Phase close rate | ${GATE_RATIO}% | 100% | $([ "$GATE_RATIO" -ge 100 ] && echo '✓' || echo '⚠️') |"
 echo "| Interactions logged | $INTERACTIONS | >0 | $([ "$INTERACTIONS" -gt 0 ] && echo '✓' || echo '⚠️') |"
 echo "| Lessons captured | $LESSONS_LOG | >0 | $([ "$LESSONS_LOG" -gt 0 ] && echo '✓' || echo '—') |"
 echo "| README tokens | $README_TOKENS | <4000 | $([ "$README_TOKENS" -lt 4000 ] && echo '✓' || echo '⚠️') |"

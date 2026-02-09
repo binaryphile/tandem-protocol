@@ -120,3 +120,17 @@ When reviewing protocol changes:
 - "Terminology: Use consistent, clear terms": Used "blow out" instead of "expand"
 - "Interaction Logging: Use explicit append_to_log": Forgot to log grade/improve cycle
 ```
+
+## Lessons from Phase 7: TaskAPI Investigation
+
+### Bypass Tool Invocation When Reliability Required
+When 100% reliability is required, bypass the tool abstraction and write directly to the underlying storage. Tools are conveniences, not requirements. TaskAPI stores at `~/.claude/tasks/{session-id}/{task-id}.json`.
+
+### Syntax-Triggered > Instruction-Based
+Bash syntax triggers execution; instructions trigger interpretation. `cat >> file` always executes. "Please call TaskCreate" may or may not happen. If you need something to happen 100% of the time, make it syntax, not a request.
+
+### Investigate Storage Before Giving Up
+When a tool/API seems unreliable, investigate its implementation. The answer may be to bypass it entirely rather than force compliance. Agans Rule: "Quit Thinking and Look."
+
+### User Frustration is a Pivot Signal
+When a user expresses frustration with lack of progress, question assumptions rather than doubling down. The breakthrough came from asking "where does it store data?" not "how do I force the tool call?"

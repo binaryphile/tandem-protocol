@@ -667,3 +667,7 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-08T20:25:00Z | Interaction: improve -> Conclusion clarified: no README-only mechanism viable, current CLAUDE.md approach remains best. Tasks #81/#82 deleted (no README change needed).
 2026-02-08T20:45:00Z | Interaction: investigate -> BREAKTHROUGH: TaskAPI files at ~/.claude/tasks/{session-id}/{task-id}.json can be written directly from bash. 100% reliable task creation possible!
 2026-02-08T21:00:00Z | Completion: Phase 7 - TaskAPI compliance | [x] Found mechanism (direct file write), [x] Integrated into protocol (bash blocks in plan template), [x] Simplified installation (no system-reminder needed)
+2026-02-08T21:15:00Z | Lesson: Bypass Tool Invocation When Reliability Required -> protocol-guide.md | TaskAPI investigation
+2026-02-08T21:15:00Z | Lesson: Syntax-Triggered > Instruction-Based -> protocol-guide.md | 5 mechanisms failed, direct write worked
+2026-02-08T21:15:00Z | Lesson: Investigate Storage Before Giving Up -> protocol-guide.md | Agans "Quit Thinking and Look"
+2026-02-08T21:15:00Z | Lesson: User Frustration is a Pivot Signal -> protocol-guide.md | "what haven't we tried" led to breakthrough

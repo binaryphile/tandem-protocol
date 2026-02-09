@@ -15,7 +15,7 @@ Without structure, Claude Code sessions can feel chaotic:
 - **Self-grading** - Ask Claude to evaluate and improve its own work
 - **Lesson capture** - Claude learns your project's patterns as you work
 - **Event logging** - Audit trail of what was agreed and delivered
-- **Multi-phase support** - Structure for projects spanning multiple sessions
+- **Multi-phase support** - Plan files persist across phases and sessions
 
 The `/tandem` command re-activates the protocol when compliance drifts.
 
@@ -136,6 +136,18 @@ flowchart TD
 | **Plan** | Explore, understand, ask questions, design | Gate 1: approve plan |
 | **Implement** | Execute, present results | Gate 2: approve results |
 
+## Plan Mode Entry
+
+Enter plan mode at the start of each phase. When entering with an existing plan:
+1. Quote the existing plan VERBATIM (no summarizing)
+2. Grade analysis FIRST: "Do I understand this?"
+3. Grade plan quality: "Is this sound?"
+4. BLOCKING: wait for user direction before proceeding
+
+On "improve": Address ALL deductions from both grades, then re-present.
+
+On approval: Exit plan mode, then execute Gate 1 actions.
+
 **Before Gate 1: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before requesting approval:
@@ -175,9 +187,9 @@ EOF
 | Entry | When | Format |
 |-------|------|--------|
 | Contract | Gate 1 approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
-| Completion | Gate 2 approval | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
+| Completion | Gate 2 (copy criteria verbatim from Contract) | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
 | Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
-| Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
+| Lesson | Non-actionable gap (actionability test: "Can I fix this now?" - don't deduct, capture instead) | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
 
 ## TaskAPI at Gates
 
@@ -192,7 +204,7 @@ TaskAPI is manipulated via direct file writes to `~/.claude/tasks/{session-id}/`
 
 ## Plan File Template
 
-Plan files live in `~/.claude/plans/`. Gate sections contain **literal bash blocks** to execute:
+Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, methodology); the Contract entry contains WHAT (scope, deliverables). Gate sections contain **literal bash blocks** to execute:
 
 ```markdown
 # [Phase Name] Plan
@@ -205,7 +217,7 @@ Plan files live in `~/.claude/plans/`. Gate sections contain **literal bash bloc
 - [ ] [Criterion 2]
 
 ## Changes
-[What files change, with line references]
+[What files change, with line references. Note: line numbers shift after edits - verify before presenting results.]
 
 ## At Gate 1 Approval
 
@@ -254,6 +266,8 @@ Plan files live in `~/.claude/plans/`. Gate sections contain **literal bash bloc
 ```
 
 ## Tasks API Telescoping
+
+The plan file is the source of truth. Expand the current phase with deliverables; collapse completed phases to single lines.
 
 Three-level hierarchy: Phase → Stage → Task
 

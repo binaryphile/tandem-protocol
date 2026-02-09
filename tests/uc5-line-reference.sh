@@ -1,43 +1,33 @@
 #!/bin/bash
-# UC5 Evidence/Verification - Behavioral Tests
-# Tests that README.md contains evidence guidance (PI model)
+# UC5 Line Reference Guidance - Design Doc Tests
+# Tests verify README.md contains patterns specified in docs/uc5-design.md
 
 PROTOCOL="../README.md"
 
-echo "=== UC5 Evidence Tests ==="
+echo "=== UC5 Line Reference Tests ==="
 echo "Testing: $PROTOCOL"
 echo ""
 
 PASS=0
 FAIL=0
 
-# T1: Evidence in completion
-if grep -qiE 'evidence|criterion.*evidence' "$PROTOCOL"; then
-    echo "PASS: T1 - Evidence mentioned"
+# T1: Line reference verification guidance (from design doc)
+if grep -qE 'verify.*line|line.*shift|numbers.*shift' "$PROTOCOL"; then
+    echo "PASS: T1 - Line reference verification"
     ((PASS++))
 else
-    echo "FAIL: T1 - Evidence mentioned"
-    echo "      Pattern not found: evidence"
+    echo "FAIL: T1 - Line reference verification"
+    echo "      Expected: verify.*line or line.*shift or numbers.*shift"
     ((FAIL++))
 fi
 
-# T2: Success criteria mentioned
-if grep -qiE 'Success Criteria|criterion' "$PROTOCOL"; then
-    echo "PASS: T2 - Success criteria mentioned"
+# T2: Stale references updated (from use case success guarantee)
+if grep -qiE 'update.*stale|verify.*before.*present|check.*after.*edit' "$PROTOCOL"; then
+    echo "PASS: T2 - Update stale references"
     ((PASS++))
 else
-    echo "FAIL: T2 - Success criteria mentioned"
-    echo "      Pattern not found: Success Criteria"
-    ((FAIL++))
-fi
-
-# T3: Verification section in template
-if grep -qiE 'Verification' "$PROTOCOL"; then
-    echo "PASS: T3 - Verification section"
-    ((PASS++))
-else
-    echo "FAIL: T3 - Verification section"
-    echo "      Pattern not found: Verification"
+    echo "FAIL: T2 - Update stale references"
+    echo "      Expected: update.*stale or verify.*before.*present"
     ((FAIL++))
 fi
 

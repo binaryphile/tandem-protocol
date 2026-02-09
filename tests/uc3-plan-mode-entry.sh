@@ -1,6 +1,6 @@
 #!/bin/bash
-# UC3 Plan Mode Entry - Behavioral Tests
-# Tests that README.md contains plan mode guidance (PI model)
+# UC3 Plan Mode Entry - Design Doc Tests
+# Tests verify README.md contains patterns specified in docs/uc3-design.md
 
 PROTOCOL="../README.md"
 
@@ -11,43 +11,53 @@ echo ""
 PASS=0
 FAIL=0
 
-# T1: Plan mode mentioned
-if grep -qiE 'Plan Mode|plan mode' "$PROTOCOL"; then
-    echo "PASS: T1 - Plan mode mentioned"
+# T1: Quote verbatim guidance (from design doc)
+if grep -qE '[Qq]uote.*verbatim|VERBATIM|no summar' "$PROTOCOL"; then
+    echo "PASS: T1 - Quote verbatim guidance"
     ((PASS++))
 else
-    echo "FAIL: T1 - Plan mode mentioned"
-    echo "      Pattern not found: Plan Mode"
+    echo "FAIL: T1 - Quote verbatim guidance"
+    echo "      Expected: quote.*verbatim or VERBATIM or no summar"
     ((FAIL++))
 fi
 
-# T2: Explore/design in Plan stage
-if grep -qiE 'Explore.*design|understand.*design' "$PROTOCOL"; then
-    echo "PASS: T2 - Explore/design in Plan stage"
+# T2: Analysis grade before plan grade (from design doc)
+if grep -qE 'analysis.*FIRST|/a.*before|grade.*analysis.*grade.*plan' "$PROTOCOL"; then
+    echo "PASS: T2 - Analysis grade FIRST"
     ((PASS++))
 else
-    echo "FAIL: T2 - Explore/design in Plan stage"
-    echo "      Pattern not found: Explore.*design"
+    echo "FAIL: T2 - Analysis grade FIRST"
+    echo "      Expected: analysis.*FIRST or /a.*before"
     ((FAIL++))
 fi
 
-# T3: Ask questions mentioned
-if grep -qiE 'ask.*question' "$PROTOCOL"; then
-    echo "PASS: T3 - Ask questions mentioned"
+# T3: BLOCKING wait for direction (from design doc)
+if grep -qE 'BLOCKING.*wait|wait.*direction' "$PROTOCOL"; then
+    echo "PASS: T3 - BLOCKING wait for direction"
     ((PASS++))
 else
-    echo "FAIL: T3 - Ask questions mentioned"
-    echo "      Pattern not found: ask.*question"
+    echo "FAIL: T3 - BLOCKING wait for direction"
+    echo "      Expected: BLOCKING.*wait or wait.*direction"
     ((FAIL++))
 fi
 
-# T4: Gate 1 approval
-if grep -qiE 'Gate 1.*approv|approve.*plan' "$PROTOCOL"; then
-    echo "PASS: T4 - Gate 1 approval"
+# T4: Improve path addresses ALL deductions (from design doc)
+if grep -qE 'improve.*ALL|ALL.*deductions|address.*deductions' "$PROTOCOL"; then
+    echo "PASS: T4 - Improve ALL deductions"
     ((PASS++))
 else
-    echo "FAIL: T4 - Gate 1 approval"
-    echo "      Pattern not found: Gate 1 approval"
+    echo "FAIL: T4 - Improve ALL deductions"
+    echo "      Expected: improve.*ALL or ALL.*deductions"
+    ((FAIL++))
+fi
+
+# T5: Plan grade provided (from use case success guarantee)
+if grep -qiE 'grade.*plan.*quality|plan.*quality|Is this sound' "$PROTOCOL"; then
+    echo "PASS: T5 - Plan grade provided"
+    ((PASS++))
+else
+    echo "FAIL: T5 - Plan grade provided"
+    echo "      Expected: grade.*plan.*quality or Is this sound"
     ((FAIL++))
 fi
 

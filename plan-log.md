@@ -672,3 +672,8 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-08T21:15:00Z | Lesson: Investigate Storage Before Giving Up -> protocol-guide.md | Agans "Quit Thinking and Look"
 2026-02-08T21:15:00Z | Lesson: User Frustration is a Pivot Signal -> protocol-guide.md | "what haven't we tried" led to breakthrough
 2026-02-08T16:45:00Z | Completion: Phase 7 - TaskAPI compliance testing | [x] 5 experiments run (1 pass: Stop Hook), [x] Direct file write mechanism discovered, [x] README updated with bash blocks, [x] All 33 tests pass
+2026-02-08T17:05:00Z | Interaction: improve -> adding remediation proposals for UC gaps
+2026-02-08T17:30:00Z | Interaction: fix tests -> aligned 6 test files with design doc patterns, 13 failures exposed
+2026-02-08T17:45:00Z | Completion: Fix README for design doc compliance | [x] 7 edits to README.md, [x] 27/27 tests pass
+2026-02-08T18:00:00Z | Interaction: add missing tests -> 6 new tests added, README updated, 33/33 pass
+2026-02-08T18:10:00Z | Interaction: improve -> fixing UC6 test overlap, tightening UC2-T5 pattern

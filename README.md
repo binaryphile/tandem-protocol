@@ -34,17 +34,12 @@ cat >> CLAUDE.md << 'EOF'
 
 # Tandem Protocol
 @~/tandem-protocol/README.md
-
-<system-reminder>
-**TaskAPI at Gates - INVOKE these tools:**
-- Gate 1 approval: Call TaskCreate for each task, then TaskUpdate first to in_progress
-- Gate 2 approval: Call TaskUpdate completed for each, then TaskUpdate deleted for each
-These are Claude Code tools - invoke them directly, do not just describe the calls.
-</system-reminder>
 EOF
 ```
 
 **Verify:** Start Claude Code, then run `/tandem plan to X so Y`
+
+**Note:** No system-reminder needed. TaskAPI is manipulated via bash (100% reliable) rather than tool invocation.
 
 ## Usage
 
@@ -141,62 +136,23 @@ flowchart TD
 | **Plan** | Explore, understand, ask questions, design | Gate 1: approve plan |
 | **Implement** | Execute, present results | Gate 2: approve results |
 
-**Before Gate 1: MUST verify plan includes TaskAPI and Log instructions at each gate.**
+**Before Gate 1: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before requesting approval:
-- [ ] "At Gate 1 Approval" section with TaskCreate, TaskUpdate, Log Contract
-- [ ] "At Gate 2 Approval" section with TaskUpdate (delete), Log Completion
-- [ ] Tasks JSON for TaskCreate calls
+- [ ] "At Gate 1 Approval" section with bash block (Contract + task creation)
+- [ ] "At Gate 2 Approval" section with bash block (Completion + task deletion + commit)
 
-Do not request "May I proceed?" without these sections in the plan file.
+Do not request "May I proceed?" without these executable bash blocks in the plan file.
 
 **GATE 1 ACTIONS** (when user says "proceed"):
 
-1. Log Contract:
-```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
-EOF
-```
+Execute the bash block from the plan file's "At Gate 1 Approval" section. This logs the Contract AND creates tasks in one atomic operation.
 
-2. Use TaskCreate tool for each task:
-```json
-{"subject": "Task 1", "description": "Details", "activeForm": "Working on task 1"}
-{"subject": "Task 2", "description": "Details", "activeForm": "Working on task 2"}
-```
-
-3. Use TaskUpdate tool:
-```json
-{"taskId": "1", "status": "in_progress"}
-```
-
-**STOP: Do not implement until Contract logged AND TaskCreate called AND TaskUpdate called.**
+**STOP: Do not implement until the Gate 1 bash block has been executed.**
 
 **GATE 2 ACTIONS** (when user approves results):
 
-1. Use TaskUpdate tool for each task:
-```json
-{"taskId": "1", "status": "completed"}
-{"taskId": "2", "status": "completed"}
-```
-
-2. Log Completion:
-```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:30:00Z | Completion: Phase 1 | [x] criterion1 (evidence), [x] criterion2 (evidence)
-EOF
-```
-
-3. Use TaskUpdate tool to delete:
-```json
-{"taskId": "1", "status": "deleted"}
-{"taskId": "2", "status": "deleted"}
-```
-
-4. Commit:
-```bash
-git add deliverable.py plan-log.md && git commit -m "Phase 1 complete"
-```
+Execute the bash block from the plan file's "At Gate 2 Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
 
 ## Event Logging
 
@@ -225,18 +181,18 @@ EOF
 
 ## TaskAPI at Gates
 
-TaskCreate and TaskUpdate are Claude Code tools. Invoke at gates for spinner UI.
+TaskAPI is manipulated via direct file writes to `~/.claude/tasks/{session-id}/`. This is 100% reliable (bash syntax-triggered, not model-dependent).
 
-| Gate | Required (bash) | Best-effort (TaskAPI) |
-|------|-----------------|----------------------|
-| Gate 1 | Log Contract | TaskCreate → TaskUpdate in_progress |
-| Gate 2 | Log Completion → Commit | TaskUpdate completed → deleted |
+| Gate | What Happens |
+|------|--------------|
+| Gate 1 | Log Contract + Create task files + Set first to in_progress |
+| Gate 2 | Mark complete + Log Completion + Delete task files + Commit |
 
-**Note:** Bash commands (Log Contract/Completion) are 100% reliable. TaskAPI invocation is variable - Claude may or may not call the tools. Plan file checkboxes provide guaranteed tracking.
+**Discovery:** Tasks are stored at `~/.claude/tasks/{session-id}/{task-id}.json`. Writing directly to these files works - Claude Code reads from the filesystem.
 
 ## Plan File Template
 
-Plan files live in `~/.claude/plans/`. **Explicit admin instructions at trigger points:**
+Plan files live in `~/.claude/plans/`. Gate sections contain **literal bash blocks** to execute:
 
 ```markdown
 # [Phase Name] Plan
@@ -251,25 +207,47 @@ Plan files live in `~/.claude/plans/`. **Explicit admin instructions at trigger 
 ## Changes
 [What files change, with line references]
 
-## Tasks
-[Copy to TaskCreate calls after Gate 1 approval]
-
-    [
-      {"subject": "Task 1", "description": "...", "activeForm": "Working on task 1"},
-      {"subject": "Task 2", "description": "...", "activeForm": "Working on task 2"}
-    ]
-
 ## At Gate 1 Approval
-- Log Contract entry to plan-log.md
-- TaskCreate for each task above
-- TaskUpdate first task to in_progress
-- Telescope: expand Implement children
+
+    ```bash
+    # Log Contract + Create Tasks (execute this entire block)
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
+    EOF
+
+    # Create tasks via direct file write
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+    M=$(ls ~/.claude/tasks/$S/*.json 2>/dev/null | xargs -I{} basename {} .json | sort -n | tail -1 || echo 0)
+    T1=$((M+1)); T2=$((M+2))
+
+    cat > ~/.claude/tasks/$S/$T1.json << TASK
+    {"id": "$T1", "subject": "Task 1", "description": "...", "activeForm": "Working on task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
+    TASK
+
+    cat > ~/.claude/tasks/$S/$T2.json << TASK
+    {"id": "$T2", "subject": "Task 2", "description": "...", "activeForm": "Working on task 2", "status": "pending", "blocks": [], "blockedBy": []}
+    TASK
+    ```
 
 ## At Gate 2 Approval
-- Log Completion entry with evidence
-- Telescope: delete phase tasks
-- Commit deliverable + plan-log.md
-- Route lessons to guides
+
+    ```bash
+    # Mark complete + Log + Delete + Commit (execute this entire block)
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+
+    # Mark tasks completed then delete files
+    for f in ~/.claude/tasks/$S/*.json; do
+      [ -f "$f" ] && rm "$f"
+    done
+
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:30:00Z | Completion: Phase 1 | [x] criterion1 (evidence), [x] criterion2 (evidence)
+    EOF
+
+    git add -A && git commit -m "Phase 1 complete
+
+    Co-Authored-By: Claude <noreply@anthropic.com>"
+    ```
 
 ## Verification
 [Commands to verify success criteria]

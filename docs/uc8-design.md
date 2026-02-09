@@ -31,10 +31,29 @@
 - Compliance is variable - Claude may or may not invoke
 - Provides spinner UI when invoked
 
-**Empirical finding:** System-reminder tags do not reliably trigger tool invocation. Tested 2026-02-08: TaskCreate not called despite explicit system-reminder instruction.
+**Empirical finding (Phase 6):** System-reminder tags do not reliably trigger tool invocation. Tested 2026-02-08: TaskCreate not called despite explicit system-reminder instruction.
 
-**Design principle:** Plan file guarantees tracking; TaskAPI is best-effort enhancement.
-Tests should verify plan file compliance; TaskAPI compliance is bonus.
+**Empirical finding (Phase 7):** Stop Hook enforcement DOES achieve TaskAPI compliance. Tested 2026-02-08 with 5 mechanisms:
+
+| Exp | Mechanism | TaskCreate Calls | Result |
+|-----|-----------|------------------|--------|
+| 1 | **Stop Hook Enforcement** | **1** | **PASS** |
+| 2 | SessionStart Context Injection | 0 | FAIL |
+| 3 | Explicit Prompt Instruction | 0 | FAIL |
+| 4a | Single-turn Combined | 0 | FAIL |
+| 4b | Fresh Session | 0 | FAIL |
+| 5 | Agent-based Hook | 0 | FAIL |
+
+**Why Stop Hook works:** Behavioral enforcement (blocking completion until expected action occurs) succeeds where instruction-based approaches fail. The hook provides feedback: "Protocol requires TaskCreate invocation. Please call TaskCreate now." Claude then invokes TaskCreate to satisfy the gate.
+
+**Design principle:** Plan file guarantees tracking; TaskAPI remains best-effort in `-p` mode.
+
+**Conclusion from Phase 7:** No README-only mechanism achieves TaskAPI compliance without UX trade-offs. The current installation (system-reminder in CLAUDE.md) remains the best approach:
+- System-reminder in CLAUDE.md: Works in interactive sessions (79 calls observed)
+- Stop Hook: Works but jarring UX, not recommended
+- README-only approaches: All failed (0 calls)
+
+Tests should verify plan file compliance; TaskAPI compliance is interactive-session bonus.
 
 ## Plan File Lifecycle
 
@@ -211,3 +230,30 @@ Step 2 deliverables (copy to TaskCreate calls after approval):
 **Context:** When creating tasks for a phase
 **Lesson:** TaskAPI should mirror three-level hierarchy: Phase → Stage (Plan/Implement) → Task. Creating flat deliverable tasks skips the Stage level, losing visibility into protocol progression.
 **Source:** UC6+UC8 improvement session - created deliverable tasks directly without Plan/Implement stage tasks
+
+### Behavioral Enforcement > Instruction-Based Compliance
+**Context:** Achieving TaskAPI compliance in `-p` (non-interactive) mode
+**Lesson:** Stop Hooks that block completion until expected behavior is observed succeed where instructions fail. Instructions tell Claude *what* to do; hooks enforce *that* it happens.
+**Source:** Phase 7 experiments - 5 mechanisms tested, only Stop Hook achieved TaskCreate calls
+
+### Stop Hook Configuration for TaskAPI
+**Context:** Users wanting TaskAPI spinner UI without manual enforcement
+
+**LIMITATION DISCOVERED:** Global `~/.claude/settings.json` hooks affect ALL Claude sessions, causing jarring UX in unrelated projects. The hook fires in every session, not just Tandem Protocol projects.
+
+**Recommended location:** Project-local `.claude/settings.json` (not global `~/.claude/settings.json`):
+```json
+{
+  "hooks": {
+    "Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "bash -c 'INPUT=$(cat); [[ $(echo $INPUT | jq -r .stop_hook_active) == true ]] && exit 0; grep -q TaskCreate /tmp/taskapi-calls.log 2>/dev/null && exit 0; echo \"{\\\"decision\\\": \\\"block\\\", \\\"reason\\\": \\\"Protocol requires TaskCreate invocation. Please call TaskCreate now.\\\"}\"'"}]}]
+  }
+}
+```
+
+**Trade-offs:**
+- ✅ Works: Behavioral enforcement achieves compliance
+- ❌ Jarring UX: Stop hook notifications are disruptive
+- ❌ Global scope: `~/.claude/settings.json` affects all sessions
+- ⚠️ Project-local preferred: Use `.claude/settings.json` in project root
+
+**Recommendation:** Do NOT add to global settings. Only use project-local if TaskAPI enforcement is critical for that specific project. For most users, plan file checkboxes remain the primary mechanism.

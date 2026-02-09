@@ -671,3 +671,4 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-08T21:15:00Z | Lesson: Syntax-Triggered > Instruction-Based -> protocol-guide.md | 5 mechanisms failed, direct write worked
 2026-02-08T21:15:00Z | Lesson: Investigate Storage Before Giving Up -> protocol-guide.md | Agans "Quit Thinking and Look"
 2026-02-08T21:15:00Z | Lesson: User Frustration is a Pivot Signal -> protocol-guide.md | "what haven't we tried" led to breakthrough
+2026-02-08T16:45:00Z | Completion: Phase 7 - TaskAPI compliance testing | [x] 5 experiments run (1 pass: Stop Hook), [x] Direct file write mechanism discovered, [x] README updated with bash blocks, [x] All 33 tests pass

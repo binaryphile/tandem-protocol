@@ -146,7 +146,7 @@ Do not request "May I proceed?" without these executable bash blocks in the plan
 
 **GATE 1 ACTIONS** (when user says "proceed"):
 
-Execute the bash block from the plan file's "At Gate 1 Approval" section. This logs the Contract AND creates tasks in one atomic operation.
+Execute the bash block from the plan file's "At Gate 1 Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
 
 **STOP: Do not implement until the Gate 1 bash block has been executed.**
 

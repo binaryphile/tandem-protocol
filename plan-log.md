@@ -643,3 +643,18 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-08T17:50:00Z | Interaction: improve (Agans Rule 9 verification) -> system-reminder test: 2 TaskAPI calls WITH vs 0 WITHOUT
 2026-02-08T17:50:01Z | Lesson: Rigorous empirical testing required -> protocol-guide | Before concluding "can't be fixed", run controlled A/B test with instrumentation
 2026-02-08T17:50:02Z | Lesson: Rule 9 verification critical -> protocol-guide | "If you didn't fix it, it ain't fixed" applies to debugging conclusions too - must verify "unfixable" claims
+2026-02-08T17:59:37-05:00 | Contract: Phase 7 - Self-contained README | [ ] A/B test passes, [ ] installation simplified, [ ] UC8 updated
+2026-02-08T18:02:03-05:00 | Interaction: A/B test -> /tandem=0, control=1 (unexpected: control beat /tandem)
+2026-02-08T18:07:16-05:00 | Interaction: 4 README experiments -> position, simplification, coupling, stop-gate
+2026-02-08T18:56:12-05:00 | Interaction: 4 README experiments complete -> all 0 TaskAPI calls (Position=0, Simple=0, Coupling=0, Stopgate=0, Control=0)
+2026-02-08T18:45:00Z | Contract: Phase 7 - TaskAPI compliance testing | [ ] At least one experiment achieves >0 TaskCreate calls, [ ] Results logged to plan-log.md, [ ] Winning mechanism documented
+2026-02-08T19:34:24-05:00 | Interaction: Exp 3 [Explicit Prompt] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:36:32-05:00 | Interaction: Exp 4a [Single-turn] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:37:34-05:00 | Interaction: Exp 4b [Fresh Session] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:38:33-05:00 | Interaction: Exp 2 [SessionStart] -> 0 TaskCreate calls [FAIL]
+2026-02-08T18:00:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] tests/fizzbuzz.sh passes 6/6
+2026-02-08T19:42:35-05:00 | Interaction: Exp 3 [Explicit Prompt] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:43:00-05:00 | Interaction: Exp 4a [Single-turn] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:45:00-05:00 | Contract: Phase 1 - Hello World | [ ] Program exists and runs, [ ] Output is "Hello, World!"
+2026-02-08T19:44:08-05:00 | Interaction: Exp 4b [Fresh Session] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:50:00Z | Completion: FizzBuzz Implementation | [x] bin/fizzbuzz exists and executable (tests/fizzbuzz.sh T1), [x] tests/fizzbuzz.sh passes 6/6 (PASS=6 FAIL=0)

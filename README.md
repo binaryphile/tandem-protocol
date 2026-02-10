@@ -70,30 +70,40 @@ flowchart LR
 
 ## 1: Plan
 
+### 1a: Explore
+
 ```bash
-# 1a: explore
 read_codebase
 identify_affected_files
 note_line_references  # will shift after edits
+```
 
-# 1b: ask
+### 1b: Ask
+
+```bash
 for uncertainty in $requirements; do
     ask_user "$uncertainty"
     wait_response
 done
+```
 
-# 1c: design
+### 1c: Design
+
+```bash
 cat > ~/.claude/plans/phase-n.md << 'PLAN'
 ## Objective
 ## Success Criteria
 ## Changes
-## At Step 2   # bash: log contract + create tasks
-## At Step 4   # bash: log completion + commit
+## At Gate 1   # bash: log contract + create tasks
+## At Gate 2   # bash: log completion + commit
 PLAN
+```
 
-# 1d: present
-[[ -z $(grep "At Step 2" ~/.claude/plans/*.md) ]] && exit 1
-[[ -z $(grep "At Step 4" ~/.claude/plans/*.md) ]] && exit 1
+### 1d: Present
+
+```bash
+[[ -z $(grep "At Gate 1" ~/.claude/plans/*.md) ]] && exit 1
+[[ -z $(grep "At Gate 2" ~/.claude/plans/*.md) ]] && exit 1
 ask "May I proceed?"
 wait  # STOP until user approves
 ```
@@ -135,15 +145,19 @@ TASK
 
 ## 3: Implement
 
+### 3a: Execute
+
 ```bash
-# 3a: execute
 for task in $tasks; do
     set_status "$task" "in_progress"
     execute "$task"
     set_status "$task" "completed"
 done
+```
 
-# 3b: present
+### 3b: Present
+
+```bash
 show_results
 show_verification_commands
 ask "May I proceed?"
@@ -218,12 +232,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ## Changes
 [files + line refs]
 
-## At Step 2
+## At Gate 1
     ```bash
     # 2a + 2b combined
     ```
 
-## At Step 4
+## At Gate 2
     ```bash
     # 4a + 4b + 4c combined
     ```

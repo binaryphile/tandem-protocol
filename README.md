@@ -70,61 +70,46 @@ flowchart LR
 
 ## 1: Plan
 
-```python
-def plan():
-    explore()      # 1a
-    ask()          # 1b
-    design()       # 1c
-    present()      # 1d
-```
+```bash
+# 1a: explore
+read_codebase
+identify_affected_files
+note_line_references  # will shift after edits
 
-### 1a: Explore
+# 1b: ask
+for uncertainty in $requirements; do
+    ask_user "$uncertainty"
+    wait_response
+done
 
-```python
-read(codebase)
-identify(affected_files)
-note(line_references)  # will shift after edits
-```
+# 1c: design
+cat > ~/.claude/plans/phase-n.md << 'PLAN'
+## Objective
+## Success Criteria
+## Changes
+## At Step 2   # bash: log contract + create tasks
+## At Step 4   # bash: log completion + commit
+PLAN
 
-### 1b: Ask
-
-```python
-for uncertainty in requirements:
-    ask(user, uncertainty)
-    wait(response)
-```
-
-### 1c: Design
-
-```python
-plan_file = create("~/.claude/plans/{name}.md")
-plan_file.write("""
-    ## Objective
-    ## Success Criteria
-    ## Changes
-    ## At Step 2      # bash: log contract + create tasks
-    ## At Step 4      # bash: log completion + commit
-""")
-```
-
-### 1d: Present
-
-```python
-assert plan_file.has("At Step 2")  # with bash
-assert plan_file.has("At Step 4")  # with bash
-ask("May I proceed?")
-wait()  # STOP until user approves
+# 1d: present
+[[ -z $(grep "At Step 2" ~/.claude/plans/*.md) ]] && exit 1
+[[ -z $(grep "At Step 4" ~/.claude/plans/*.md) ]] && exit 1
+ask "May I proceed?"
+wait  # STOP until user approves
 ```
 
 ## 2: Gate (approve plan)
 
-```python
-def gate(user_response):
-    if user_response in ["proceed", "yes", "approved"]:
-        log_contract()    # 2a
-        create_tasks()    # 2b
-    elif user_response == "revise":
-        return explore()  # back to 1a
+```bash
+case "$response" in
+    proceed|yes|approved)
+        # 2a: log contract
+        # 2b: create tasks
+        ;;
+    revise)
+        # back to 1a
+        ;;
+esac
 ```
 
 ### 2a: Log Contract
@@ -150,44 +135,39 @@ TASK
 
 ## 3: Implement
 
-```python
-def implement():
-    execute()      # 3a
-    present()      # 3b
-```
+```bash
+# 3a: execute
+for task in $tasks; do
+    set_status "$task" "in_progress"
+    execute "$task"
+    set_status "$task" "completed"
+done
 
-### 3a: Execute
-
-```python
-for task in tasks:
-    task.status = "in_progress"
-    execute(task)
-    task.status = "completed"
-```
-
-### 3b: Present
-
-```python
-show(results)
-show(verification_commands)
-ask("May I proceed?")
-wait()  # STOP until user approves
+# 3b: present
+show_results
+show_verification_commands
+ask "May I proceed?"
+wait  # STOP until user approves
 ```
 
 ## 4: Gate (approve results)
 
-```python
-def gate(user_response):
-    if user_response in ["proceed", "yes", "approved"]:
-        log_completion()   # 4a
-        cleanup_tasks()    # 4b
-        commit()           # 4c
-    elif user_response == "grade":
-        log_interaction("grade", self_assess())
-        return present()   # back to 3b
-    elif user_response == "improve":
-        log_interaction("improve", changes)
-        return execute()   # back to 3a
+```bash
+case "$response" in
+    proceed|yes|approved)
+        # 4a: log completion
+        # 4b: cleanup tasks
+        # 4c: commit
+        ;;
+    grade)
+        log_interaction "grade" "$(self_assess)"
+        # back to 3b
+        ;;
+    improve)
+        log_interaction "improve" "$changes"
+        # back to 3a
+        ;;
+esac
 ```
 
 ### 4a: Log Completion
@@ -251,17 +231,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ## Principles
 
-```python
+```bash
 # approval required at gates
-assert user_response in ["proceed", "yes", "approved"]
+[[ "$response" =~ ^(proceed|yes|approved)$ ]] || exit 1
 
 # user controls scope
-user.may(defer_to_future_phase=True)
-claude.may_not(unilaterally_defer=True)
-claude.may(suggest_deferring=True)  # by asking
+user_may_defer=true
+claude_may_defer=false      # must ask first
+claude_may_suggest=true
 
 # feedback loops
-on("grade"):  self_assess(); re_present()
-on("improve"): fix_issues(); re_present()
-on("scope_change"): return P1_explore()
+case "$response" in
+    grade)        self_assess; re_present ;;
+    improve)      fix_issues; re_present ;;
+    scope_change) explore ;;  # back to step 1
+esac
 ```

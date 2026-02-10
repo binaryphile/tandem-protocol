@@ -1,6 +1,6 @@
 # Tandem Protocol
 
-Structured checkpoints for Claude Code. You approve each step, Claude grades its own work.
+ Structured checkpoints for Claude Code. You approve each step, Claude grades its own work.
 
 **Try it:**
 ```bash
@@ -53,169 +53,122 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 # The Protocol
 
-## Protocol Flow
+## Overview
 
 ```mermaid
-flowchart TD
-    PLAN[Plan Mode] --> EXPLORE[Explore & Design]
-    EXPLORE --> ASK[Ask Questions]
-    ASK --> G1{Impl Gate}
-    G1 -->|approve| LOG1[Log Contract]
-    LOG1 --> IMPL[Implement]
-    IMPL --> PRESENT[Present Results]
-    PRESENT --> G2{Compl Gate}
-    G2 -->|approve| LOG2[Log Completion]
-    LOG2 --> COMMIT[Commit]
-    COMMIT --> NEXT[Next Phase]
-    NEXT --> PLAN
+flowchart LR
+    S1[1. Plan] --> S2{2. Impl Gate}
+    S2 --> S3[3. Implement]
+    S3 --> S4{4. Compl Gate}
+    S4 -.-> S1
 
-    G1 -->|revise| EXPLORE
-    G2 -->|grade| GRADE[Self-Grade]
-    G2 -->|improve| IMPROVE[Make Changes]
-    GRADE --> PRESENT
-    IMPROVE --> PRESENT
-
-    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
-    style LOG1 fill:#e8f5e9,stroke:#4caf50
-    style LOG2 fill:#e8f5e9,stroke:#4caf50
+    style S1 fill:#e3f2fd,stroke:#1976d2
+    style S3 fill:#e3f2fd,stroke:#1976d2
+    style S2 fill:#fff3e0,stroke:#f57c00
+    style S4 fill:#fff3e0,stroke:#f57c00
 ```
 
-## PI Model
+## 1. Plan
 
-| Stage | What Happens | Gate |
-|-------|--------------|------|
-| **Plan** | Explore, understand, ask questions, design | Implementation Gate: approve plan |
-| **Implement** | Execute, present results | Completion Gate: approve results |
+### 1a. Explore
+Read codebase, identify affected files, note line references (will shift after edits).
 
-## Plan Mode Entry
+### 1b. Ask
+Clarify requirements before designing.
 
-Enter plan mode at the start of each phase. When entering with an existing plan:
-1. Quote the existing plan VERBATIM (no summarizing)
-2. Grade analysis FIRST: "Do I understand this?"
-3. Grade plan quality: "Is this sound?"
-4. BLOCKING: wait for user direction before proceeding
+### 1c. Design
+Create plan file with gate bash blocks:
+- `## At Implementation Gate` section with bash block
+- `## At Completion Gate` section with bash block
 
-On "improve": Address ALL deductions from both grades, then re-present.
+### 1d. Present
+Verify plan has both gate sections, then ask "May I proceed?"
 
-On approval: Exit plan mode, then execute Implementation Gate actions.
+**STOP: Do not proceed without user approval.**
 
-**Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
+## 2. Implementation Gate
 
-Checklist before requesting approval:
-- [ ] "At Implementation Gate Approval" section with bash block (Contract + task creation)
-- [ ] "At Completion Gate Approval" section with bash block (Completion + task deletion + commit)
+**On "proceed":** Execute the plan file's Implementation Gate bash block:
+```bash
+touch plan-log.md
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:00:00Z | Contract: Phase N - objective | [ ] criterion1, [ ] criterion2
+EOF
 
-Do not request "May I proceed?" without these executable bash blocks in the plan file.
+# Create tasks
+S=$(ls -t ~/.claude/tasks/ | head -1)
+cat > ~/.claude/tasks/$S/1.json << 'TASK'
+{"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
+TASK
+```
 
-**IMPLEMENTATION GATE ACTIONS** (when user says "proceed"):
+**On "revise":** Return to 1a.
 
-Execute the bash block from the plan file's "At Implementation Gate Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
+**STOP: Do not implement until bash block executed.**
 
-**STOP: Do not implement until the Implementation Gate bash block has been executed.**
+## 3. Implement
 
-**COMPLETION GATE ACTIONS** (when user approves results):
+### 3a. Execute
+Work through tasks, marking each in_progress → completed.
 
-Execute the bash block from the plan file's "At Completion Gate Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
+### 3b. Present
+Show results, verification commands. Ask "May I proceed?"
 
-## Event Logging
+## 4. Completion Gate
 
-All events logged to `plan-log.md` via append:
-
-**On "grade"** (log immediately, then re-present):
+**On "grade":** Log immediately, then self-assess and re-present:
 ```bash
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
 EOF
 ```
 
-**On "improve"** (log immediately, then make changes):
+**On "improve":** Log immediately, then make changes and re-present:
 ```bash
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
 EOF
 ```
 
-| Entry | When | Format |
-|-------|------|--------|
-| Contract | Implementation Gate approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
-| Completion | Completion Gate (copy criteria verbatim from Contract) | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
-| Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
-| Lesson | Non-actionable gap (actionability test: "Can I fix this now?" - don't deduct, capture instead) | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
+**On "proceed":** Execute the plan file's Completion Gate bash block:
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:30:00Z | Completion: Phase N | [x] criterion1 (evidence), [x] criterion2 (evidence)
+EOF
 
-## TaskAPI at Gates
+# Cleanup tasks
+S=$(ls -t ~/.claude/tasks/ | head -1)
+rm ~/.claude/tasks/$S/*.json 2>/dev/null
 
-TaskAPI is manipulated via direct file writes to `~/.claude/tasks/{session-id}/`. This is 100% reliable (bash syntax-triggered, not model-dependent).
+git add -A && git commit -m "Phase N complete
 
-| Gate | What Happens |
-|------|--------------|
-| Implementation Gate | Log Contract + Create task files + Set first to in_progress |
-| Completion Gate | Mark complete + Log Completion + Delete task files + Commit |
-
-**Discovery:** Tasks are stored at `~/.claude/tasks/{session-id}/{task-id}.json`. Writing directly to these files works - Claude Code reads from the filesystem.
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
 
 ## Plan File Template
-
-Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, methodology); the Contract entry contains WHAT (scope, deliverables). Gate sections contain **literal bash blocks** to execute:
 
 ```markdown
 # [Phase Name] Plan
 
 ## Objective
-[1-2 sentence summary]
+[1-2 sentences]
 
 ## Success Criteria
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
 ## Changes
-[What files change, with line references. Note: line numbers shift after edits - verify before presenting results.]
+[files + line refs]
 
-## At Implementation Gate Approval
-
+## At Implementation Gate
     ```bash
-    # Log Contract + Create Tasks (execute this entire block)
-    touch plan-log.md  # Ensure exists before append
-    cat >> plan-log.md << 'EOF'
-    2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
-    EOF
-
-    # Create tasks via direct file write
-    S=$(ls -t ~/.claude/tasks/ | head -1)
-    M=$(ls ~/.claude/tasks/$S/*.json 2>/dev/null | xargs -I{} basename {} .json | sort -n | tail -1 || echo 0)
-    T1=$((M+1)); T2=$((M+2))
-
-    cat > ~/.claude/tasks/$S/$T1.json << TASK
-    {"id": "$T1", "subject": "Task 1", "description": "...", "activeForm": "Working on task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
-    TASK
-
-    cat > ~/.claude/tasks/$S/$T2.json << TASK
-    {"id": "$T2", "subject": "Task 2", "description": "...", "activeForm": "Working on task 2", "status": "pending", "blocks": [], "blockedBy": []}
-    TASK
+    # Contract + tasks (see step 2 for full example)
     ```
 
-## At Completion Gate Approval
-
+## At Completion Gate
     ```bash
-    # Mark complete + Log + Delete + Commit (execute this entire block)
-    S=$(ls -t ~/.claude/tasks/ | head -1)
-
-    # Mark tasks completed then delete files
-    for f in ~/.claude/tasks/$S/*.json; do
-      [ -f "$f" ] && rm "$f"
-    done
-
-    cat >> plan-log.md << 'EOF'
-    2026-02-08T12:30:00Z | Completion: Phase 1 | [x] criterion1 (evidence), [x] criterion2 (evidence)
-    EOF
-
-    git add -A && git commit -m "Phase 1 complete
-
-    Co-Authored-By: Claude <noreply@anthropic.com>"
+    # Completion + cleanup + commit (see step 4 for full example)
     ```
-
-## Verification
-[Commands to verify success criteria]
 ```
 
 ## Tasks API Telescoping

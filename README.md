@@ -1,6 +1,6 @@
 # Tandem Protocol
 
- Structured checkpoints for Claude Code. You approve each step, Claude grades its own work.
+ Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 
 **Try it:**
 ```bash
@@ -57,9 +57,9 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 ```mermaid
 flowchart LR
-    S1[1. Plan] --> S2{2. Impl Gate}
-    S2 --> S3[3. Implement]
-    S3 --> S4{4. Compl Gate}
+    S1[Plan] --> S2{Impl Gate}
+    S2 --> S3[Implement]
+    S3 --> S4{Compl Gate}
     S4 -.-> S1
 
     style S1 fill:#e3f2fd,stroke:#1976d2
@@ -70,73 +70,140 @@ flowchart LR
 
 ## 1. Plan
 
-### 1a. Explore
-Read codebase, identify affected files, note line references (will shift after edits).
+```mermaid
+flowchart LR
+    A[1a Explore] --> B[1b Ask] --> C[1c Design] --> D[1d Present]
+```
 
-### 1b. Ask
-Clarify requirements before designing.
+### 1a: Explore
 
-### 1c. Design
-Create plan file with gate bash blocks:
-- `## At Implementation Gate` section with bash block
-- `## At Completion Gate` section with bash block
+```bash
+read_codebase
+identify_affected_files
+note_line_refs  # will shift after edits
+```
 
-### 1d. Present
-Verify plan has both gate sections, then ask "May I proceed?"
+### 1b: Ask
 
-**STOP: Do not proceed without user approval.**
+```bash
+for question in $uncertainties; do
+    ask_user "$question"
+    wait_response
+done
+```
+
+### 1c: Design
+
+```bash
+cat > plan.md << 'PLAN'
+## Objective
+## Success Criteria
+## At Implementation Gate   # bash block
+## At Completion Gate       # bash block
+PLAN
+```
+
+### 1d: Present
+
+```bash
+grep -q "At Implementation Gate" plan.md || exit 1
+grep -q "At Completion Gate" plan.md || exit 1
+ask "May I proceed?"
+wait  # STOP until approved
+```
 
 ## 2. Implementation Gate
 
-**On "proceed":** Execute the plan file's Implementation Gate bash block:
+```mermaid
+flowchart LR
+    A{response} -->|proceed| B[2a Log Contract]
+    B --> C[2b Create Tasks]
+    A -->|revise| D[back to 1a]
+```
+
+### 2a: Log Contract
+
 ```bash
 touch plan-log.md
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:00:00Z | Contract: Phase N - objective | [ ] criterion1, [ ] criterion2
 EOF
+```
 
-# Create tasks
+### 2b: Create Tasks
+
+```bash
 S=$(ls -t ~/.claude/tasks/ | head -1)
 cat > ~/.claude/tasks/$S/1.json << 'TASK'
 {"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
 TASK
+# STOP: do not implement until executed
 ```
-
-**On "revise":** Return to 1a.
-
-**STOP: Do not implement until bash block executed.**
 
 ## 3. Implement
 
-### 3a. Execute
-Work through tasks, marking each in_progress → completed.
+```mermaid
+flowchart LR
+    A[3a Execute] --> B[3b Present]
+```
 
-### 3b. Present
-Show results, verification commands. Ask "May I proceed?"
+### 3a: Execute
+
+```bash
+for task in $tasks; do
+    set_status "$task" "in_progress"
+    execute "$task"
+    set_status "$task" "completed"
+done
+```
+
+### 3b: Present
+
+```bash
+show_results
+show_verification_commands
+ask "May I proceed?"
+wait  # STOP until approved
+```
 
 ## 4. Completion Gate
 
-**On "grade":** Log immediately, then self-assess and re-present:
+```mermaid
+flowchart LR
+    A{response} -->|grade| B[4a Log + Assess]
+    A -->|improve| C[4b Log + Fix]
+    A -->|proceed| D[4c Complete]
+    B --> E[back to 3b]
+    C --> E
+```
+
+### 4a: On grade
+
 ```bash
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
 EOF
+self_assess
+# back to 3b
 ```
 
-**On "improve":** Log immediately, then make changes and re-present:
+### 4b: On improve
+
 ```bash
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
 EOF
+make_changes
+# back to 3b
 ```
 
-**On "proceed":** Execute the plan file's Completion Gate bash block:
+### 4c: On proceed
+
 ```bash
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:30:00Z | Completion: Phase N | [x] criterion1 (evidence), [x] criterion2 (evidence)
 EOF
 
-# Cleanup tasks
 S=$(ls -t ~/.claude/tasks/ | head -1)
 rm ~/.claude/tasks/$S/*.json 2>/dev/null
 

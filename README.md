@@ -125,6 +125,10 @@ esac
 ### 2a: Log Contract
 
 ```bash
+# guard: plan exists with criteria
+[[ -f ~/.claude/plans/*.md ]] || exit 1
+grep -q "Success Criteria" ~/.claude/plans/*.md || exit 1
+
 touch plan-log.md
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:00:00Z | Contract: Phase N - objective | [ ] criterion1, [ ] criterion2
@@ -148,6 +152,9 @@ TASK
 ### 3a: Execute
 
 ```bash
+# guard: Gate 1 happened
+grep -q "Contract:" plan-log.md || exit 1
+
 for task in $tasks; do
     set_status "$task" "in_progress"
     execute "$task"
@@ -187,6 +194,9 @@ esac
 ### 4a: Log Completion
 
 ```bash
+# guard: Contract exists to close
+grep -q "Contract:" plan-log.md || exit 1
+
 cat >> plan-log.md << 'EOF'
 2026-02-08T12:30:00Z | Completion: Phase N | [x] criterion1 (evidence), [x] criterion2 (evidence)
 EOF

@@ -95,7 +95,7 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 ## Testing
 
-Run `for t in tests/uc*.sh; do bash "$t"; done` to verify protocol compliance patterns.
+Run `tests/integration-protocol-walk.sh` to verify protocol compliance behaviorally.
 
 ---
 
@@ -223,6 +223,7 @@ Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, met
 
     ```bash
     # Log Contract + Create Tasks (execute this entire block)
+    touch plan-log.md  # Ensure exists before append
     cat >> plan-log.md << 'EOF'
     2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
     EOF

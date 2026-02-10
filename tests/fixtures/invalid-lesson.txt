@@ -1,0 +1,13 @@
+# Invalid Lesson entries for negative testing
+
+# Missing arrow
+2026-02-09T12:00:00Z | Lesson: Test patterns protocol-guide.md | context here
+
+# Unicode arrow
+2026-02-09T12:00:00Z | Lesson: Test patterns → protocol-guide.md | context here
+
+# Bad timestamp
+2026-02-09 12:00:00Z | Lesson: Test patterns -> protocol-guide.md | context here
+
+# Missing Lesson marker
+2026-02-09T12:00:00Z | Test patterns -> protocol-guide.md | context here

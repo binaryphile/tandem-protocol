@@ -1,0 +1,16 @@
+# Invalid Interaction entries for negative testing
+
+# Unicode arrow instead of ASCII
+2026-02-09T12:00:00Z | Interaction: grade → B+/85
+
+# Missing arrow entirely
+2026-02-09T12:00:00Z | Interaction: grade B+/85
+
+# Bad timestamp
+2026-02-09 12:00:00Z | Interaction: grade -> B+/85
+
+# Missing Interaction marker
+2026-02-09T12:00:00Z | grade -> B+/85
+
+# Arrow in wrong direction
+2026-02-09T12:00:00Z | Interaction: grade <- B+/85

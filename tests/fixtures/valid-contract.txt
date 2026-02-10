@@ -1,0 +1,28 @@
+2026-02-05T10:00:00Z | Contract: Protocol Maintenance Updates
+2026-02-06T00:03:24Z | Contract: Auto-Quote After Loop-Back
+2026-02-06T00:15:00-05:00 | Contract: UC7 Phase 3 - eliminate contract files, direct-to-log, 4 criteria
+2026-02-06T09:19:55-05:00 | Contract: UC9 Phase 1 - fix uc9-iapi-stages.md step numbers, grade against use-case-skill, 2 criteria
+2026-02-06T09:37:55-05:00Z | Contract: Phase 2 - create uc9-design.md with behavioral tests, 4 success criteria
+2026-02-06T09:40:41-05:00Z | Contract: Phase 3 - write failing tests from uc9-design.md, 4 success criteria (T1-T4)
+2026-02-06T09:43:00-05:00Z | Contract: Phase 4 - create stage guides (investigation, analysis, planning), 3 success criteria
+2026-02-06T09:46:05-05:00Z | Contract: Phase 5 - protocol integration, 4 success criteria (T1-T4 pass)
+2026-02-06T10:28:34-05:00Z | Contract: Phase 1 - UC7 checkbox verification | [ ] checkbox Contract format, [ ] checkbox Completion format, [ ] copy-and-fill pseudocode, [ ] task creation at Step 1, [ ] UC7 docs updated, [ ] protocol-guide.md created, [ ] tests pass
+2026-02-07T03:13:46Z | Contract: Repo Cleanup | [ ] YOUR_ORG fixed, [ ] tandem.md updated, [ ] experiments/ removed, [ ] old tests removed, [ ] plan-log.md truncated
+2026-02-07T03:42:56Z | Contract: Phase 1 README Restructure | [ ] core benefits first screenful, [ ] installation near top, [ ] advanced in FEATURES.md, [ ] README ≤200 lines
+2026-02-07T03:55:33Z | Contract: Phase 2 - Interaction logging fixes | [ ] explicit append_to_log in Step 3b, [ ] UC8 skeleton instruction, [ ] UC8 purge principle, [ ] UC8 deferred planning, [ ] format example
+2026-02-07T04:03:33Z | Contract: Phase 3 - Route session lessons | [ ] 5 lessons to protocol-guide.md, [ ] 1 lesson to planning-guide.md, [ ] correct format
+2026-02-07T04:09:16Z | Contract: Phase 4 - Retroactive Interaction entries | [ ] Phase 1 grades, [ ] Phase 2 grades, [ ] meta entry
+2026-02-07T12:13:26Z | Contract: Phase 1 File Restructure | [ ] merge protocol into README, [ ] update install refs, [ ] update CLAUDE.md, [ ] delete tandem-protocol.md
+2026-02-07T18:22:55Z | Contract: UC6 Lesson Triggers | [ ] README Lesson entry, [ ] UC6 Entry Format, [ ] UC6 Integration Points, [ ] UC6 test, [ ] delete enhancement-notes.md
+2026-02-07T14:22:43-05:00 | Contract: Integration test fix | [ ] verifies between gates, [ ] outputs JSON, [ ] detects timing
+2026-02-07T14:00:00-06:00 | Contract: Phase 2 - Test isolation | [ ] CLAUDE.md embedded, [ ] git repo in workspace, [ ] no piping, [ ] verify_isolation added, [ ] PROJECT_ROOT override
+2026-02-07T16:45:00-06:00 | Contract: Phase 3 - Fix Interaction format | [ ] README generic format, [ ] README examples, [ ] uc7-interaction-logging.md ASCII, [ ] uc7-design.md ASCII, [ ] test score 9/12+
+2026-02-07T17:00:00-06:00 | Contract: Phase 4 - TaskAPI compliance | [ ] test TaskCreate at Gate 1, [ ] test in_progress at Gate 1, [ ] test completed during work, [ ] test deleted at Gate 2, [ ] test score 10/12+
+2026-02-07T20:15:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] tests/fizzbuzz.sh passes 6/6
+2026-02-08T05:45:00Z | Contract: Phase 4 - TaskAPI Compliance | [ ] README.md has TaskAPI section in main flow, [ ] Test score 10/12+, [ ] tool-calls.log shows TaskCreate, [ ] tool-calls.log shows TaskUpdate
+2026-02-08T17:59:37-05:00 | Contract: Phase 7 - Self-contained README | [ ] A/B test passes, [ ] installation simplified, [ ] UC8 updated
+2026-02-08T18:45:00Z | Contract: Phase 7 - TaskAPI compliance testing | [ ] At least one experiment achieves >0 TaskCreate calls, [ ] Results logged to plan-log.md, [ ] Winning mechanism documented
+2026-02-08T18:00:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] tests/fizzbuzz.sh passes 6/6
+2026-02-08T19:45:00-05:00 | Contract: Phase 1 - Hello World | [ ] Program exists and runs, [ ] Output is "Hello, World!"
+2026-02-08T20:00:00Z | Contract: FizzBuzz Implementation | [ ] bin/fizzbuzz exists and executable, [ ] output correct for 100 lines, [ ] tests/fizzbuzz.sh passes
+2026-02-09T15:00:00Z | Contract: Phase 1 - Khorikov test suite | [ ] validators.sh, [ ] unit-validators.sh, [ ] fixtures, [ ] integration extension

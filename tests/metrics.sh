@@ -102,34 +102,6 @@ if [ -f "$PLAN_LOG" ]; then
 fi
 echo ""
 
-# --- Test Suite Health ---
-echo "## Test Suite Health"
-echo ""
-TOTAL_PASS=0
-TOTAL_FAIL=0
-pushd "$PROJECT_ROOT/tests" > /dev/null
-for t in uc*.sh; do
-    if [ -f "$t" ]; then
-        result=$(bash "$t" 2>&1)
-        pass=$(echo "$result" | grep "^Passed:" | sed 's/Passed: //')
-        fail=$(echo "$result" | grep "^Failed:" | sed 's/Failed: //')
-        TOTAL_PASS=$((TOTAL_PASS + ${pass:-0}))
-        TOTAL_FAIL=$((TOTAL_FAIL + ${fail:-0}))
-    fi
-done
-popd > /dev/null
-TOTAL_TESTS=$((TOTAL_PASS + TOTAL_FAIL))
-echo "Test Results:"
-echo "  Passed:             $TOTAL_PASS"
-echo "  Failed:             $TOTAL_FAIL"
-echo "  Total:              $TOTAL_TESTS"
-if [ "$TOTAL_FAIL" -eq 0 ]; then
-    echo "  Status:             ✓ All tests pass"
-else
-    echo "  Status:             ⚠️  $TOTAL_FAIL tests failing"
-fi
-echo ""
-
 # --- Summary ---
 echo "=== Summary ==="
 echo ""
@@ -139,4 +111,3 @@ echo "| Phase close rate | ${GATE_RATIO}% | 100% | $([ "$GATE_RATIO" -ge 100 ] &
 echo "| Interactions logged | $INTERACTIONS | >0 | $([ "$INTERACTIONS" -gt 0 ] && echo '✓' || echo '⚠️') |"
 echo "| Lessons captured | $LESSONS_LOG | >0 | $([ "$LESSONS_LOG" -gt 0 ] && echo '✓' || echo '—') |"
 echo "| README tokens | $README_TOKENS | <4000 | $([ "$README_TOKENS" -lt 4000 ] && echo '✓' || echo '⚠️') |"
-echo "| Tests passing | $TOTAL_PASS/$TOTAL_TESTS | 100% | $([ "$TOTAL_FAIL" -eq 0 ] && echo '✓' || echo '⚠️') |"

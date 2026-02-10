@@ -37,6 +37,25 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 | **Plan** | Explore, understand, ask questions, design | Gate 1: approve plan |
 | **Implement** | Execute, present results | Gate 2: approve results |
 
+## Plan Mode Entry - EXECUTE NOW
+
+If an existing plan file exists, execute this bash block to quote it verbatim:
+
+```bash
+# Force verbatim plan quote (Tier 1 - executable)
+PLAN_FILE=$(ls -t ~/.claude/plans/*.md 2>/dev/null | head -1)
+if [[ -f "$PLAN_FILE" ]]; then
+    echo "=== EXISTING PLAN (verbatim) ==="
+    cat "$PLAN_FILE"
+    echo "=== END PLAN ==="
+    echo ""
+    echo "Now grade your understanding, then grade the plan quality."
+    echo "Wait for user approval before proceeding."
+fi
+```
+
+After executing, present your grades and ask: "May I proceed?"
+
 ## Common Mistakes to Avoid
 
 - **Skipping questions:** Ask clarifying questions before Gate 1, not after

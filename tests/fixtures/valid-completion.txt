@@ -1,0 +1,58 @@
+2026-02-05T23:55:06Z | Completion: Protocol Maintenance Updates
+2026-02-06T00:06:28Z | Completion: Auto-Quote After Loop-Back
+2026-02-06T00:18:42-05:00 | Completion: UC7 implementation - contract file pattern replaced with direct event logging
+2026-02-06T00:18:42-05:00 | Completion: Step 2 - replaced contract pattern with direct logging; Step 3 examples fixed; rubric updated; Step 5 renumbered 5a-5c
+2026-02-06T00:32:00-05:00 | Completion: Phase approved (retroactive) - commits 91ee572, 9e8f7bb
+2026-02-06T09:20:03-05:00 | Completion: Step 1 - plan approved, contract logged
+2026-02-06T09:21:53-05:00 | Completion: Step 2 - uc9-iapi-stages.md updated: step numbers fixed, Main Success Scenario added, Extensions added, Trigger added, implementation code removed
+2026-02-06T09:37:49-05:00Z | Completion: Phase 1 approved - uc9-iapi-stages.md use case complete
+2026-02-06T09:38:39-05:00Z | Completion: Step 2 - uc9-design.md created, 4 behavioral tests defined
+2026-02-06T09:40:36-05:00Z | Completion: Phase 2 approved - uc9-design.md complete with behavioral tests
+2026-02-06T09:41:01-05:00Z | Completion: Step 2 - tests/uc9-iapi-stages.sh created, 4/4 tests failing (Red phase)
+2026-02-06T09:42:25-05:00Z | Completion: Phase 3 approved - tests/uc9-iapi-stages.sh complete, 4/4 failing (Red)
+2026-02-06T09:43:38-05:00Z | Completion: Step 2 - 3 stage guides created (investigation, analysis, planning)
+2026-02-06T09:45:58-05:00Z | Completion: Phase 4 approved - 3 stage guides complete with usage examples
+2026-02-06T09:49:53-05:00Z | Completion: Step 2 - protocol integration complete, 4/4 tests pass (Green)
+2026-02-06T09:54:52-05:00Z | Completion: Step 2 - context-space tuning complete (guides 33 lines each, <50 target)
+2026-02-06T09:56:18-05:00Z | Completion: Phase 6 - protocol tuned 998→979 lines, IAPI section 33→13 lines, tests pass
+2026-02-06T10:04:00-05:00Z | Completion: UC9 committed - 3c3c3b9
+2026-02-06T10:28:46-05:00Z | Completion: Step 1 - plan approved, contract logged with checkbox format
+2026-02-06T10:34:56-05:00Z | Completion: Step 2 | [x] checkbox Contract format (tandem-protocol.md:241), [x] checkbox Completion format (tandem-protocol.md:432), [x] copy-and-fill pseudocode (tandem-protocol.md:430), [x] task creation at Step 1 (tandem-protocol.md:130), [x] UC7 docs updated (uc7-*.md), [x] protocol-guide.md created (docs/guides/), [x] tests pass (verification)
+2026-02-06T10:54:35-05:00Z | Completion: Protocol Maintenance + README Update - 4 phases complete (c02f70b, d7cd424, ef7148f, 7502ec8)
+2026-02-06T10:59:47-05:00Z | Completion: Protocol Maintenance approved - 4 phases committed (c02f70b, d7cd424, ef7148f, a672e16)
+2026-02-07T03:13:58Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T03:16:08Z | Completion: Step 2 | [x] YOUR_ORG fixed (README.md→Codeberg URLs), [x] tandem.md updated (6 edits), [x] experiments/ removed (17 files), [x] old tests removed (6 files), [x] plan-log.md truncated (532 lines)
+2026-02-07T03:25:25Z | Completion: Step 3 - results presented, grade A+/98
+2026-02-07T03:25:38Z | Completion: Repo Cleanup approved | [x] YOUR_ORG fixed, [x] tandem.md updated, [x] experiments/ removed, [x] old tests removed, [x] plan-log.md truncated, [x] Tasks JSON template added
+2026-02-07T03:42:57Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T03:47:00Z | Completion: Step 2 | [x] Core benefits prominent (README:1-18), [x] Installation near top (README:21-58), [x] Advanced features in FEATURES.md (79 lines), [x] README ≤200 lines (131)
+2026-02-07T03:51:47Z | Completion: Step 3 - results presented, grade A (96/100) after 2 improve cycles
+2026-02-07T03:51:48Z | Completion: Phase 1 approved - README restructured (114 lines), FEATURES.md created (79 lines)
+2026-02-07T03:55:34Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T03:57:57Z | Completion: Step 2 | [x] explicit append_to_log in Step 3b (tandem-protocol.md:502-510), [x] UC8 skeleton instruction (uc8-design.md:35), [x] UC8 purge principle (uc8-design.md:27), [x] UC8 deferred planning (uc8-design.md:28), [x] format example inline, [x] Step 2a/2b/2c naming pattern
+2026-02-07T04:02:08Z | Completion: Step 3 - results presented, grade A (96/100) after 1 improve cycle
+2026-02-07T04:02:09Z | Completion: Phase 2 approved - Interaction logging explicit, UC8 design updated with purge/deferred/substep patterns
+2026-02-07T04:03:34Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T04:04:29Z | Completion: Step 2 | [x] 5 lessons to protocol-guide.md, [x] 1 lesson to planning-guide.md, [x] correct format (Title, Context, Lesson, Source)
+2026-02-07T04:06:29Z | Completion: Step 3 - results presented, grade A+ (98/100) after 1 improve cycle
+2026-02-07T04:06:31Z | Completion: Phase 3 approved - 6 lessons routed to guides (5 protocol, 1 planning)
+2026-02-07T04:09:16Z | Completion: Step 1 - plan validated, approval received
+2026-02-07T04:09:56Z | Completion: Step 2 | [x] Phase 1 plan grades (8 entries), [x] Phase 1 results grades (3 entries), [x] Phase 2 results grades (2 entries), [x] meta entry
+2026-02-07T04:12:39Z | Completion: Step 3 - results presented, lesson capture benefit added
+2026-02-07T04:12:40Z | Completion: Phase 4 approved - 14 retroactive entries + lesson capture benefit
+2026-02-07T12:16:51Z | Completion: Phase 1 | [x] merge protocol into README (840 lines), [x] update install refs (install.sh, README.md), [x] update CLAUDE.md, [x] delete tandem-protocol.md
+2026-02-07T12:18:55Z | Completion: Phase 2 | [x] PI model (README 840→249 lines), [x] FEATURES.md updated, [x] guides consolidated (4→2), [x] tandem.md simplified
+2026-02-07T12:21:17Z | Completion: Phase 3 | [x] UC1/UC9 deleted (4 docs, 3 tests), [x] IAPI→PI refs updated, [x] guide refs updated (4→2), [x] tandem-protocol.md→README.md refs updated
+2026-02-07T12:24:29Z | Completion: Tandem Protocol Simplification approved | [x] PI model (840→249 lines), [x] guides consolidated (4→2), [x] UC1/UC9 deleted, [x] all refs updated
+2026-02-07T17:56:13Z | Completion: Phase 3 | [x] PI model (README.md:150-164), [x] UC tests pass (30/30), [x] install.sh removed, [x] integration test (tests/integration-protocol-walk.sh)
+2026-02-07T19:15:03Z | Completion: UC6+UC8 Improvement | [x] UC6 Entry Format (uc6-lesson-capture.md:47-55), [x] UC6 Integration Points with Gate 2 (uc6-lesson-capture.md:101-119), [x] UC8 three-level hierarchy (uc8-todo-integration.md:122-151), [x] README telescoping (README.md:194-224), [x] UC6 test 5/5 pass, [x] all UC tests 33/33 pass, [x] Lesson entries routed (protocol-guide.md, uc8-design.md), [x] enhancement-notes.md deleted
+2026-02-07T13:31:00-06:00 | Completion: Integration test fix | [x] verifies between gates (5 checkpoints), [x] outputs JSON (compliance.json with UC labels), [x] detects timing (line count + UC format checks), [x] cost documented ($0.14/run)
+2026-02-07T16:20:00-06:00 | Completion: Phase 2 - Test isolation | [x] CLAUDE.md embedded (lines 271-273), [x] git repo in workspace (lines 275-278), [x] no piping (line 292), [x] verify_isolation added (lines 184-202), [x] PROJECT_ROOT override (lines 292,317,329,341,353), [x] set +e around verification (lines 316,372), [x] grep sanitization (lines 106,141,178), [x] test score 7/12 with isolation PASS
+2026-02-07T16:55:00-06:00 | Completion: Phase 3 | [x] README generic format (line 150), [x] README examples (lines 152-154), [x] uc7-interaction-logging.md ASCII (replace_all), [x] uc7-design.md ASCII (replace_all), [x] test score 8/12 (improved from 7, Interaction checks now PASS)
+2026-02-08T06:45:00Z | Completion: Phase 4 - TaskAPI Investigation | [x] README.md has TaskAPI section (lines 151-183), [x] Bash heredoc format (UC7 8/8), [-] Test score 8/12 (not 10/12+), [-] TaskCreate not invoked, [-] TaskUpdate not invoked
+2026-02-08T16:30:00Z | Completion: Phase 5 - Understand the System | [x] Root cause identified (UC8 violated Cockburn), [x] UC8 rewritten with intent language, [x] Design doc updated with mechanism selection, [x] README gate actions updated, [x] Integration test updated for intent verification
+2026-02-08T17:00:00Z | Completion: Phase 6 - Make TaskAPI Reliable | [x] README installation includes system-reminder (heredoc), [x] README gate actions restored with TaskAPI mandatory, [x] UC8 design reflects system-reminder enforcement, [x] tandem.md has backup system-reminder
+2026-02-08T19:50:00Z | Completion: FizzBuzz Implementation | [x] bin/fizzbuzz exists and executable (tests/fizzbuzz.sh T1), [x] tests/fizzbuzz.sh passes 6/6 (PASS=6 FAIL=0)
+2026-02-08T21:00:00Z | Completion: Phase 7 - TaskAPI compliance | [x] Found mechanism (direct file write), [x] Integrated into protocol (bash blocks in plan template), [x] Simplified installation (no system-reminder needed)
+2026-02-08T16:45:00Z | Completion: Phase 7 - TaskAPI compliance testing | [x] 5 experiments run (1 pass: Stop Hook), [x] Direct file write mechanism discovered, [x] README updated with bash blocks, [x] All 33 tests pass
+2026-02-08T17:45:00Z | Completion: Fix README for design doc compliance | [x] 7 edits to README.md, [x] 27/27 tests pass

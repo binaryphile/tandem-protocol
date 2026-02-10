@@ -1,0 +1,16 @@
+# Invalid Contract entries for negative testing
+
+# Missing checkbox - no [ ] criterion
+2026-02-09T12:00:00Z | Contract: Phase 1 | auth, tests, docs
+
+# Bad timestamp - missing T
+2026-02-09 12:00:00Z | Contract: Phase 1 | [ ] auth, [ ] tests
+
+# Bad timestamp - missing Z
+2026-02-09T12:00:00 | Contract: Phase 1 | [ ] auth, [ ] tests
+
+# Missing Contract marker
+2026-02-09T12:00:00Z | Phase 1 | [ ] auth, [ ] tests
+
+# Empty criteria section
+2026-02-09T12:00:00Z | Contract: Phase 1 |

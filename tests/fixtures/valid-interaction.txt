@@ -1,0 +1,108 @@
+2026-02-06T00:30:00-05:00 | Interaction: 4× /w→/i cycles: A/94→A+/97→A+/98→A+/100
+2026-02-06T09:22:35-05:00 | Interaction: /w grade → C+/78, missing MSS/Extensions/Trigger
+2026-02-06T09:22:35-05:00 | Interaction: /i improve → added MSS (10 steps), Extensions (3 paths), Trigger, removed impl code
+2026-02-06T09:23:56-05:00 | Interaction: /a grade → B+/88, missed step-agnostic logging already implied
+2026-02-06T09:23:56-05:00 | Interaction: /i improve → clarified Event Logging table: 'User feedback (any step)'
+2026-02-06T09:25:02-05:00 | Interaction: locality fix → added log_interaction to Step 2 code block
+2026-02-06T09:26:17-05:00 | Interaction: feedback → removed slash command refs from protocol, noted future work for pervasive step locality
+2026-02-06T09:28:15-05:00Z | Interaction: improve → merged redundant stage sections, clarified Guard Conditions
+2026-02-06T09:37:11-05:00Z | Interaction: improve → clarified Secondary Actors, merged Lesson Routing into Integration table
+2026-02-06T09:37:32-05:00Z | Interaction: improve → no change needed, lesson format is out of scope per In/Out List
+2026-02-06T09:38:43-05:00Z | Interaction: improve → removed 'skill' references from uc9-iapi-stages.md
+2026-02-06T09:39:35-05:00Z | Interaction: improve → concrete output example, stage-tag routing, fixed grep patterns
+2026-02-06T09:40:21-05:00Z | Interaction: improve → defined lesson tuple structure, case-insensitive T2, tuple-unpacking T4
+2026-02-06T09:42:01-05:00Z | Interaction: improve → removed redundant -i flag, made T4 less fragile
+2026-02-06T09:42:46-05:00Z | Interaction: improve → T4 now matches stage-to-guide dict pattern ("I":.*investigation-guide)
+2026-02-06T09:44:29-05:00Z | Interaction: improve → added Category prefix and Source field to all lessons per plan format
+2026-02-06T09:45:11-05:00Z | Interaction: improve → lesson-specific categories, added Usage Example to each guide
+2026-02-06T09:45:45-05:00Z | Interaction: improve → fixed truncated lesson reference in planning-guide Usage Example
+2026-02-06T09:49:58-05:00Z | Interaction: user feedback → Implement runs direct (no subagent), updated use case/design/protocol
+2026-02-06T09:53:01-05:00Z | Interaction: feedback → added locality lesson to planning-guide (pervasive behaviors in plan file)
+2026-02-06T09:54:22-05:00Z | Interaction: feedback → added Plan File Phase Template to design doc, updated use case In/Out List
+2026-02-06T09:59:03-05:00Z | Interaction: improve → restored Lessons Applied/Missed output format, fixed In/Out List
+2026-02-06T10:02:33-05:00Z | Interaction: improve → fixed duplicate Out of Scope, added IAPI skeleton reference to Step 1d
+2026-02-06T10:03:26-05:00Z | Interaction: improve → condensed IAPI skeleton comment to 1 line (988→985)
+2026-02-07T04:04:58Z | Interaction: grade → A/96, typo in plan file, missing improve example
+2026-02-07T04:04:58Z | Interaction: improve → added improve example to Event Logging table
+2026-02-07T04:05:57Z | Interaction: grade → A/95, Interaction Logging wording imprecise, Usage Examples not updated
+2026-02-07T04:05:57Z | Interaction: improve → refined wording, added new lessons to Usage Examples in both guides
+2026-02-07T03:43:00Z | Interaction: grade analysis → C+/72, lesson misattribution
+2026-02-07T03:43:30Z | Interaction: grade plan → C/68, missing concrete changes
+2026-02-07T03:44:00Z | Interaction: improve → added concrete changes section
+2026-02-07T03:44:30Z | Interaction: grade plan → B+/88, still verbose
+2026-02-07T03:45:00Z | Interaction: improve → condensed structure
+2026-02-07T03:45:30Z | Interaction: grade plan → A-/93, minor polish items
+2026-02-07T03:46:00Z | Interaction: improve → final polish
+2026-02-07T03:46:30Z | Interaction: grade plan → A/96, ready for approval
+2026-02-07T03:48:00Z | Interaction: grade results → A/95, example generic
+2026-02-07T03:48:30Z | Interaction: improve → specific refactoring example
+2026-02-07T03:49:00Z | Interaction: grade results → A+/98, minor polish
+2026-02-07T04:00:00Z | Interaction: grade results → A/96, typo in plan file, missing improve example
+2026-02-07T04:01:00Z | Interaction: improve → verified typo in plan file only, added improve example
+2026-02-07T04:10:00Z | Interaction: retroactive logging → 13 entries added for Phases 1-2
+2026-02-07T12:36:03Z | Interaction: compliance diagnosis → UC10 tests created, enforcement added at Gate 1 locality, 3 lessons captured
+2026-02-07T12:36:49Z | Interaction: grade → B+/87, UC2-UC8 tests failing, protocol not followed during execution
+2026-02-07T17:40:51Z | Interaction: improve -> fixed UC2-UC8 tests for PI model, removed install.sh, simplified README install section
+2026-02-07T17:41:49Z | Interaction: grade -> B+/85, Phase 4 missing metrics (Interaction logging, criteria matching, telescoping)
+2026-02-07T17:42:31Z | Interaction: improve -> expanded Phase 4 with full compliance metrics (Interaction logging, criteria matching, telescoping)
+2026-02-07T17:54:28Z | Interaction: grade -> A-/92, Phase 4 is spec not code
+2026-02-07T17:55:52Z | Interaction: improve -> implemented Phase 4 integration test (tests/integration-protocol-walk.sh + lib/*)
+2026-02-07T18:15:13Z | Interaction: grade -> B+/86, test not independent, checks presence not sequence
+2026-02-07T19:14:41Z | Interaction: /p grade plan -> B-/81, scope creep (UC6+purge combined), overkill on purge
+2026-02-07T19:14:41Z | Interaction: /i improve -> rewrote plan focused on UC6, read UC7 patterns for exact format
+2026-02-07T19:14:41Z | Interaction: /w grade results -> B+/87, README missing three-level hierarchy, TaskAPI not demonstrated, lessons not logged
+2026-02-07T19:14:41Z | Interaction: /i improve -> added three-level hierarchy to README, logged lesson entries
+2026-02-07T19:14:41Z | Interaction: /w grade results -> A-/91, lessons not routed to guide files
+2026-02-07T19:14:41Z | Interaction: /i improve -> routed lessons to protocol-guide.md and uc8-design.md
+2026-02-07T12:45:00-06:00 | Interaction: grade -> B+/85, missing diff from current test, tool log timing issue, grep edge cases
+2026-02-07T12:48:00-06:00 | Interaction: improve -> added line count tracking, before/after comparison, fixed grep helpers
+2026-02-07T12:52:00-06:00 | Interaction: grade -> B+/86, no actual test run, removed granular PASS/FAIL, unused line count vars
+2026-02-07T12:58:00-06:00 | Interaction: improve -> restored PASS/FAIL per check, used line count for timing verification
+2026-02-07T13:15:00-06:00 | Interaction: improve -> tightened UC7 format checks (Contract/Completion/Interaction), added UC8 completed check, added UC6 Lesson check (info)
+2026-02-07T13:22:00-06:00 | Interaction: improve -> UC6 Lesson check warns if grade but no lesson, UC7 Completion checks evidence content not just parens
+2026-02-07T15:50:00-06:00 | Interaction: debug -> nix wrapper PROJECT_ROOT override defeats cd isolation
+2026-02-07T15:55:00-06:00 | Interaction: improve -> added PROJECT_ROOT="$TEST_CWD" to all claude invocations
+2026-02-07T16:00:00-06:00 | Interaction: debug -> set -e exits before capturing verify_* return values
+2026-02-07T16:05:00-06:00 | Interaction: improve -> added set +e/set -e around verification section
+2026-02-07T16:10:00-06:00 | Interaction: debug -> grep -c outputs newlines causing arithmetic errors
+2026-02-07T16:15:00-06:00 | Interaction: improve -> added tr -d sanitization to all grep -c calls
+2026-02-07T16:50:00-06:00 | Interaction: implement -> 5 edits (README format+examples, uc7-interaction-logging, uc7-design replace_all)
+2026-02-08T06:30:00Z | Interaction: grade -> C/70, instructions not precise enough, repeated feedback about format
+2026-02-08T06:31:00Z | Interaction: improve -> changed TaskAPI format from key=value to JSON objects
+2026-02-08T06:35:00Z | Interaction: grade -> C/70, instructions still not producing TaskAPI calls
+2026-02-08T17:30:00Z | Interaction: improve -> empirical test showed system-reminder does NOT reliably trigger TaskCreate (0/2 calls); updated design to reflect plan file as primary, TaskAPI as best-effort; updated integration test to require plan file, report TaskAPI as bonus
+2026-02-08T17:45:00Z | Interaction: debugging TaskAPI compliance -> found interactive=79 calls, automated=0; syntax trigger theory
+2026-02-08T17:50:00Z | Interaction: improve (Agans Rule 9 verification) -> system-reminder test: 2 TaskAPI calls WITH vs 0 WITHOUT
+2026-02-08T18:02:03-05:00 | Interaction: A/B test -> /tandem=0, control=1 (unexpected: control beat /tandem)
+2026-02-08T18:07:16-05:00 | Interaction: 4 README experiments -> position, simplification, coupling, stop-gate
+2026-02-08T18:56:12-05:00 | Interaction: 4 README experiments complete -> all 0 TaskAPI calls (Position=0, Simple=0, Coupling=0, Stopgate=0, Control=0)
+2026-02-08T19:34:24-05:00 | Interaction: Exp 3 [Explicit Prompt] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:36:32-05:00 | Interaction: Exp 4a [Single-turn] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:37:34-05:00 | Interaction: Exp 4b [Fresh Session] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:38:33-05:00 | Interaction: Exp 2 [SessionStart] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:42:35-05:00 | Interaction: Exp 3 [Explicit Prompt] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:43:00-05:00 | Interaction: Exp 4a [Single-turn] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:44:08-05:00 | Interaction: Exp 4b [Fresh Session] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:45:09-05:00 | Interaction: Exp 2 [SessionStart] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:46:37-05:00 | Interaction: Exp 1 [Stop Hook] -> 1 TaskCreate calls [PASS]
+2026-02-08T19:48:07-05:00 | Interaction: Exp 5 [Agent Hook] -> 0 TaskCreate calls [FAIL]
+2026-02-08T19:55:00Z | Interaction: Analysis -> Stop Hook is winning mechanism (1/5 passed), behavioral enforcement works where instruction-based fails
+2026-02-08T20:15:00Z | Interaction: improve -> UX limitation discovered: global hooks affect all sessions, jarring notifications. Recommendation changed to project-local only.
+2026-02-08T20:25:00Z | Interaction: improve -> Conclusion clarified: no README-only mechanism viable, current CLAUDE.md approach remains best. Tasks #81/#82 deleted (no README change needed).
+2026-02-08T20:45:00Z | Interaction: investigate -> BREAKTHROUGH: TaskAPI files at ~/.claude/tasks/{session-id}/{task-id}.json can be written directly from bash. 100% reliable task creation possible!
+2026-02-08T17:05:00Z | Interaction: improve -> adding remediation proposals for UC gaps
+2026-02-08T17:30:00Z | Interaction: fix tests -> aligned 6 test files with design doc patterns, 13 failures exposed
+2026-02-08T18:00:00Z | Interaction: add missing tests -> 6 new tests added, README updated, 33/33 pass
+2026-02-08T18:10:00Z | Interaction: improve -> fixing UC6 test overlap, tightening UC2-T5 pattern
+2026-02-09T14:30:00Z | Interaction: grade -> B/82, analysis without action, no deliverable
+2026-02-09T14:31:00Z | Interaction: improve -> delete trivial tests, restructure test suite per Khorikov
+2026-02-09T15:05:00Z | Interaction: grade -> B+/87, missing plan hierarchy validation, criteria matching detail, integration extension specificity
+2026-02-09T15:06:00Z | Interaction: improve -> adding plan hierarchy validation, criteria matching edge cases, integration test specificity
+2026-02-09T15:15:00Z | Interaction: grade -> A-/92, plan hierarchy rules 2-3 incomplete, no error format standardization
+2026-02-09T15:16:00Z | Interaction: improve -> completing hierarchy rules 2-3, adding error format spec
+2026-02-09T15:25:00Z | Interaction: grade -> A/95, hierarchy validation fragile regex, no fixture validation
+2026-02-09T15:26:00Z | Interaction: improve -> simplify hierarchy validation, add fixture validation check
+2026-02-09T15:35:00Z | Interaction: grade -> A/96, match_criteria error format inconsistent
+2026-02-09T15:36:00Z | Interaction: improve -> standardizing match_criteria error format
+2026-02-09T15:40:00Z | Interaction: grade -> A+/98, missing test count estimate
+2026-02-09T15:41:00Z | Interaction: improve -> adding test count estimate

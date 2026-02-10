@@ -21,6 +21,12 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PROTOCOL="$PROJECT_DIR/README.md"
+VALIDATORS="$SCRIPT_DIR/lib/validators.sh"
+
+# Source validators for hierarchy checking
+if [[ -f "$VALIDATORS" ]]; then
+    source "$VALIDATORS"
+fi
 LOG_DIR="/tmp/tandem-test-$$"
 TOOL_LOG="$LOG_DIR/tool-calls.log"
 PLAN_LOG="$LOG_DIR/plan-log.md"
@@ -200,6 +206,43 @@ verify_after_gate2() {
     else
         echo "  PASS: No Lesson needed (no grading gaps)"
     fi
+    return $errors
+}
+
+verify_plan_hierarchy() {
+    local errors=0
+    # UC8: After Gate 2, completed phases should be collapsed (no child tasks)
+    # Check plan files in workspace and ~/.claude/plans/
+    local plan_files=()
+    for f in "$TEST_CWD"/*.md ~/.claude/plans/*.md 2>/dev/null; do
+        [[ -f "$f" ]] && plan_files+=("$f")
+    done
+
+    if [[ ${#plan_files[@]} -eq 0 ]]; then
+        echo "  INFO: No plan files found (UC8 check skipped)"
+        return 0
+    fi
+
+    # Only check if validators are available
+    if ! type validate_plan_hierarchy &>/dev/null; then
+        echo "  INFO: Validators not loaded, skipping hierarchy check"
+        return 0
+    fi
+
+    for plan_file in "${plan_files[@]}"; do
+        # Skip files that don't look like protocol plan files
+        if ! grep -qE '^\[.\] Phase' "$plan_file" 2>/dev/null; then
+            continue
+        fi
+        local result
+        result=$(validate_plan_hierarchy "$plan_file" 2>&1)
+        if [[ $? -eq 0 ]]; then
+            echo "  PASS: Plan hierarchy valid (UC8): $(basename "$plan_file")"
+        else
+            echo "  WARN: Plan hierarchy issue (UC8): $result"
+            # Don't fail - this is aspirational, not blocking
+        fi
+    done
     return $errors
 }
 
@@ -384,6 +427,11 @@ else
     verify_after_gate2
     ERRORS_GATE2=$?
 
+    # CHECKPOINT 5b: Plan hierarchy (UC8)
+    checkpoint "Plan hierarchy (UC8)"
+    verify_plan_hierarchy
+    ERRORS_HIERARCHY=$?
+
     # CHECKPOINT 6: Isolation
     checkpoint "Isolation"
     verify_isolation
@@ -398,8 +446,9 @@ fi
 # ============================================================================
 
 ERRORS_ISOLATION=${ERRORS_ISOLATION:-0}
+ERRORS_HIERARCHY=${ERRORS_HIERARCHY:-0}
 TOTAL_CHECKS=11  # 2+3+1+2+2+1 checks, minus 1 (gate2 task cleanup now INFO not FAIL)
-TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2 + ERRORS_ISOLATION))
+TOTAL_ERRORS=$((ERRORS_START + ERRORS_GATE1 + ERRORS_GRADE + ERRORS_IMPROVE + ERRORS_GATE2 + ERRORS_HIERARCHY + ERRORS_ISOLATION))
 SCORE=$((TOTAL_CHECKS - TOTAL_ERRORS))
 
 # Helper for safe boolean checks (handles missing files)
@@ -422,6 +471,7 @@ cat > "$LOG_DIR/compliance.json" << EOF
     "grade": {"errors": $ERRORS_GRADE, "interaction_uc7": $(check_exists 'Interaction:.*->' "$PLAN_LOG")},
     "improve": {"errors": $ERRORS_IMPROVE, "interaction_count": $(c=$(grep -c 'Interaction:.*->' "$PLAN_LOG" 2>/dev/null | tr -d '[:space:]'); echo ${c:-0}), "task_complete": $(check_exists 'completed\|\\[x\\]' "$TOOL_LOG" "$TEST_CWD"/*.md)},
     "gate2": {"errors": $ERRORS_GATE2, "completion_uc7": $(check_exists 'Completion:.*\[x\].*([^)]+)' "$PLAN_LOG"), "lesson_uc6": $(check_exists 'Lesson:.*->' "$PLAN_LOG")},
+    "hierarchy": {"errors": $ERRORS_HIERARCHY, "uc8_checked": $([[ -f "$VALIDATORS" ]] && echo true || echo false)},
     "isolation": {"errors": $ERRORS_ISOLATION, "no_leak": $([[ ! -f "$PROJECT_DIR/bin/fizzbuzz" ]] && echo true || echo false)}
   },
   "score": $SCORE,

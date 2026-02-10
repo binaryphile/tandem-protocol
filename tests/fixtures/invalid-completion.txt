@@ -1,0 +1,16 @@
+# Invalid Completion entries for negative testing
+
+# Empty evidence - ()
+2026-02-09T12:00:00Z | Completion: Phase 1 | [x] auth (), [x] tests (pass)
+
+# Missing evidence entirely
+2026-02-09T12:00:00Z | Completion: Phase 1 | [x] auth, [x] tests
+
+# Bad timestamp
+2026-02-09 12:00:00Z | Completion: Phase 1 | [x] auth (done), [x] tests (pass)
+
+# Missing Completion marker
+2026-02-09T12:00:00Z | Phase 1 done | [x] auth (done), [x] tests (pass)
+
+# Wrong checkbox marker
+2026-02-09T12:00:00Z | Completion: Phase 1 | [X] auth (done), [x] tests (pass)

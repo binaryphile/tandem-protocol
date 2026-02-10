@@ -136,3 +136,22 @@ Tested: 5/5 recovery scenarios passed. Works for initial drift, mid-session drif
 - Lightweight `/tandem` for recovery
 - Bash heredocs at gates for 100% reliable logging
 - Accepts ~80% baseline, relies on recovery mechanism
+
+## Testing
+
+```bash
+# Quick infrastructure check
+bash tests/integration/smoke-test.sh
+
+# Individual use case tests
+bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
+bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
+
+# Recovery mechanism validation
+bash tests/integration/tandem-recovery.sh      # /tandem drift recovery
+
+# Full test suite
+for t in tests/integration/*.sh; do bash "$t"; done
+```
+
+See `tests/integration/` for all behavioral compliance tests.

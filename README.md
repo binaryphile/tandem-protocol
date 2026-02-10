@@ -66,25 +66,6 @@ See [FEATURES.md](FEATURES.md) for details on:
 - **PI cognitive stages** - Structured thinking for complex tasks
 - **Multi-phase projects** - Maintain coherence across sessions
 
-## Testing
-
-```bash
-# Quick infrastructure check
-bash tests/integration/smoke-test.sh
-
-# Individual use case tests
-bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
-bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
-
-# Recovery mechanism validation
-bash tests/integration/tandem-recovery.sh      # /tandem drift recovery
-
-# Full test suite
-for t in tests/integration/*.sh; do bash "$t"; done
-```
-
-See `tests/integration/` for all behavioral compliance tests.
-
 ---
 
 # The Protocol

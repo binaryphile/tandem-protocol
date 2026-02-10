@@ -5,9 +5,13 @@
 # Scenario: Create plan file, start session, verify sequence
 # 1. Create known plan file
 # 2. Start session (triggers plan mode entry)
-# 3. Verify plan quoted verbatim
+# 3. Verify plan quoted verbatim (KNOWN LIMITATION: ~0% - bash block not auto-executed)
 # 4. Verify analysis grade before plan grade
 # 5. Verify blocking prompt
+#
+# Expected: 4/5 pass (80%) - verbatim quote requires Claude to execute bash block
+# The bash block is in tandem.md but Claude chooses whether to run it.
+# This is the documented compliance ceiling for descriptive instructions.
 
 source "$(dirname "$0")/common.sh"
 

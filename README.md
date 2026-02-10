@@ -59,11 +59,11 @@ See [FEATURES.md](FEATURES.md) for details on:
 flowchart TD
     PLAN[Plan Mode] --> EXPLORE[Explore & Design]
     EXPLORE --> ASK[Ask Questions]
-    ASK --> G1{GATE 1}
+    ASK --> G1{Impl Gate}
     G1 -->|approve| LOG1[Log Contract]
     LOG1 --> IMPL[Implement]
     IMPL --> PRESENT[Present Results]
-    PRESENT --> G2{GATE 2}
+    PRESENT --> G2{Compl Gate}
     G2 -->|approve| LOG2[Log Completion]
     LOG2 --> COMMIT[Commit]
     COMMIT --> NEXT[Next Phase]
@@ -108,13 +108,13 @@ Checklist before requesting approval:
 
 Do not request "May I proceed?" without these executable bash blocks in the plan file.
 
-**GATE 1 ACTIONS** (when user says "proceed"):
+**IMPLEMENTATION GATE ACTIONS** (when user says "proceed"):
 
 Execute the bash block from the plan file's "At Implementation Gate Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
 
 **STOP: Do not implement until the Implementation Gate bash block has been executed.**
 
-**GATE 2 ACTIONS** (when user approves results):
+**COMPLETION GATE ACTIONS** (when user approves results):
 
 Execute the bash block from the plan file's "At Completion Gate Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
 

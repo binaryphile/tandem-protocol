@@ -1,108 +1,61 @@
 # Tandem Protocol
 
-**Checkpoints and self-improvement for Claude Code sessions.**
+Structured checkpoints for Claude Code. You approve each step, Claude grades its own work.
 
-## Why?
-
-Without structure, Claude Code sessions can feel chaotic:
-- Plans get forgotten or half-implemented
-- No checkpoints to catch issues before they compound
-- No way to consistently improve work quality
-
-## What You Get
-
-- **Approval gates** - You decide when to proceed, not Claude
-- **Self-grading** - Ask Claude to evaluate and improve its own work
-- **Lesson capture** - Claude learns your project's patterns as you work
-- **Event logging** - Audit trail of what was agreed and delivered
-- **Multi-phase support** - Plan files persist across phases and sessions
-
-The `/tandem` command re-activates the protocol when compliance drifts.
-
-## Installation
-
+**Try it:**
 ```bash
-# Clone to home directory
 cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
-
-# Create /tandem command
-mkdir -p ~/.claude/commands
-ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
-
-# Add to your project's CLAUDE.md
-cat >> CLAUDE.md << 'EOF'
-
-# Tandem Protocol
-@~/tandem-protocol/README.md
-EOF
+mkdir -p ~/.claude/commands && ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
+echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> your-project/CLAUDE.md
 ```
 
-**Verify:** Start Claude Code, then run `/tandem plan to X so Y`
+## Example Session
 
-**Note:** No system-reminder needed. TaskAPI is manipulated via bash (100% reliable) rather than tool invocation.
+```
+You:    /tandem add a config file loader to the CLI
+Claude: Questions before planning:
+        - YAML, JSON, or TOML?
+        - Missing config: error or defaults?
+You:    YAML, defaults
+
+Claude: [creates plan] May I proceed?
+You:    proceed
+
+Claude: [logs to plan-log.md]
+        2024-01-15T10:00:00Z | Contract: Config loader | [ ] YAML parsing, [ ] default fallback
+
+        [implements]
+
+        Done. May I proceed?
+You:    proceed
+```
+
+Use `/tandem` anytime to refocus when things drift.
 
 ## Usage
 
 ### When to use `/tandem`
 
-Invoke 1-2 times early in your session, or whenever you notice protocol drift:
-
-- At session start (before planning): `/tandem make a plan to...`
-- When Claude skips steps or you've lost track of the current step
-- After scope changes or interruptions
-
-### How it works
-
-The protocol lives in your CLAUDE.md (via @reference), providing ~80% baseline compliance. The `/tandem` command recovers compliance when drift occurs.
-
-**The practical model:**
-```
-~80% baseline compliance + /tandem recovery = viable workflow
-```
-
-This is intentional. Chasing 100% initial compliance requires complex setup (hooks, wrappers). Instead, the protocol relies on:
-1. **Baseline**: Protocol in context guides most interactions
-2. **Recovery**: `/tandem` kicks compliance back when needed
-3. **Gates**: Bash heredocs at gates provide 100% reliable logging
-
-### Signs of drift
-
-- Claude implements without asking "May I proceed?"
-- No Contract logged after plan approval
-- Scope changes without returning to planning
-- Missing Interaction entries for grade/improve cycles
-
-When you notice drift, just run `/tandem` with context about where you are.
+- At session start: `/tandem make a plan to...`
+- When Claude skips steps or scope changes
+- Anytime things feel off track
 
 ## The Flow
 
 ```mermaid
 flowchart LR
-    S1[Plan] -->|"GATE 1"| S2[Implement]
-    S2 --> S3[Present]
-    S3 -->|"GATE 2"| S4[Commit]
-    S4 -.->|"next phase"| S1
+    S1[Plan] --> G1{Gate 1}
+    G1 --> S2[Implement]
+    S2 --> G2{Gate 2}
+    G2 -.->|"next phase"| S1
 
-    style S1 fill:#e8f5e9,stroke:#388e3c
-    style S3 fill:#fff3e0,stroke:#ff9800
+    style S1 fill:#e3f2fd,stroke:#1976d2
+    style S2 fill:#e3f2fd,stroke:#1976d2
+    style G1 fill:#fff3e0,stroke:#f57c00
+    style G2 fill:#fff3e0,stroke:#f57c00
 ```
 
 At each gate, you can **approve**, **request a grade**, or **ask for improvements**.
-
-## Example
-
-```
-You:    /tandem refactor the payment module into separate services
-Claude: [explores codebase, presents plan] May I proceed?
-You:    proceed                              <- GATE 1
-Claude: [implements] May I proceed?
-You:    grade your work
-Claude: B+ (87/100) - OrderService still coupled to PaymentGateway
-You:    improve
-Claude: [extracts interface, re-presents] May I proceed?
-You:    proceed                              <- GATE 2
-Claude: [commits, sets up next phase]
-```
 
 ## Learn More
 

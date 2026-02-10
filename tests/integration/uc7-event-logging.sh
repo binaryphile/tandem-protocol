@@ -38,6 +38,7 @@ echo ""
 echo "Step 2: Gate 1 - proceed..."
 sleep 2
 resume_session "proceed" 10 > /dev/null
+sleep 1  # allow file writes to complete
 
 # Checkpoint 2: Contract logged at Gate 1
 echo ""
@@ -51,6 +52,7 @@ echo ""
 echo "Step 3: Request grade..."
 sleep 2
 resume_session "grade" 5 > /dev/null
+sleep 1  # allow file writes to complete
 
 # Checkpoint 3: Interaction logged for grade
 echo ""
@@ -63,6 +65,7 @@ echo ""
 echo "Step 4: Request improve..."
 sleep 2
 resume_session "improve" 10 > /dev/null
+sleep 1  # allow file writes to complete
 
 # Checkpoint 4: Second Interaction logged
 echo ""
@@ -74,6 +77,7 @@ echo ""
 echo "Step 5: Gate 2 - proceed..."
 sleep 2
 resume_session "proceed" 10 > /dev/null
+sleep 1  # allow file writes to complete
 
 # Checkpoint 5: Completion logged at Gate 2
 echo ""

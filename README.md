@@ -85,8 +85,8 @@ flowchart TD
 
 | Stage | What Happens | Gate |
 |-------|--------------|------|
-| **Plan** | Explore, understand, ask questions, design | Gate 1: approve plan |
-| **Implement** | Execute, present results | Gate 2: approve results |
+| **Plan** | Explore, understand, ask questions, design | Implementation Gate: approve plan |
+| **Implement** | Execute, present results | Completion Gate: approve results |
 
 ## Plan Mode Entry
 
@@ -98,25 +98,25 @@ Enter plan mode at the start of each phase. When entering with an existing plan:
 
 On "improve": Address ALL deductions from both grades, then re-present.
 
-On approval: Exit plan mode, then execute Gate 1 actions.
+On approval: Exit plan mode, then execute Implementation Gate actions.
 
-**Before Gate 1: MUST verify plan includes bash blocks at each gate.**
+**Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before requesting approval:
-- [ ] "At Gate 1 Approval" section with bash block (Contract + task creation)
-- [ ] "At Gate 2 Approval" section with bash block (Completion + task deletion + commit)
+- [ ] "At Implementation Gate Approval" section with bash block (Contract + task creation)
+- [ ] "At Completion Gate Approval" section with bash block (Completion + task deletion + commit)
 
 Do not request "May I proceed?" without these executable bash blocks in the plan file.
 
 **GATE 1 ACTIONS** (when user says "proceed"):
 
-Execute the bash block from the plan file's "At Gate 1 Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
+Execute the bash block from the plan file's "At Implementation Gate Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
 
-**STOP: Do not implement until the Gate 1 bash block has been executed.**
+**STOP: Do not implement until the Implementation Gate bash block has been executed.**
 
 **GATE 2 ACTIONS** (when user approves results):
 
-Execute the bash block from the plan file's "At Gate 2 Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
+Execute the bash block from the plan file's "At Completion Gate Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
 
 ## Event Logging
 
@@ -138,8 +138,8 @@ EOF
 
 | Entry | When | Format |
 |-------|------|--------|
-| Contract | Gate 1 approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
-| Completion | Gate 2 (copy criteria verbatim from Contract) | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
+| Contract | Implementation Gate approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
+| Completion | Completion Gate (copy criteria verbatim from Contract) | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
 | Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
 | Lesson | Non-actionable gap (actionability test: "Can I fix this now?" - don't deduct, capture instead) | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
 
@@ -149,8 +149,8 @@ TaskAPI is manipulated via direct file writes to `~/.claude/tasks/{session-id}/`
 
 | Gate | What Happens |
 |------|--------------|
-| Gate 1 | Log Contract + Create task files + Set first to in_progress |
-| Gate 2 | Mark complete + Log Completion + Delete task files + Commit |
+| Implementation Gate | Log Contract + Create task files + Set first to in_progress |
+| Completion Gate | Mark complete + Log Completion + Delete task files + Commit |
 
 **Discovery:** Tasks are stored at `~/.claude/tasks/{session-id}/{task-id}.json`. Writing directly to these files works - Claude Code reads from the filesystem.
 
@@ -171,7 +171,7 @@ Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, met
 ## Changes
 [What files change, with line references. Note: line numbers shift after edits - verify before presenting results.]
 
-## At Gate 1 Approval
+## At Implementation Gate Approval
 
     ```bash
     # Log Contract + Create Tasks (execute this entire block)
@@ -194,7 +194,7 @@ Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, met
     TASK
     ```
 
-## At Gate 2 Approval
+## At Completion Gate Approval
 
     ```bash
     # Mark complete + Log + Delete + Commit (execute this entire block)
@@ -250,15 +250,15 @@ Three-level hierarchy: Phase → Stage → Task
 | Event | Action |
 |-------|--------|
 | Enter phase | Add Plan/Implement stages to plan file |
-| Gate 1 | Mark Plan `[x]`, expand Implement tasks, TaskCreate for each, first `in_progress` |
+| Implementation Gate | Mark Plan `[x]`, expand Implement tasks, TaskCreate for each, first `in_progress` |
 | Task done | Mark `[x]` in plan, TaskUpdate `completed`, next `in_progress` |
-| Gate 2 | Mark Implement `[x]`, collapse phase, TaskUpdate `deleted` for all |
+| Completion Gate | Mark Implement `[x]`, collapse phase, TaskUpdate `deleted` for all |
 
 ## Protocol Principles
 
 **Two gates, explicit approval:**
-- Gate 1: Approve plan before implementation
-- Gate 2: Approve results before commit
+- Implementation Gate: Approve plan before implementation
+- Completion Gate: Approve results before commit
 - Never proceed without "proceed"/"yes"/"approved"
 
 **User controls scope:**
@@ -272,8 +272,8 @@ Three-level hierarchy: Phase → Stage → Task
 - Scope changes → return to Plan stage
 
 **Behavioral logging:**
-- Contract at Gate 1 (what we agreed)
-- Completion at Gate 2 (what we delivered)
+- Contract at Implementation Gate (what we agreed)
+- Completion at Completion Gate (what we delivered)
 - Interaction on any grade/improve cycle
 
 **Plan files guide execution:**

@@ -53,221 +53,230 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 # The Protocol
 
-## Overview
+## Protocol Flow
 
 ```mermaid
-flowchart LR
-    S1[1: Plan] --> S2{2: Gate}
-    S2 --> S3[3: Implement]
-    S3 --> S4{4: Gate}
-    S4 -.-> S1
+flowchart TD
+    PLAN[Plan Mode] --> EXPLORE[Explore & Design]
+    EXPLORE --> ASK[Ask Questions]
+    ASK --> G1{GATE 1}
+    G1 -->|approve| LOG1[Log Contract]
+    LOG1 --> IMPL[Implement]
+    IMPL --> PRESENT[Present Results]
+    PRESENT --> G2{GATE 2}
+    G2 -->|approve| LOG2[Log Completion]
+    LOG2 --> COMMIT[Commit]
+    COMMIT --> NEXT[Next Phase]
+    NEXT --> PLAN
 
-    style S1 fill:#e3f2fd,stroke:#1976d2
-    style S3 fill:#e3f2fd,stroke:#1976d2
-    style S2 fill:#fff3e0,stroke:#f57c00
-    style S4 fill:#fff3e0,stroke:#f57c00
+    G1 -->|revise| EXPLORE
+    G2 -->|grade| GRADE[Self-Grade]
+    G2 -->|improve| IMPROVE[Make Changes]
+    GRADE --> PRESENT
+    IMPROVE --> PRESENT
+
+    style G1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style G2 fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style LOG1 fill:#e8f5e9,stroke:#4caf50
+    style LOG2 fill:#e8f5e9,stroke:#4caf50
 ```
 
-## 1: Plan
+## PI Model
 
-### 1a: Explore
+| Stage | What Happens | Gate |
+|-------|--------------|------|
+| **Plan** | Explore, understand, ask questions, design | Gate 1: approve plan |
+| **Implement** | Execute, present results | Gate 2: approve results |
 
+## Plan Mode Entry
+
+Enter plan mode at the start of each phase. When entering with an existing plan:
+1. Quote the existing plan VERBATIM (no summarizing)
+2. Grade analysis FIRST: "Do I understand this?"
+3. Grade plan quality: "Is this sound?"
+4. BLOCKING: wait for user direction before proceeding
+
+On "improve": Address ALL deductions from both grades, then re-present.
+
+On approval: Exit plan mode, then execute Gate 1 actions.
+
+**Before Gate 1: MUST verify plan includes bash blocks at each gate.**
+
+Checklist before requesting approval:
+- [ ] "At Gate 1 Approval" section with bash block (Contract + task creation)
+- [ ] "At Gate 2 Approval" section with bash block (Completion + task deletion + commit)
+
+Do not request "May I proceed?" without these executable bash blocks in the plan file.
+
+**GATE 1 ACTIONS** (when user says "proceed"):
+
+Execute the bash block from the plan file's "At Gate 1 Approval" section. This MUST log the Contract AND create tasks in one atomic operation.
+
+**STOP: Do not implement until the Gate 1 bash block has been executed.**
+
+**GATE 2 ACTIONS** (when user approves results):
+
+Execute the bash block from the plan file's "At Gate 2 Approval" section. This marks tasks complete, logs Completion, deletes tasks, and commits.
+
+## Event Logging
+
+All events logged to `plan-log.md` via append:
+
+**On "grade"** (log immediately, then re-present):
 ```bash
-read_codebase
-identify_affected_files
-note_line_references  # will shift after edits
-```
-
-### 1b: Ask
-
-```bash
-for uncertainty in $requirements; do
-    ask_user "$uncertainty"
-    wait_response
-done
-```
-
-### 1c: Design
-
-```bash
-cat > ~/.claude/plans/phase-n.md << 'PLAN'
-## Objective
-## Success Criteria
-## Changes
-## At Gate 1   # bash: log contract + create tasks
-## At Gate 2   # bash: log completion + commit
-PLAN
-```
-
-### 1d: Present
-
-```bash
-[[ -z $(grep "At Gate 1" ~/.claude/plans/*.md) ]] && exit 1
-[[ -z $(grep "At Gate 2" ~/.claude/plans/*.md) ]] && exit 1
-ask "May I proceed?"
-wait  # STOP until user approves
-```
-
-## 2: Gate (approve plan)
-
-```bash
-case "$response" in
-    proceed|yes|approved)
-        # 2a: log contract
-        # 2b: create tasks
-        ;;
-    revise)
-        # back to 1a
-        ;;
-esac
-```
-
-### 2a: Log Contract
-
-```bash
-# guard: plan exists with criteria
-[[ -f ~/.claude/plans/*.md ]] || exit 1
-grep -q "Success Criteria" ~/.claude/plans/*.md || exit 1
-
-touch plan-log.md
 cat >> plan-log.md << 'EOF'
-2026-02-08T12:00:00Z | Contract: Phase N - objective | [ ] criterion1, [ ] criterion2
+2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
 EOF
 ```
 
-### 2b: Create Tasks
-
+**On "improve"** (log immediately, then make changes):
 ```bash
-S=$(ls -t ~/.claude/tasks/ | head -1)
-M=$(ls ~/.claude/tasks/$S/*.json 2>/dev/null | xargs -I{} basename {} .json | sort -n | tail -1 || echo 0)
-T1=$((M+1))
-
-cat > ~/.claude/tasks/$S/$T1.json << TASK
-{"id": "$T1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
-TASK
-```
-
-## 3: Implement
-
-### 3a: Execute
-
-```bash
-# guard: Gate 1 happened
-grep -q "Contract:" plan-log.md || exit 1
-
-for task in $tasks; do
-    set_status "$task" "in_progress"
-    execute "$task"
-    set_status "$task" "completed"
-done
-```
-
-### 3b: Present
-
-```bash
-show_results
-show_verification_commands
-ask "May I proceed?"
-wait  # STOP until user approves
-```
-
-## 4: Gate (approve results)
-
-```bash
-case "$response" in
-    proceed|yes|approved)
-        # 4a: log completion
-        # 4b: cleanup tasks
-        # 4c: commit
-        ;;
-    grade)
-        log_interaction "grade" "$(self_assess)"
-        # back to 3b
-        ;;
-    improve)
-        log_interaction "improve" "$changes"
-        # back to 3a
-        ;;
-esac
-```
-
-### 4a: Log Completion
-
-```bash
-# guard: Contract exists to close
-grep -q "Contract:" plan-log.md || exit 1
-
 cat >> plan-log.md << 'EOF'
-2026-02-08T12:30:00Z | Completion: Phase N | [x] criterion1 (evidence), [x] criterion2 (evidence)
+2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
 EOF
 ```
-
-### 4b: Cleanup Tasks
-
-```bash
-S=$(ls -t ~/.claude/tasks/ | head -1)
-for f in ~/.claude/tasks/$S/*.json; do
-    [ -f "$f" ] && rm "$f"
-done
-```
-
-### 4c: Commit
-
-```bash
-git add -A && git commit -m "Phase N complete
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-## Log Entries
 
 | Entry | When | Format |
 |-------|------|--------|
-| Contract | step 2 | `TS \| Contract: Phase N - obj \| [ ] c1, [ ] c2` |
-| Completion | step 4 | `TS \| Completion: Phase N \| [x] c1 (evidence)` |
-| Interaction | grade/improve | `TS \| Interaction: action -> outcome` |
+| Contract | Gate 1 approval | `TIMESTAMP \| Contract: Phase N - objective \| [ ] criterion1, [ ] criterion2` |
+| Completion | Gate 2 (copy criteria verbatim from Contract) | `TIMESTAMP \| Completion: Phase N \| [x] criterion1 (evidence), [x] criterion2 (evidence)` |
+| Interaction | Any grade/improve | `TIMESTAMP \| Interaction: [action] -> [outcome]` |
+| Lesson | Non-actionable gap (actionability test: "Can I fix this now?" - don't deduct, capture instead) | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
+
+## TaskAPI at Gates
+
+TaskAPI is manipulated via direct file writes to `~/.claude/tasks/{session-id}/`. This is 100% reliable (bash syntax-triggered, not model-dependent).
+
+| Gate | What Happens |
+|------|--------------|
+| Gate 1 | Log Contract + Create task files + Set first to in_progress |
+| Gate 2 | Mark complete + Log Completion + Delete task files + Commit |
+
+**Discovery:** Tasks are stored at `~/.claude/tasks/{session-id}/{task-id}.json`. Writing directly to these files works - Claude Code reads from the filesystem.
 
 ## Plan File Template
+
+Plan files live in `~/.claude/plans/`. The plan file contains HOW (approach, methodology); the Contract entry contains WHAT (scope, deliverables). Gate sections contain **literal bash blocks** to execute:
 
 ```markdown
 # [Phase Name] Plan
 
 ## Objective
-[1-2 sentences]
+[1-2 sentence summary]
 
 ## Success Criteria
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
 ## Changes
-[files + line refs]
+[What files change, with line references. Note: line numbers shift after edits - verify before presenting results.]
 
-## At Gate 1
+## At Gate 1 Approval
+
     ```bash
-    # 2a + 2b combined
+    # Log Contract + Create Tasks (execute this entire block)
+    touch plan-log.md  # Ensure exists before append
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:00:00Z | Contract: Phase 1 - objective | [ ] criterion1, [ ] criterion2
+    EOF
+
+    # Create tasks via direct file write
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+    M=$(ls ~/.claude/tasks/$S/*.json 2>/dev/null | xargs -I{} basename {} .json | sort -n | tail -1 || echo 0)
+    T1=$((M+1)); T2=$((M+2))
+
+    cat > ~/.claude/tasks/$S/$T1.json << TASK
+    {"id": "$T1", "subject": "Task 1", "description": "...", "activeForm": "Working on task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
+    TASK
+
+    cat > ~/.claude/tasks/$S/$T2.json << TASK
+    {"id": "$T2", "subject": "Task 2", "description": "...", "activeForm": "Working on task 2", "status": "pending", "blocks": [], "blockedBy": []}
+    TASK
     ```
 
-## At Gate 2
+## At Gate 2 Approval
+
     ```bash
-    # 4a + 4b + 4c combined
+    # Mark complete + Log + Delete + Commit (execute this entire block)
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+
+    # Mark tasks completed then delete files
+    for f in ~/.claude/tasks/$S/*.json; do
+      [ -f "$f" ] && rm "$f"
+    done
+
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:30:00Z | Completion: Phase 1 | [x] criterion1 (evidence), [x] criterion2 (evidence)
+    EOF
+
+    git add -A && git commit -m "Phase 1 complete
+
+    Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
+
+## Verification
+[Commands to verify success criteria]
 ```
 
-## Principles
+## Tasks API Telescoping
 
-```bash
-# approval required at gates
-[[ "$response" =~ ^(proceed|yes|approved)$ ]] || exit 1
+The plan file is the source of truth. Expand the current phase with deliverables; collapse completed phases to single lines.
 
-# user controls scope
-user_may_defer=true
-claude_may_defer=false      # must ask first
-claude_may_suggest=true
+Three-level hierarchy: Phase → Stage → Task
 
-# feedback loops
-case "$response" in
-    grade)        self_assess; re_present ;;
-    improve)      fix_issues; re_present ;;
-    scope_change) explore ;;  # back to step 1
-esac
+| Level | What | When Visible |
+|-------|------|--------------|
+| Phase | From plan file | Always (future phases as skeletons) |
+| Stage | Plan, Implement | Current phase only |
+| Task | Deliverables | Current stage only |
+
+**Plan file structure:**
 ```
+[x] Phase 1: Auth middleware        <- collapsed
+[ ] Phase 2: Event logging          <- current phase
+    [x] Plan                        <- completed stage
+    [ ] Implement                   <- current stage (expanded)
+        [ ] Add middleware
+        [ ] Update tests
+[ ] Phase 3: Future work            <- skeleton
+```
+
+**Tasks API mirrors current stage only:**
+```
+[in_progress] Add middleware
+[pending] Update tests
+```
+
+| Event | Action |
+|-------|--------|
+| Enter phase | Add Plan/Implement stages to plan file |
+| Gate 1 | Mark Plan `[x]`, expand Implement tasks, TaskCreate for each, first `in_progress` |
+| Task done | Mark `[x]` in plan, TaskUpdate `completed`, next `in_progress` |
+| Gate 2 | Mark Implement `[x]`, collapse phase, TaskUpdate `deleted` for all |
+
+## Protocol Principles
+
+**Two gates, explicit approval:**
+- Gate 1: Approve plan before implementation
+- Gate 2: Approve results before commit
+- Never proceed without "proceed"/"yes"/"approved"
+
+**User controls scope:**
+- User MAY defer work to future phases
+- Claude MAY NOT unilaterally defer
+- Claude MAY suggest deferring by asking
+
+**Feedback loops:**
+- "grade" → self-assess, re-present
+- "improve" → fix issues, re-present
+- Scope changes → return to Plan stage
+
+**Behavioral logging:**
+- Contract at Gate 1 (what we agreed)
+- Completion at Gate 2 (what we delivered)
+- Interaction on any grade/improve cycle
+
+**Plan files guide execution:**
+- Include explicit admin instructions at trigger points
+- Tasks JSON defined during planning, not improvised
+- Telescope tasks as phases complete

@@ -57,28 +57,28 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 ```mermaid
 flowchart LR
-    P[P: Plan] --> G1{G1}
-    G1 --> I[I: Implement]
-    I --> G2{G2}
-    G2 -.-> P
+    S1[1: Plan] --> S2{2: Gate}
+    S2 --> S3[3: Implement]
+    S3 --> S4{4: Gate}
+    S4 -.-> S1
 
-    style P fill:#e3f2fd,stroke:#1976d2
-    style I fill:#e3f2fd,stroke:#1976d2
-    style G1 fill:#fff3e0,stroke:#f57c00
-    style G2 fill:#fff3e0,stroke:#f57c00
+    style S1 fill:#e3f2fd,stroke:#1976d2
+    style S3 fill:#e3f2fd,stroke:#1976d2
+    style S2 fill:#fff3e0,stroke:#f57c00
+    style S4 fill:#fff3e0,stroke:#f57c00
 ```
 
-## P: Plan
+## 1: Plan
 
 ```python
 def plan():
-    P1_explore()      # read code, understand context
-    P2_ask()          # clarifying questions
-    P3_design()       # create plan file with gate blocks
-    P4_present()      # "May I proceed?"
+    explore()      # 1a
+    ask()          # 1b
+    design()       # 1c
+    present()      # 1d
 ```
 
-### P1: Explore
+### 1a: Explore
 
 ```python
 read(codebase)
@@ -86,7 +86,7 @@ identify(affected_files)
 note(line_references)  # will shift after edits
 ```
 
-### P2: Ask
+### 1b: Ask
 
 ```python
 for uncertainty in requirements:
@@ -94,7 +94,7 @@ for uncertainty in requirements:
     wait(response)
 ```
 
-### P3: Design
+### 1c: Design
 
 ```python
 plan_file = create("~/.claude/plans/{name}.md")
@@ -102,33 +102,32 @@ plan_file.write("""
     ## Objective
     ## Success Criteria
     ## Changes
-    ## At Gate 1 Approval   # bash block: log + tasks
-    ## At Gate 2 Approval   # bash block: complete + commit
+    ## At Step 2      # bash: log contract + create tasks
+    ## At Step 4      # bash: log completion + commit
 """)
 ```
 
-### P4: Present
+### 1d: Present
 
 ```python
-assert plan_file.has("At Gate 1 Approval")  # with bash block
-assert plan_file.has("At Gate 2 Approval")  # with bash block
+assert plan_file.has("At Step 2")  # with bash
+assert plan_file.has("At Step 4")  # with bash
 ask("May I proceed?")
-block()  # STOP until user approves
+wait()  # STOP until user approves
 ```
 
-## G1: Gate 1
+## 2: Gate (approve plan)
 
 ```python
-def gate1(user_response):
+def gate(user_response):
     if user_response in ["proceed", "yes", "approved"]:
-        G1a_log_contract()
-        G1b_create_tasks()
-        # then continue to I: Implement
+        log_contract()    # 2a
+        create_tasks()    # 2b
     elif user_response == "revise":
-        return P1_explore()  # back to planning
+        return explore()  # back to 1a
 ```
 
-### G1a: Log Contract
+### 2a: Log Contract
 
 ```bash
 touch plan-log.md
@@ -137,7 +136,7 @@ cat >> plan-log.md << 'EOF'
 EOF
 ```
 
-### G1b: Create Tasks
+### 2b: Create Tasks
 
 ```bash
 S=$(ls -t ~/.claude/tasks/ | head -1)
@@ -149,15 +148,15 @@ cat > ~/.claude/tasks/$S/$T1.json << TASK
 TASK
 ```
 
-## I: Implement
+## 3: Implement
 
 ```python
 def implement():
-    I1_execute()      # make changes
-    I2_present()      # "May I proceed?"
+    execute()      # 3a
+    present()      # 3b
 ```
 
-### I1: Execute
+### 3a: Execute
 
 ```python
 for task in tasks:
@@ -166,32 +165,32 @@ for task in tasks:
     task.status = "completed"
 ```
 
-### I2: Present
+### 3b: Present
 
 ```python
 show(results)
 show(verification_commands)
 ask("May I proceed?")
-block()  # STOP until user approves
+wait()  # STOP until user approves
 ```
 
-## G2: Gate 2
+## 4: Gate (approve results)
 
 ```python
-def gate2(user_response):
+def gate(user_response):
     if user_response in ["proceed", "yes", "approved"]:
-        G2a_log_completion()
-        G2b_cleanup_tasks()
-        G2c_commit()
+        log_completion()   # 4a
+        cleanup_tasks()    # 4b
+        commit()           # 4c
     elif user_response == "grade":
         log_interaction("grade", self_assess())
-        return I2_present()
+        return present()   # back to 3b
     elif user_response == "improve":
         log_interaction("improve", changes)
-        return I1_execute()
+        return execute()   # back to 3a
 ```
 
-### G2a: Log Completion
+### 4a: Log Completion
 
 ```bash
 cat >> plan-log.md << 'EOF'
@@ -199,7 +198,7 @@ cat >> plan-log.md << 'EOF'
 EOF
 ```
 
-### G2b: Cleanup Tasks
+### 4b: Cleanup Tasks
 
 ```bash
 S=$(ls -t ~/.claude/tasks/ | head -1)
@@ -208,7 +207,7 @@ for f in ~/.claude/tasks/$S/*.json; do
 done
 ```
 
-### G2c: Commit
+### 4c: Commit
 
 ```bash
 git add -A && git commit -m "Phase N complete
@@ -220,8 +219,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 | Entry | When | Format |
 |-------|------|--------|
-| Contract | G1 | `TS \| Contract: Phase N - obj \| [ ] c1, [ ] c2` |
-| Completion | G2 | `TS \| Completion: Phase N \| [x] c1 (evidence)` |
+| Contract | step 2 | `TS \| Contract: Phase N - obj \| [ ] c1, [ ] c2` |
+| Completion | step 4 | `TS \| Completion: Phase N \| [x] c1 (evidence)` |
 | Interaction | grade/improve | `TS \| Interaction: action -> outcome` |
 
 ## Plan File Template
@@ -239,14 +238,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ## Changes
 [files + line refs]
 
-## At Gate 1 Approval
+## At Step 2
     ```bash
-    # G1a + G1b combined
+    # 2a + 2b combined
     ```
 
-## At Gate 2 Approval
+## At Step 4
     ```bash
-    # G2a + G2b + G2c combined
+    # 4a + 4b + 4c combined
     ```
 ```
 

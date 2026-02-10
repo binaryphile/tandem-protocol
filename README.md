@@ -40,23 +40,6 @@ Use `/tandem` anytime to refocus when things drift.
 - When Claude skips steps or scope changes
 - Anytime things feel off track
 
-## The Flow
-
-```mermaid
-flowchart LR
-    S1[Plan] --> G1{Gate 1}
-    G1 --> S2[Implement]
-    S2 --> G2{Gate 2}
-    G2 -.->|"next phase"| S1
-
-    style S1 fill:#e3f2fd,stroke:#1976d2
-    style S2 fill:#e3f2fd,stroke:#1976d2
-    style G1 fill:#fff3e0,stroke:#f57c00
-    style G2 fill:#fff3e0,stroke:#f57c00
-```
-
-At each gate, you can **approve**, **request a grade**, or **ask for improvements**.
-
 ## Learn More
 
 See [FEATURES.md](FEATURES.md) for details on:

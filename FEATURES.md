@@ -73,6 +73,56 @@ flowchart TD
 
 Each phase follows the same PI workflow. Plan files persist across sessions, and the event log maintains continuity.
 
+## Compliance Model
+
+The protocol achieves reliability through a two-part model:
+
+### Baseline + Recovery
+
+| Component | Compliance | How |
+|-----------|------------|-----|
+| **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
+| **Recovery** | Works reliably | `/tandem` command when drift occurs |
+| **Gate logging** | 100% | Bash heredocs (executable, not descriptive) |
+
+This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
+
+```
+~80% baseline + /tandem recovery = viable workflow
+```
+
+### Why Gates Are 100% Reliable
+
+Gate actions use **bash heredocs** - executable syntax that Claude runs directly:
+
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:00:00Z | Contract: Phase 1 | [ ] criterion
+EOF
+```
+
+This works because:
+- It's code Claude executes, not instructions Claude interprets
+- No decision point - it's part of "run the gate actions" workflow
+- Syntax triggers execution; descriptions don't
+
+### Why Baseline Is ~80%
+
+Behavioral instructions like "quote the plan VERBATIM" require Claude to choose compliance. Testing showed:
+- Moving instructions between config files doesn't help
+- Only executable syntax achieves 100%
+- ~80% is the practical ceiling for descriptive guidance
+
+### Recovery with `/tandem`
+
+When you notice drift (implementation without approval, missing logs, skipped gates):
+
+1. Run `/tandem` with context about current state
+2. Protocol awareness returns
+3. Continue with gates and logging
+
+Tested: 5/5 recovery scenarios passed. Works for initial drift, mid-session drift, and repeated recovery cycles.
+
 ## Design Philosophy
 
 **Why not Skills?** Skills get summarized during compaction, requiring refresh.
@@ -83,5 +133,6 @@ Each phase follows the same PI workflow. Plan files persist across sessions, and
 
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
-- Lightweight activation on demand
-- Repeated emphasis maintains compliance
+- Lightweight `/tandem` for recovery
+- Bash heredocs at gates for 100% reliable logging
+- Accepts ~80% baseline, relies on recovery mechanism

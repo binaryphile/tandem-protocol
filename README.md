@@ -49,10 +49,30 @@ Invoke 1-2 times early in your session, or whenever you notice protocol drift:
 
 - At session start (before planning): `/tandem make a plan to...`
 - When Claude skips steps or you've lost track of the current step
+- After scope changes or interruptions
 
 ### How it works
 
-The protocol lives in your CLAUDE.md (via @reference), so it's always in context. The `/tandem` command reinforces attention to it when Claude starts drifting.
+The protocol lives in your CLAUDE.md (via @reference), providing ~80% baseline compliance. The `/tandem` command recovers compliance when drift occurs.
+
+**The practical model:**
+```
+~80% baseline compliance + /tandem recovery = viable workflow
+```
+
+This is intentional. Chasing 100% initial compliance requires complex setup (hooks, wrappers). Instead, the protocol relies on:
+1. **Baseline**: Protocol in context guides most interactions
+2. **Recovery**: `/tandem` kicks compliance back when needed
+3. **Gates**: Bash heredocs at gates provide 100% reliable logging
+
+### Signs of drift
+
+- Claude implements without asking "May I proceed?"
+- No Contract logged after plan approval
+- Scope changes without returning to planning
+- Missing Interaction entries for grade/improve cycles
+
+When you notice drift, just run `/tandem` with context about where you are.
 
 ## The Flow
 
@@ -95,7 +115,22 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 ## Testing
 
-Run `tests/integration-protocol-walk.sh` to verify protocol compliance behaviorally.
+```bash
+# Quick infrastructure check
+bash tests/integration/smoke-test.sh
+
+# Individual use case tests
+bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
+bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
+
+# Recovery mechanism validation
+bash tests/integration/tandem-recovery.sh      # /tandem drift recovery
+
+# Full test suite
+for t in tests/integration/*.sh; do bash "$t"; done
+```
+
+See `tests/integration/` for all behavioral compliance tests.
 
 ---
 

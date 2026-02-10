@@ -1,5 +1,5 @@
 ---
-description: "Tandem Protocol reminder - check current step and ensure compliance"
+description: "Tandem Protocol reminder - recover compliance when sessions drift"
 ---
 
 <system-reminder>
@@ -13,6 +13,16 @@ description: "Tandem Protocol reminder - check current step and ensure complianc
 </system-reminder>
 
 # Tandem Protocol Reminder
+
+**You're seeing this because the session drifted off protocol.** This command recovers compliance.
+
+## Recovery Checklist
+
+1. **Stop** current action
+2. **Check** plan-log.md for last logged state
+3. **Identify** current stage (Plan or Implement)
+4. **Quote** the relevant protocol section
+5. **Resume** with proper gate behavior
 
 ## Refresh Your Mental Model
 

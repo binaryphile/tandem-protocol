@@ -57,9 +57,9 @@ See [FEATURES.md](FEATURES.md) for details on:
 
 ```mermaid
 flowchart LR
-    S1[Plan] --> S2{Impl Gate}
-    S2 --> S3[Implement]
-    S3 --> S4{Compl Gate}
+    S1["(1) Plan"] --> S2{"(2) Impl Gate"}
+    S2 --> S3["(3) Implement"]
+    S3 --> S4{"(4) Compl Gate"}
     S4 -.-> S1
 
     style S1 fill:#e3f2fd,stroke:#1976d2

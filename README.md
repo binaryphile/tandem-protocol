@@ -75,6 +75,8 @@ flowchart LR
     A[1a Explore] --> B[1b Ask] --> C[1c Design] --> D[1d Present]
 ```
 
+**Substeps (1a-1d):**
+
 ### 1a: Explore
 
 ```bash
@@ -121,6 +123,8 @@ flowchart LR
     A -->|revise| D[back to 1a]
 ```
 
+**Substeps (2a-2b):**
+
 ### 2a: Log Contract
 
 ```bash
@@ -146,6 +150,8 @@ TASK
 flowchart LR
     A[3a Execute] --> B[3b Present]
 ```
+
+**Substeps (3a-3b):**
 
 ### 3a: Execute
 
@@ -176,6 +182,8 @@ flowchart LR
     B --> E[back to 3b]
     C --> E
 ```
+
+**Substeps (4a-4c):**
 
 ### 4a: On grade
 

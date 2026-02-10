@@ -13,21 +13,21 @@ echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> your-project/CLAU
 
 ```
 You:    /tandem add a config file loader to the CLI
-Claude: Questions before planning:
+Claude: Questions before planning:                           # ← (1) Plan
         - YAML, JSON, or TOML?
         - Missing config: error or defaults?
 You:    YAML, defaults
 
 Claude: [creates plan] May I proceed?
-You:    proceed
+You:    proceed                                              # ← (2) Impl Gate
 
 Claude: [logs to plan-log.md]
         2024-01-15T10:00:00Z | Contract: Config loader | [ ] YAML parsing, [ ] default fallback
 
-        [implements]
+        [implements]                                         # ← (3) Implement
 
         Done. May I proceed?
-You:    proceed
+You:    proceed                                              # ← (4) Compl Gate
 ```
 
 Use `/tandem` anytime to refocus when things drift.

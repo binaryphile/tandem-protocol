@@ -721,3 +721,18 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] Test results and structural diffs recorded per commit (evidence: memory cdb59fe9 with metadata)
 [x] Memory consolidated to single catalog entry (evidence: 14→5 entries)
 [x] Strategy catalog populated with empirical evidence (evidence: memory e8b7a70b, 7 strategies all YES/NO)
+2026-02-11T00:30:00Z | Contract: Gate 2 Differential Diagnosis
+[ ] 5 hypotheses tested empirically
+[ ] Results recorded per hypothesis
+[ ] Root cause identified with evidence
+[ ] Protocol fix proposed based on findings
+2026-02-11T01:10:00Z | Interaction: grade -> final deliverables assessment
+2026-02-11T01:15:00Z | Interaction: improve -> fixing test script bug
+2026-02-11T01:20:00Z | Interaction: grade -> final deliverables assessment
+2026-02-11T01:25:00Z | Interaction: improve -> re-validating test script fix
+2026-02-11T01:30:00Z | Interaction: grade -> final deliverables assessment
+2026-02-11T01:35:00Z | Completion: Gate 2 Differential Diagnosis
+[x] 5 hypotheses tested empirically (evidence: Baseline, Inline, Explicit, Direct, Instruction tests run)
+[x] Results recorded per hypothesis (evidence: memory d1dc5cd9, /tmp/gate2-diagnosis.log)
+[x] Root cause identified with evidence (evidence: Inline+Explicit SUCCESS, others FAIL)
+[x] Protocol fix proposed based on findings (evidence: workflow embedding - include Gate 2 block in presentation)

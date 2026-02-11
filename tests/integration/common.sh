@@ -40,6 +40,10 @@ setup_workspace() {
     mkdir -p "$TEST_CWD"
     cd "$TEST_CWD"
 
+    # Clean up ALL plan files - tests must be isolated from real work
+    # Plan files have absolute paths and completion_gate() reads the most recent one
+    rm -f ~/.claude/plans/*.md 2>/dev/null || true
+
     # Create CLAUDE.md with protocol
     echo "# Test Project" > CLAUDE.md
     cat "$PROTOCOL" >> CLAUDE.md
@@ -171,6 +175,54 @@ $impl_files
 ## Section 3b Instructions (from README):
 On 'proceed': execute the At Completion Gate bash block from the plan file.
 This logs Completion with evidence, deletes tasks, removes the plan file, and commits.
+
+User says: $prompt"
+
+    # Run fresh session with context
+    local result
+    result=$(PROJECT_ROOT="$TEST_CWD" claude -p "$context" \
+        --model sonnet \
+        --output-format json \
+        --max-turns "$max_turns" \
+        --permission-mode acceptEdits \
+        2>/dev/null) || true
+
+    LAST_TURNS=$(echo "$result" | jq -r '.num_turns // 0' 2>/dev/null)
+    local cost=$(echo "$result" | jq -r '.total_cost_usd // 0' 2>/dev/null)
+    TOTAL_COST=$(echo "$TOTAL_COST + $cost" | bc 2>/dev/null || echo "$TOTAL_COST")
+    echo "$result"
+}
+
+# Complete the Implementation Gate using context injection
+# Similar to completion_gate(), this addresses context loss where session resume
+# doesn't reliably trigger bash block execution at Gate 1.
+# Usage: implementation_gate "proceed" [max_turns]
+implementation_gate() {
+    local prompt="${1:-proceed}"
+    local max_turns="${2:-10}"
+
+    local plan_file=$(get_plan_file)
+    local plan_content=""
+    if [[ -n "$plan_file" && -f "$plan_file" ]]; then
+        plan_content=$(cat "$plan_file")
+    fi
+
+    # Build context injection prompt
+    local context="You are at the Implementation Gate in a Tandem Protocol session.
+
+## Current State
+- Planning is complete
+- Plan file exists with success criteria and bash blocks
+- You need to execute the At Implementation Gate bash block from the plan file
+
+## Plan file (at $plan_file):
+$plan_content
+
+## Section 2 Instructions (from README):
+On 'proceed': execute the bash block from the plan file's 'At Implementation Gate' section.
+This logs the Contract AND creates tasks in one atomic operation.
+
+IMPORTANT: Execute the bash block NOW, then proceed to implementation.
 
 User says: $prompt"
 

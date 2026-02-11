@@ -3,6 +3,28 @@
 # Symlink to this file with the name of the command you want to wrap.
 # Example: ln -s nix-wrapper node
 
+Yellow=$'\e[93m'
+Reset=$'\e[0m'
+
+# cue runs its arguments as a command after echoing them in yellow.
+cue() {
+  local output
+  printf -v output '%q ' "$@"
+  echo "$Yellow${output% }$Reset"
+
+  "$@"
+}
+
+# Check if flake.nix exists in current directory or any ancestor
+has_flake() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    [[ -f "$dir/flake.nix" ]] && return 0
+    dir=$(dirname "$dir")
+  done
+  return 1
+}
+
 main() {
   asCalled=$(basename "$0")
   folder=$(cd "$(dirname "$0")"; pwd)
@@ -16,19 +38,13 @@ main() {
   (( IN_NIX_DEVELOP )) && [[ -n "$PROJECT_ROOT" && $PWD != "$PROJECT_ROOT" ]] &&
     cue cd "$PROJECT_ROOT" >&2
 
-  (( IN_NIX_DEVELOP )) && exec "$prog" "$@" || exec nix develop -c "$asCalled" "$@"
-}
-
-Yellow=$'\e[93m'
-Reset=$'\e[0m'
-
-# cue runs its arguments as a command after echoing them in yellow.
-cue() {
-  local output
-  printf -v output '%q ' "$@"
-  echo "$Yellow${output% }$Reset"
-
-  "$@"
+  # If already in nix develop, or no flake.nix found, run prog directly
+  # Otherwise use nix develop to get the right environment
+  if (( IN_NIX_DEVELOP )) || ! has_flake; then
+    exec "$prog" "$@"
+  else
+    exec nix develop -c "$asCalled" "$@"
+  fi
 }
 
 : ${IN_NIX_DEVELOP:=0}

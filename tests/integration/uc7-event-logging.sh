@@ -33,18 +33,19 @@ echo ""
 echo "Checkpoint 1: Before Gate 1"
 assert_not_exists "No Contract before approval" "Contract:" "$TEST_CWD/plan-log.md"
 
-# Gate 1: Approve plan
+# Gate 1: Approve plan (using context injection for reliability)
 echo ""
 echo "Step 2: Gate 1 - proceed..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+implementation_gate "proceed" 10 > /dev/null
 sleep 1  # allow file writes to complete
 
 # Checkpoint 2: Contract logged at Gate 1
 echo ""
 echo "Checkpoint 2: After Gate 1"
 assert_exists "Contract entry exists" "Contract:" "$TEST_CWD/plan-log.md"
-assert_exists "Contract has checkboxes" 'Contract:.*\[ \]' "$TEST_CWD/plan-log.md"
+# Checkbox pattern: [ ] criterion - on separate line from Contract header
+assert_exists "Contract has checkboxes" '\[ \]' "$TEST_CWD/plan-log.md"
 assert_not_exists "No Completion yet" "Completion:" "$TEST_CWD/plan-log.md"
 
 # Grade
@@ -83,7 +84,8 @@ sleep 1  # allow file writes to complete
 echo ""
 echo "Checkpoint 5: After Gate 2"
 assert_exists "Completion entry exists" "Completion:" "$TEST_CWD/plan-log.md"
-assert_exists "Completion has evidence" 'Completion:.*\[x\].*\([^)]+\)' "$TEST_CWD/plan-log.md"
+# Evidence pattern: [x] criterion (evidence) - on separate line from Completion header
+assert_exists "Completion has evidence" '\[x\].*\([^)]+\)' "$TEST_CWD/plan-log.md"
 
 # Validate entry formats using validators
 echo ""

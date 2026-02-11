@@ -736,3 +736,11 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] Results recorded per hypothesis (evidence: memory d1dc5cd9, /tmp/gate2-diagnosis.log)
 [x] Root cause identified with evidence (evidence: Inline+Explicit SUCCESS, others FAIL)
 [x] Protocol fix proposed based on findings (evidence: workflow embedding - include Gate 2 block in presentation)
+2026-02-11T01:40:00Z | Interaction: grade -> grading analysis of Gate 2 diagnosis work
+2026-02-11T01:45:00Z | Interaction: grade -> grading plan (but no active plan exists)
+2026-02-11T02:00:00Z | Contract: Implement Gate 2 Fix
+[ ] README section 3b updated with bash block quoting instruction
+[ ] UC7 Completion logging improves from 0% to >50%
+2026-02-11T15:10:00Z | Completion: Implement Completion Gate Fix
+[x] README section 3b updated (evidence: lines 217-232, re-read plan + show execution message)
+[x] UC7 Completion logging validated (evidence: gate2-diagnosis v2 shows 80% success - Baseline/Inline/Explicit/Instruction all SUCCESS)

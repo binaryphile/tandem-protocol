@@ -71,7 +71,7 @@ flowchart LR
     style S4 fill:#fff3e0,stroke:#f57c00
 ```
 
-**Before Gate 1: MUST verify plan includes bash blocks at each gate.**
+**Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before requesting approval:
 - [ ] "At Implementation Gate" section with bash block (Contract + task creation)
@@ -161,7 +161,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
     rm ~/.claude/tasks/$S/*.json 2>/dev/null
 
     # Remove plan file (single-phase) or edit to remove completed phase
-    rm /home/ted/.claude/plans/<name>.md
+    PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
+    rm "$PLAN"
 
     git add -A && git commit -m "Phase 1 complete
 
@@ -175,8 +176,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ### 1d: Present
 
 ```bash
-# Validate plan file exists and has gate blocks
-PLAN=/home/ted/.claude/plans/<name-from-plan-mode>.md
+# Find and validate plan file
+PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
 test -f "$PLAN" || exit 1
 grep -q "At Implementation Gate" "$PLAN" || exit 1
 grep -q "At Completion Gate" "$PLAN" || exit 1
@@ -187,11 +188,11 @@ AskUserQuestion "May I proceed?"
 
 ## 2. Implementation Gate
 
-**GATE 1 ACTIONS** (when user says "proceed"):
+**IMPLEMENTATION GATE ACTIONS** (when user says "proceed"):
 
 Execute the bash block from the plan file's "At Implementation Gate" section. This logs the Contract AND creates tasks in one atomic operation.
 
-**STOP: Do not implement until the Gate 1 bash block has been executed.**
+**STOP: Do not implement until the Implementation Gate bash block has been executed.**
 
 ## 3. Implement
 
@@ -218,8 +219,17 @@ show_results
 for criterion in $contract_criteria; do
     show_verification "$criterion"  # how user can verify
 done
+
+# Re-read plan file to get Completion Gate block
+PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
+cat "$PLAN"  # puts bash block back in context
+
+# Show what will execute on approval
+echo "On 'proceed', I will execute the At Completion Gate bash block above"
 AskUserQuestion "May I proceed?"
+
 # STOP until approved
+# On "proceed": execute the At Completion Gate bash block from $PLAN
 ```
 
 ## 4. Completion Gate
@@ -238,7 +248,7 @@ cat >> plan-log.md << 'EOF'
 EOF
 ```
 
-**GATE 2 ACTIONS** (when user says "proceed"):
+**COMPLETION GATE ACTIONS** (when user says "proceed"):
 
-Execute the bash block from the plan file's "At Completion Gate" section. This logs Completion with evidence, deletes tasks, and commits.
+Execute the Completion Gate bash block from the plan file. This logs Completion with evidence, deletes tasks, and commits.
 

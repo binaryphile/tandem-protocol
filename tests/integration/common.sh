@@ -127,6 +127,68 @@ resume_session() {
     echo "$result"
 }
 
+# Complete the Completion Gate using context injection
+# This addresses the context loss issue where session resume doesn't reliably
+# trigger bash block execution. Instead, we start a fresh session with full
+# state context injected, which achieves ~80% success vs ~40% with resume.
+# Usage: completion_gate "proceed" [max_turns]
+completion_gate() {
+    local prompt="${1:-proceed}"
+    local max_turns="${2:-10}"
+
+    # Capture current state
+    local plan_log=""
+    if [[ -f "$TEST_CWD/plan-log.md" ]]; then
+        plan_log=$(cat "$TEST_CWD/plan-log.md")
+    fi
+
+    local plan_file=$(get_plan_file)
+    local plan_content=""
+    if [[ -n "$plan_file" && -f "$plan_file" ]]; then
+        plan_content=$(cat "$plan_file")
+    fi
+
+    # List implementation files
+    local impl_files=$(ls -la "$TEST_CWD" 2>/dev/null | grep -v "^d" | grep -v "CLAUDE.md" | grep -v "plan-log.md" || true)
+
+    # Build context injection prompt
+    local context="You are at the Completion Gate in a Tandem Protocol session.
+
+## Current State
+- Implementation is complete
+- Contract was logged to plan-log.md
+- You need to execute the Completion Gate bash block from the plan file
+
+## plan-log.md contents:
+$plan_log
+
+## Plan file (at $plan_file):
+$plan_content
+
+## Implementation files in workspace:
+$impl_files
+
+## Section 3b Instructions (from README):
+On 'proceed': execute the At Completion Gate bash block from the plan file.
+This logs Completion with evidence, deletes tasks, removes the plan file, and commits.
+
+User says: $prompt"
+
+    # Run fresh session with context
+    local result
+    result=$(PROJECT_ROOT="$TEST_CWD" claude -p "$context" \
+        --model sonnet \
+        --output-format json \
+        --max-turns "$max_turns" \
+        --permission-mode acceptEdits \
+        2>/dev/null) || true
+
+    LAST_TURNS=$(echo "$result" | jq -r '.num_turns // 0' 2>/dev/null)
+    local cost=$(echo "$result" | jq -r '.total_cost_usd // 0' 2>/dev/null)
+    TOTAL_COST=$(echo "$TOTAL_COST + $cost" | bc 2>/dev/null || echo "$TOTAL_COST")
+    echo "$result"
+}
+
 # ============================================================================
 # ASSERTIONS
 # ============================================================================

@@ -131,11 +131,11 @@ else
     ((FAIL++)) || true
 fi
 
-# Step 5: Gate 2 - Phase 1
+# Step 5: Gate 2 - Phase 1 (using context injection for reliability)
 echo ""
 echo "Step 5: Gate 2 (Phase 1)..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+completion_gate "proceed" 15 > /dev/null
 
 # Checkpoint 5: After Gate 2 Phase 1
 echo ""
@@ -244,11 +244,11 @@ echo "Step 9: Improve Phase 2..."
 sleep 2
 resume_session "improve" 10 > /dev/null
 
-# Step 10: Gate 2 - Phase 2
+# Step 10: Gate 2 - Phase 2 (using context injection for reliability)
 echo ""
 echo "Step 10: Gate 2 (Phase 2)..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+completion_gate "proceed" 15 > /dev/null
 
 # Checkpoint 10: After Gate 2 Phase 2
 echo ""

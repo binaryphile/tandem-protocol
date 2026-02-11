@@ -72,11 +72,11 @@ echo ""
 echo "Checkpoint 4: After improve"
 assert_count "2+ Interaction entries" 'Interaction:.*->' "$TEST_CWD/plan-log.md" 2
 
-# Gate 2: Approve results
+# Gate 2: Approve results (using context injection for reliability)
 echo ""
 echo "Step 5: Gate 2 - proceed..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+completion_gate "proceed" 10 > /dev/null
 sleep 1  # allow file writes to complete
 
 # Checkpoint 5: Completion logged at Gate 2

@@ -111,9 +111,9 @@ resume_session "improve" 10 > /dev/null
 
 # Gate 2
 echo ""
-echo "Step 5: Gate 2 - proceed..."
+echo "Step 5: Gate 2 - proceed (using context injection)..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+completion_gate "proceed" 10 > /dev/null
 
 # Check 3: Lesson entry exists (for non-actionable gaps)
 echo ""

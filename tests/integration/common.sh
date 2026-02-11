@@ -7,7 +7,7 @@ set -uo pipefail
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-PROTOCOL="$PROJECT_DIR/README.md"
+PROTOCOL="${PROTOCOL_OVERRIDE:-$PROJECT_DIR/README.md}"
 VALIDATORS="$PROJECT_DIR/tests/lib/validators.sh"
 
 # Test state
@@ -341,14 +341,14 @@ get_plan_file() {
     echo "$plan_file"
 }
 
-# Extract Contract entries from plan-log.md
+# Extract Contract entries from plan-log.md (multi-line: header + checkbox lines)
 get_contracts() {
-    grep '| Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null || true
+    awk '/\| Contract:/{p=1; print; next} p && /^\[/{print; next} p{p=0}' "$TEST_CWD/plan-log.md" 2>/dev/null || true
 }
 
-# Extract Completion entries from plan-log.md
+# Extract Completion entries from plan-log.md (multi-line: header + checkbox lines)
 get_completions() {
-    grep '| Completion:' "$TEST_CWD/plan-log.md" 2>/dev/null || true
+    awk '/\| Completion:/{p=1; print; next} p && /^\[/{print; next} p{p=0}' "$TEST_CWD/plan-log.md" 2>/dev/null || true
 }
 
 # Extract Interaction entries from plan-log.md

@@ -13,26 +13,29 @@ validate_timestamp() {
     return 0
 }
 
-# Validate Contract entry format
-# Format: TIMESTAMP | Contract: [phase] | [ ] criterion1, [ ] criterion2, ...
+# Validate Contract entry format (supports multi-line)
+# Format: TIMESTAMP | Contract: [phase]
+#         [ ] criterion1
+#         [ ] criterion2
 validate_contract_entry() {
     local entry="$1"
 
-    # Extract timestamp
-    local ts
-    ts=$(echo "$entry" | cut -d'|' -f1 | tr -d ' ')
+    # Extract timestamp from first line
+    local first_line ts
+    first_line=$(echo "$entry" | head -1)
+    ts=$(echo "$first_line" | cut -d'|' -f1 | tr -d ' ')
     if ! validate_timestamp "$ts" >/dev/null 2>&1; then
         echo "ERR:CONTRACT:bad_timestamp:$ts"
         return 1
     fi
 
-    # Must have "Contract:" marker
-    if [[ ! $entry =~ \|[[:space:]]*Contract: ]]; then
+    # Must have "Contract:" marker in first line
+    if [[ ! $first_line =~ \|[[:space:]]*Contract: ]]; then
         echo "ERR:CONTRACT:missing_marker:$entry"
         return 1
     fi
 
-    # Must have at least one checkbox criterion [ ]
+    # Must have at least one checkbox criterion [ ] (can be on any line)
     if [[ ! $entry =~ \[\ \] ]]; then
         echo "ERR:CONTRACT:missing_checkbox:$entry"
         return 1
@@ -41,21 +44,24 @@ validate_contract_entry() {
     return 0
 }
 
-# Validate Completion entry format
-# Format: TIMESTAMP | Completion: [phase] | [x] criterion (evidence), ...
+# Validate Completion entry format (supports multi-line)
+# Format: TIMESTAMP | Completion: [phase]
+#         [x] criterion1 (evidence)
+#         [x] criterion2 (evidence)
 validate_completion_entry() {
     local entry="$1"
 
-    # Extract timestamp
-    local ts
-    ts=$(echo "$entry" | cut -d'|' -f1 | tr -d ' ')
+    # Extract timestamp from first line
+    local first_line ts
+    first_line=$(echo "$entry" | head -1)
+    ts=$(echo "$first_line" | cut -d'|' -f1 | tr -d ' ')
     if ! validate_timestamp "$ts" >/dev/null 2>&1; then
         echo "ERR:COMPLETION:bad_timestamp:$ts"
         return 1
     fi
 
-    # Must have "Completion:" marker
-    if [[ ! $entry =~ \|[[:space:]]*Completion: ]]; then
+    # Must have "Completion:" marker in first line
+    if [[ ! $first_line =~ \|[[:space:]]*Completion: ]]; then
         echo "ERR:COMPLETION:missing_marker:$entry"
         return 1
     fi

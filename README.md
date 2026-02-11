@@ -3,6 +3,7 @@
  Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 
 **Try it:**
+
 ```bash
 cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
 mkdir -p ~/.claude/commands && ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
@@ -22,7 +23,9 @@ Claude: [creates plan] May I proceed?
 You:    proceed                                              # ← (2) Impl Gate
 
 Claude: [logs to plan-log.md]
-        2024-01-15T10:00:00Z | Contract: Config loader | [ ] YAML parsing, [ ] default fallback
+        2024-01-15T10:00:00Z | Contract: Config loader
+        [ ] YAML parsing
+        [ ] default fallback
 
         [implements]                                         # ← (3) Implement
 
@@ -68,159 +71,49 @@ flowchart LR
     style S4 fill:#fff3e0,stroke:#f57c00
 ```
 
+**Before Gate 1: MUST verify plan includes bash blocks at each gate.**
+
+Checklist before requesting approval:
+- [ ] "At Implementation Gate" section with bash block (Contract + task creation)
+- [ ] "At Completion Gate" section with bash block (Completion + task deletion + commit)
+
+Do not request "May I proceed?" without these executable bash blocks in the plan file.
+
 ## 1. Plan
 
 ```mermaid
 flowchart LR
-    A[1a Explore] --> B[1b Ask] --> C[1c Design] --> D[1d Present]
+    A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"]
 ```
 
 **Substeps (1a-1d):**
 
-### 1a: Explore
+### 1a: Investigate
 
 ```bash
 read_codebase
 identify_affected_files
-note_line_refs  # will shift after edits
+note_line_refs              # will shift after edits
+mcp__memory__memory_search  # check memory for relevant context
+web_search                  # find resources for unfamiliar patterns
 ```
 
-### 1b: Ask
+### 1b: User Clarification
 
 ```bash
 for question in $uncertainties; do
-    ask_user "$question"
-    wait_response
+    AskUserQuestion "$question"
 done
+# User controls scope - Claude MAY suggest deferring, MAY NOT unilaterally defer
 ```
 
 ### 1c: Design
 
 ```bash
-cat > plan.md << 'PLAN'
-## Objective
-## Success Criteria
-## At Implementation Gate   # bash block
-## At Completion Gate       # bash block
-PLAN
+EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ```
 
-### 1d: Present
-
-```bash
-grep -q "At Implementation Gate" plan.md || exit 1
-grep -q "At Completion Gate" plan.md || exit 1
-ask "May I proceed?"
-wait  # STOP until approved
-```
-
-## 2. Implementation Gate
-
-```mermaid
-flowchart LR
-    A{response} -->|proceed| B[2a Log Contract]
-    B --> C[2b Create Tasks]
-    A -->|revise| D[back to 1a]
-```
-
-**Substeps (2a-2b):**
-
-### 2a: Log Contract
-
-```bash
-touch plan-log.md
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:00:00Z | Contract: Phase N - objective | [ ] criterion1, [ ] criterion2
-EOF
-```
-
-### 2b: Create Tasks
-
-```bash
-S=$(ls -t ~/.claude/tasks/ | head -1)
-cat > ~/.claude/tasks/$S/1.json << 'TASK'
-{"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
-TASK
-# STOP: do not implement until executed
-```
-
-## 3. Implement
-
-```mermaid
-flowchart LR
-    A[3a Execute] --> B[3b Present]
-```
-
-**Substeps (3a-3b):**
-
-### 3a: Execute
-
-```bash
-for task in $tasks; do
-    set_status "$task" "in_progress"
-    execute "$task"
-    set_status "$task" "completed"
-done
-```
-
-### 3b: Present
-
-```bash
-show_results
-show_verification_commands
-ask "May I proceed?"
-wait  # STOP until approved
-```
-
-## 4. Completion Gate
-
-```mermaid
-flowchart LR
-    A{response} -->|grade| B[4a Log + Assess]
-    A -->|improve| C[4b Log + Fix]
-    A -->|proceed| D[4c Complete]
-    B --> E[back to 3b]
-    C --> E
-```
-
-**Substeps (4a-4c):**
-
-### 4a: On grade
-
-```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
-EOF
-self_assess
-# back to 3b
-```
-
-### 4b: On improve
-
-```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
-EOF
-make_changes
-# back to 3b
-```
-
-### 4c: On proceed
-
-```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:30:00Z | Completion: Phase N | [x] criterion1 (evidence), [x] criterion2 (evidence)
-EOF
-
-S=$(ls -t ~/.claude/tasks/ | head -1)
-rm ~/.claude/tasks/$S/*.json 2>/dev/null
-
-git add -A && git commit -m "Phase N complete
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-## Plan File Template
+**Plan template** (gate sections contain literal bash blocks to execute):
 
 ```markdown
 # [Phase Name] Plan
@@ -229,82 +122,123 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 [1-2 sentences]
 
 ## Success Criteria
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
+- [ ] criterion1
+- [ ] criterion2
 
 ## Changes
 [files + line refs]
 
 ## At Implementation Gate
+
     ```bash
-    # Contract + tasks (see step 2 for full example)
+    # Log Contract + Create Tasks (execute this entire block)
+    touch plan-log.md
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:00:00Z | Contract: Phase 1 - objective
+    [ ] criterion1
+    [ ] criterion2
+    EOF
+
+    # Create tasks via direct file write
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+    cat > ~/.claude/tasks/$S/1.json << TASK
+    {"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
+    TASK
     ```
 
 ## At Completion Gate
+
     ```bash
-    # Completion + cleanup + commit (see step 4 for full example)
+    # Log + Delete + Commit (execute this entire block)
+    cat >> plan-log.md << 'EOF'
+    2026-02-08T12:30:00Z | Completion: Phase 1
+    [x] criterion1 (evidence)
+    [x] criterion2 (evidence)
+    EOF
+
+    # Delete task files
+    S=$(ls -t ~/.claude/tasks/ | head -1)
+    rm ~/.claude/tasks/$S/*.json 2>/dev/null
+
+    # Remove plan file (single-phase) or edit to remove completed phase
+    rm /home/ted/.claude/plans/<name>.md
+
+    git add -A && git commit -m "Phase 1 complete
+
+    Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
+
+## Verification
+[Commands to verify success criteria]
 ```
 
-## Tasks API Telescoping
+### 1d: Present
 
-The plan file is the source of truth. Expand the current phase with deliverables; collapse completed phases to single lines.
+```bash
+# Validate plan file exists and has gate blocks
+PLAN=/home/ted/.claude/plans/<name-from-plan-mode>.md
+test -f "$PLAN" || exit 1
+grep -q "At Implementation Gate" "$PLAN" || exit 1
+grep -q "At Completion Gate" "$PLAN" || exit 1
 
-Three-level hierarchy: Phase → Stage → Task
-
-| Level | What | When Visible |
-|-------|------|--------------|
-| Phase | From plan file | Always (future phases as skeletons) |
-| Stage | Plan, Implement | Current phase only |
-| Task | Deliverables | Current stage only |
-
-**Plan file structure:**
-```
-[x] Phase 1: Auth middleware        <- collapsed
-[ ] Phase 2: Event logging          <- current phase
-    [x] Plan                        <- completed stage
-    [ ] Implement                   <- current stage (expanded)
-        [ ] Add middleware
-        [ ] Update tests
-[ ] Phase 3: Future work            <- skeleton
+AskUserQuestion "May I proceed?"
+# STOP until approved
 ```
 
-**Tasks API mirrors current stage only:**
+## 2. Implementation Gate
+
+**GATE 1 ACTIONS** (when user says "proceed"):
+
+Execute the bash block from the plan file's "At Implementation Gate" section. This logs the Contract AND creates tasks in one atomic operation.
+
+**STOP: Do not implement until the Gate 1 bash block has been executed.**
+
+## 3. Implement
+
+```mermaid
+flowchart LR
+    A["(3a) Execute"] --> B["(3b) Present"]
 ```
-[in_progress] Add middleware
-[pending] Update tests
+
+**Substeps (3a-3b):**
+
+### 3a: Execute
+
+```bash
+for criterion in $contract_criteria; do
+    implement "$criterion"
+done
+# Progress logged as single Completion entry at gate (not incrementally)
 ```
 
-| Event | Action |
-|-------|--------|
-| Enter phase | Add Plan/Implement stages to plan file |
-| Implementation Gate | Mark Plan `[x]`, expand Implement tasks, TaskCreate for each, first `in_progress` |
-| Task done | Mark `[x]` in plan, TaskUpdate `completed`, next `in_progress` |
-| Completion Gate | Mark Implement `[x]`, collapse phase, TaskUpdate `deleted` for all |
+### 3b: Present
 
-## Protocol Principles
+```bash
+show_results
+for criterion in $contract_criteria; do
+    show_verification "$criterion"  # how user can verify
+done
+AskUserQuestion "May I proceed?"
+# STOP until approved
+```
 
-**Two gates, explicit approval:**
-- Implementation Gate: Approve plan before implementation
-- Completion Gate: Approve results before commit
-- Never proceed without "proceed"/"yes"/"approved"
+## 4. Completion Gate
 
-**User controls scope:**
-- User MAY defer work to future phases
-- Claude MAY NOT unilaterally defer
-- Claude MAY suggest deferring by asking
+**On "grade"** (log immediately, then self-assess and re-present):
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
+EOF
+```
 
-**Feedback loops:**
-- "grade" → self-assess, re-present
-- "improve" → fix issues, re-present
-- Scope changes → return to Plan stage
+**On "improve"** (log immediately, then make changes and re-present):
+```bash
+cat >> plan-log.md << 'EOF'
+2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
+EOF
+```
 
-**Behavioral logging:**
-- Contract at Implementation Gate (what we agreed)
-- Completion at Completion Gate (what we delivered)
-- Interaction on any grade/improve cycle
+**GATE 2 ACTIONS** (when user says "proceed"):
 
-**Plan files guide execution:**
-- Include explicit admin instructions at trigger points
-- Tasks JSON defined during planning, not improvised
-- Telescope tasks as phases complete
+Execute the bash block from the plan file's "At Completion Gate" section. This logs Completion with evidence, deletes tasks, and commits.
+

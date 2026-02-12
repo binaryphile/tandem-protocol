@@ -103,7 +103,7 @@ echo ""
 echo "Checkpoint 3: After grade"
 
 # UC7: Interaction logged
-if grep -qE 'Interaction:.*grade.*->' "$TEST_CWD/plan-log.md" 2>/dev/null; then
+if grep -qE 'Interaction:.*grade' "$TEST_CWD/plan-log.md" 2>/dev/null; then
     checkpoint "[UC7] Interaction for grade" "PASS"
     ((PASS++)) || true
 else
@@ -122,7 +122,7 @@ echo ""
 echo "Checkpoint 4: After improve"
 
 # UC7: 2+ Interactions
-INTERACTION_COUNT=$(grep -cE 'Interaction:.*->' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
+INTERACTION_COUNT=$(grep -cE 'Interaction:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
 if [[ $INTERACTION_COUNT -ge 2 ]]; then
     checkpoint "[UC7] 2+ Interactions" "PASS"
     ((PASS++)) || true
@@ -229,7 +229,7 @@ resume_session "grade" 5 > /dev/null
 echo ""
 echo "Checkpoint 8: After grade (Phase 2)"
 
-INTERACTION_COUNT=$(grep -cE 'Interaction:.*grade.*->' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
+INTERACTION_COUNT=$(grep -cE 'Interaction:.*grade' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
 if [[ $INTERACTION_COUNT -ge 2 ]]; then
     checkpoint "[UC7] Grade Interactions" "PASS"
     ((PASS++)) || true

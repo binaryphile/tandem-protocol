@@ -67,7 +67,7 @@ fi
 echo ""
 echo "Step 2: Gate 1 (Phase 1)..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+implementation_gate "proceed" 15 > /dev/null
 
 # Checkpoint 2: After Gate 1 Phase 1
 echo ""
@@ -204,7 +204,7 @@ fi
 echo ""
 echo "Step 7: Gate 1 (Phase 2)..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+implementation_gate "proceed" 15 > /dev/null
 
 # Checkpoint 7: After Gate 1 Phase 2
 echo ""

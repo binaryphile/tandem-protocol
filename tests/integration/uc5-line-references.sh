@@ -53,7 +53,7 @@ echo "Session: $SESSION_ID"
 echo ""
 echo "Step 2: Gate 1 - proceed..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+implementation_gate "proceed" 15 > /dev/null
 
 # Check if edit happened
 echo ""

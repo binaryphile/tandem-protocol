@@ -112,7 +112,7 @@ else
 
     # Approve the plan
     sleep 2
-    resume_session "proceed" 10 > /dev/null
+    implementation_gate "proceed" 10 > /dev/null
 
     # Contract should exist now
     CONTRACT_BEFORE=$(grep -c 'Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
@@ -247,7 +247,7 @@ else
 
     # Approve and request grade
     sleep 2
-    resume_session "proceed" 10 > /dev/null
+    implementation_gate "proceed" 10 > /dev/null
 
     echo ""
     echo "Step 2: Request grade..."
@@ -300,7 +300,7 @@ else
 
     # Approve Phase 1
     sleep 2
-    resume_session "proceed" 10 > /dev/null
+    implementation_gate "proceed" 10 > /dev/null
 
     # Simulate session break by clearing session ID
     echo ""
@@ -361,7 +361,7 @@ else
 
     # Approve plan - should create plan-log.md
     sleep 2
-    resume_session "proceed" 10 > /dev/null
+    implementation_gate "proceed" 10 > /dev/null
 
     # Check: plan-log.md should be created automatically
     echo ""

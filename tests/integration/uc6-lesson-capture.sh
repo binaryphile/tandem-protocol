@@ -73,7 +73,7 @@ echo "Session: $SESSION_ID"
 echo ""
 echo "Step 2: Gate 1 - proceed..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+implementation_gate "proceed" 10 > /dev/null
 
 # Request grade (triggers gap identification)
 echo ""

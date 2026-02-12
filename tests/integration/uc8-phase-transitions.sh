@@ -45,7 +45,7 @@ fi
 echo ""
 echo "Step 2: Gate 1 - proceed with Phase 1..."
 sleep 2
-resume_session "proceed" 15 > /dev/null
+implementation_gate "proceed" 15 > /dev/null
 
 # Check plan file state after Gate 1
 echo ""

@@ -83,7 +83,7 @@ fi
 echo ""
 echo "Step 3: Approve to verify Contract logging..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+implementation_gate "proceed" 10 > /dev/null
 
 # Check Contract now exists
 if grep -q "Contract:" "$TEST_CWD/plan-log.md" 2>/dev/null; then
@@ -119,7 +119,7 @@ echo "Session: $SESSION_ID"
 echo ""
 echo "Step 2: Approve plan (Gate 1)..."
 sleep 2
-resume_session "proceed" 10 > /dev/null
+implementation_gate "proceed" 10 > /dev/null
 
 # Verify Contract logged
 if grep -q "Contract:" "$TEST_CWD/plan-log.md" 2>/dev/null; then

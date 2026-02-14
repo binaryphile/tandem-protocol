@@ -115,8 +115,24 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 
 **Plan template** (gate sections contain literal bash blocks to execute):
 
+**Multi-phase plans:**
+1. **Initial planning**: Create ALL phase skeletons upfront. Phase 2+ skeletons say
+   "Planning deferred until this phase becomes current."
+2. **When phase becomes current**: Plan that phase fully. Do NOT plan future phases.
+3. **On phase completion**: Remove that phase's section from the plan file.
+4. **When last phase completes**: Delete the plan file.
+
 ```markdown
-# [Phase Name] Plan
+# [Project Name] - Phased Implementation
+
+## Context
+1. **Phase 1: [Name]** ← CURRENT
+2. **Phase 2: [Name]**
+3. **Phase 3: [Name]**
+
+---
+
+# Phase 1: [Name]
 
 ## Objective
 [1-2 sentences]
@@ -160,9 +176,11 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
     S=$(ls -t ~/.claude/tasks/ | head -1)
     rm ~/.claude/tasks/$S/*.json 2>/dev/null
 
-    # Remove plan file (single-phase) or edit to remove completed phase
+    # Single-phase: delete plan file
+    # Multi-phase: (1) mark phase done in Context, (2) remove completed phase section
+    #              Next phase skeleton already exists - plan it when it becomes current
     PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
-    rm "$PLAN"
+    rm "$PLAN"  # <- ONLY for single-phase or final phase!
 
     git add -A && git commit -m "Phase 1 complete
 
@@ -171,6 +189,18 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 
 ## Verification
 [Commands to verify success criteria]
+
+---
+
+# Phase 2: [Name]
+
+Planning deferred until this phase becomes current.
+
+---
+
+# Phase 3: [Name]
+
+Planning deferred until this phase becomes current.
 ```
 
 ### 1d: Present

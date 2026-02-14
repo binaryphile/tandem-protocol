@@ -116,9 +116,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 **Plan template** (gate sections contain literal bash blocks to execute):
 
 **Multi-phase plans:**
-1. **Initial planning**: Create ALL phase skeletons upfront. Phase 2+ skeletons say
-   "Planning deferred until this phase becomes current."
-2. **When phase becomes current**: Plan that phase fully. Do NOT plan future phases.
+1. **Initial planning**: Plan current phase fully; list future phases at end (no skeletons).
+2. **When phase becomes current**: Plan that phase. Remove it from future phases list.
 3. **On phase completion**: Remove that phase's section from the plan file.
 4. **When last phase completes**: Delete the plan file.
 
@@ -178,7 +177,6 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 
     # Single-phase: delete plan file
     # Multi-phase: (1) mark phase done in Context, (2) remove completed phase section
-    #              Next phase skeleton already exists - plan it when it becomes current
     PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
     rm "$PLAN"  # <- ONLY for single-phase or final phase!
 
@@ -192,15 +190,12 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 
 ---
 
-# Phase 2: [Name]
+## Future Phases
 
-Planning deferred until this phase becomes current.
+Do NOT plan these until they become current. Remove from this list when planning begins.
 
----
-
-# Phase 3: [Name]
-
-Planning deferred until this phase becomes current.
+- Phase 2: [Name]
+- Phase 3: [Name]
 ```
 
 ### 1d: Present

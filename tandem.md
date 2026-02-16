@@ -52,17 +52,11 @@ You have a mental model of the protocol, but if you're seeing this reminder, the
 If an existing plan file exists, execute this bash block to quote it verbatim:
 
 ```bash
-# Force verbatim plan quote (Tier 1 - executable)
-PLAN_FILE=$(ls -t ~/.claude/plans/*.md 2>/dev/null | head -1)
-if [[ -f "$PLAN_FILE" ]]; then
-    echo "=== EXISTING PLAN (verbatim) ==="
-    cat "$PLAN_FILE"
-    echo "=== END PLAN ==="
-    echo ""
-    echo "Now grade your understanding, then grade the plan quality."
-    echo "Wait for user approval before proceeding."
-fi
+# List all plan files (do NOT assume most-recent is correct — multiple plans may coexist)
+ls -l ~/.claude/plans/*.md 2>/dev/null
 ```
+
+If exactly one plan exists, quote it verbatim. If multiple exist, ask the user which plan to work on. Do NOT blindly pick the most recent — a long-lived multi-phase plan may have been modified more recently than the task plan you're recovering.
 
 After executing, present your grades and ask: "May I proceed?"
 

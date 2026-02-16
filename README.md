@@ -113,7 +113,8 @@ done
 EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ```
 
-**Plan template** (gate sections contain literal bash blocks to execute):
+**Plan template** (gate sections contain literal bash blocks to execute).
+When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual values. Do NOT use `ls -t` to find them at execution time — multiple plans/sessions may coexist and `ls -t` will pick the wrong one.
 
 **Multi-phase plans:**
 1. **Initial planning**: Plan current phase fully; list future phases at end (no skeletons).
@@ -154,9 +155,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
     [ ] criterion2
     EOF
 
-    # Create tasks via direct file write
-    S=$(ls -t ~/.claude/tasks/ | head -1)
-    cat > ~/.claude/tasks/$S/1.json << TASK
+    # Create tasks via direct file write (use actual session dir name)
+    cat > ~/.claude/tasks/<session-dir>/1.json << TASK
     {"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
     TASK
     ```
@@ -171,14 +171,12 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
     [x] criterion2 (evidence)
     EOF
 
-    # Delete task files
-    S=$(ls -t ~/.claude/tasks/ | head -1)
-    rm ~/.claude/tasks/$S/*.json 2>/dev/null
+    # Delete task files (use actual session dir name)
+    rm ~/.claude/tasks/<session-dir>/*.json 2>/dev/null
 
-    # Single-phase: delete plan file
+    # Single-phase: delete plan file by explicit name
     # Multi-phase: (1) mark phase done in Context, (2) remove completed phase section
-    PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
-    rm "$PLAN"  # <- ONLY for single-phase or final phase!
+    rm ~/.claude/plans/<plan-name>.md  # <- ONLY for single-phase or final phase!
 
     git add -A && git commit -m "Phase 1 complete
 
@@ -201,8 +199,8 @@ Do NOT plan these until they become current. Remove from this list when planning
 ### 1d: Present
 
 ```bash
-# Find and validate plan file
-PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
+# Validate plan file (use the known plan filename from step 1c)
+PLAN=~/.claude/plans/<plan-name>.md
 test -f "$PLAN" || exit 1
 grep -q "At Implementation Gate" "$PLAN" || exit 1
 grep -q "At Completion Gate" "$PLAN" || exit 1
@@ -245,8 +243,8 @@ for criterion in $contract_criteria; do
     show_verification "$criterion"  # how user can verify
 done
 
-# Re-read plan file to get Completion Gate block
-PLAN=$(ls -t ~/.claude/plans/*.md | head -1)
+# Re-read plan file to get Completion Gate block (use the known plan filename)
+PLAN=~/.claude/plans/<plan-name>.md
 cat "$PLAN"  # puts bash block back in context
 
 # Show what will execute on approval

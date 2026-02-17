@@ -149,8 +149,8 @@ When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual va
     ```bash
     # Log Contract + Create Tasks (execute this entire block)
     touch plan-log.md
-    cat >> plan-log.md << 'EOF'
-    2026-02-08T12:00:00Z | Contract: Phase 1 - objective
+    cat >> plan-log.md << EOF
+    $(date -u +%Y-%m-%dT%H:%M:%SZ) | Contract: Phase 1 - objective
     [ ] criterion1
     [ ] criterion2
     EOF
@@ -165,8 +165,8 @@ When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual va
 
     ```bash
     # Log + Delete + Commit (execute this entire block)
-    cat >> plan-log.md << 'EOF'
-    2026-02-08T12:30:00Z | Completion: Phase 1
+    cat >> plan-log.md << EOF
+    $(date -u +%Y-%m-%dT%H:%M:%SZ) | Completion: Phase 1
     [x] criterion1 (evidence)
     [x] criterion2 (evidence)
     EOF
@@ -178,7 +178,9 @@ When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual va
     # Multi-phase: (1) mark phase done in Context, (2) remove completed phase section
     rm ~/.claude/plans/<plan-name>.md  # <- ONLY for single-phase or final phase!
 
-    git add -A && git commit -m "Phase 1 complete
+    # Stage files changed by this phase (write actual list at completion time, not planning time)
+    git add file1.go file2.go plan-log.md
+    git commit -m "Phase 1 complete
 
     Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
@@ -243,8 +245,11 @@ for criterion in $contract_criteria; do
     show_verification "$criterion"  # how user can verify
 done
 
-# Re-read plan file to get Completion Gate block (use the known plan filename)
+# Update the plan's git add line with actual files changed during implementation
+# (the plan template has placeholders — replace with real file list now)
 PLAN=~/.claude/plans/<plan-name>.md
+update_git_add_in "$PLAN"
+
 cat "$PLAN"  # puts bash block back in context
 
 # Show what will execute on approval
@@ -259,15 +264,15 @@ AskUserQuestion "May I proceed?"
 
 **On "grade"** (log immediately, then self-assess and re-present):
 ```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:10:00Z | Interaction: grade -> B+/88, missing edge case
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: grade -> B+/88, missing edge case
 EOF
 ```
 
 **On "improve"** (log immediately, then make changes and re-present):
 ```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:15:00Z | Interaction: improve -> added edge case handling
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: improve -> added edge case handling
 EOF
 ```
 

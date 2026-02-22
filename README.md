@@ -94,7 +94,7 @@ flowchart LR
 read_codebase
 identify_affected_files
 note_line_refs              # will shift after edits
-mcp__memory__memory_search  # check memory for relevant context
+mcp__era__search  # check memory for relevant context
 web_search                  # find resources for unfamiliar patterns
 ```
 

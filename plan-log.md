@@ -744,3 +744,24 @@ The following entries are added retroactively for behavioral analysis. They capt
 2026-02-11T15:10:00Z | Completion: Implement Completion Gate Fix
 [x] README section 3b updated (evidence: lines 217-232, re-read plan + show execution message)
 [x] UC7 Completion logging validated (evidence: gate2-diagnosis v2 shows 80% success - Baseline/Inline/Explicit/Instruction all SUCCESS)
+2026-02-13T20:00:00-06:00 | Contract: Phase 3 - Drink Sip Animation
+[ ] DevStartedSip event with officeEvent() marker
+[ ] applyOfficeEvent handles DevStartedSip
+[ ] StartSip() initiates sip animation
+[ ] AdvanceSip() cycles through phases
+[ ] RenderDeveloperIcon handles sip phases
+[ ] Unit tests for event, state, rendering
+[ ] go build ./... succeeds
+[ ] go test ./internal/office/... passes
+2026-03-02T22:38:56Z | Contract: Era stream publishing at protocol gates
+[ ] Implementation Gate publishes Contract event
+[ ] Completion Gate publishes Completion event
+[ ] Grade/improve publishes Interaction events
+[ ] <project> variable documented
+[ ] FEATURES.md updated
+2026-03-02T22:41:01Z | Completion: Era stream publishing at protocol gates
+[x] Implementation Gate publishes Contract event (README.md:158)
+[x] Completion Gate publishes Completion event (README.md:176)
+[x] Grade/improve publishes Interaction events (README.md:275, 284)
+[x] <project> variable documented (README.md:117)
+[x] FEATURES.md updated (FEATURES.md:44-45)

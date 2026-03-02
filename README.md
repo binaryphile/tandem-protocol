@@ -114,7 +114,7 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ```
 
 **Plan template** (gate sections contain literal bash blocks to execute).
-When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual values. Do NOT use `ls -t` to find them at execution time — multiple plans/sessions may coexist and `ls -t` will pick the wrong one.
+When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<project>` with actual values. Do NOT use `ls -t` to find them at execution time — multiple plans/sessions may coexist and `ls -t` will pick the wrong one.
 
 **Multi-phase plans:**
 1. **Initial planning**: Plan current phase fully; list future phases at end (no skeletons).
@@ -155,6 +155,8 @@ When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual va
     [ ] criterion2
     EOF
 
+    era publish -s tasks.<project> --type Contract "Contract: Phase 1 - objective"
+
     # Create tasks via direct file write (use actual session dir name)
     cat > ~/.claude/tasks/<session-dir>/1.json << TASK
     {"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
@@ -170,6 +172,8 @@ When writing a plan, substitute `<plan-name>` and `<session-dir>` with actual va
     [x] criterion1 (evidence)
     [x] criterion2 (evidence)
     EOF
+
+    era publish -s tasks.<project> --type Completion "Completion: Phase 1"
 
     # Delete task files (use actual session dir name)
     rm ~/.claude/tasks/<session-dir>/*.json 2>/dev/null
@@ -267,6 +271,8 @@ AskUserQuestion "May I proceed?"
 cat >> plan-log.md << EOF
 $(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: grade -> B+/88, missing edge case
 EOF
+
+era publish -s tasks.<project> --type Interaction "grade -> B+/88, missing edge case"
 ```
 
 **On "improve"** (log immediately, then make changes and re-present):
@@ -274,6 +280,8 @@ EOF
 cat >> plan-log.md << EOF
 $(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: improve -> added edge case handling
 EOF
+
+era publish -s tasks.<project> --type Interaction "improve -> added edge case handling"
 ```
 
 **COMPLETION GATE ACTIONS** (when user says "proceed"):

@@ -42,6 +42,8 @@ All protocol events are logged directly to `plan-log.md` using timestamped entri
 
 The Contract/Completion checkbox pattern ensures criteria verification is explicit.
 
+Events are also published to Era streams (`tasks.<project>`) for machine-readable detection. Orchestrators and other sessions can subscribe to these streams to detect gate crossings without parsing `plan-log.md`.
+
 ## PI Cognitive Model
 
 The protocol uses the PI model for cognitive stages:
@@ -96,8 +98,8 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 Gate actions use **bash heredocs** - executable syntax that Claude runs directly:
 
 ```bash
-cat >> plan-log.md << 'EOF'
-2026-02-08T12:00:00Z | Contract: Phase 1 | [ ] criterion
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Contract: Phase 1 | [ ] criterion
 EOF
 ```
 

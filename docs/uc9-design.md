@@ -2,7 +2,7 @@
 
 ## Design
 
-**Location:** README.md (overview diagram, plan template gates, Completion Gate section), FEATURES.md (Self-Grading, Event Logging, Multi-Phase)
+**Location:** README.md (overview diagram, plan template gates, Implementation Gate section, Completion Gate section), FEATURES.md (Grading Cycles, Event Logging, Multi-Phase)
 
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
@@ -11,7 +11,7 @@
 
 ### Grading Model
 
-Simplified from old `/w /a /i` → `/w /i` pattern to repeated `/i` cycles:
+Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 
 | Command | Action | When |
 |---------|--------|------|
@@ -32,9 +32,9 @@ Simplified from old `/w /a /i` → `/w /i` pattern to repeated `/i` cycles:
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
-| T1 | `/i` command in Completion Gate | `On \x60/i\x60` |
-| T2 | `/c` command in Completion Gate | `On \x60/c\x60` |
-| T3 | `/g` command in Completion Gate | `On \x60/g\x60` |
+| T1 | `/i` command in both gate sections | `On \x60/i\x60` |
+| T2 | `/c` command in both gate sections | `On \x60/c\x60` |
+| T3 | `/g` command in both gate sections | `On \x60/g\x60` |
 | T4 | Grading loop in overview diagram | `/i /c /g` |
 | T5 | No old grade/improve actions | NOT `On "grade"` AND NOT `On "improve"` |
 | T6 | mk task in Implementation Gate template | `mk task` |

@@ -811,3 +811,19 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] README /tandem usage section removed
 [x] FEATURES.md recovery references updated
 [x] Version bumped to v0.12
+2026-03-08T22:57:20Z | Contract: Cockburn gap analysis fixes for UC9
+[ ] Primary actor fixed to User
+[ ] MSS step 5 covers both gates
+[ ] /g once-per-gate extension added
+[ ] Failure extensions added
+[ ] Recommended ordering documented
+[ ] Guarantees rewritten as post-conditions
+[ ] Version bumped to v0.13
+2026-03-08T23:04:05Z | Completion: Cockburn gap analysis fixes for UC9
+[x] Primary actor fixed to User
+[x] MSS step 5 covers both gates
+[x] /g once-per-gate extension added
+[x] Failure extensions added
+[x] Recommended ordering documented
+[x] Guarantees rewritten as post-conditions
+[x] Version bumped to v0.13

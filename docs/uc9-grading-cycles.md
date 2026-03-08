@@ -2,14 +2,15 @@
 
 **Scope:** Tandem Protocol
 **Level:** Blue
-**Primary Actor:** LLM (executing protocol)
-**Secondary Actors:** plan-log.md (log target), Era streams (task events via mk)
+**Primary Actor:** User (developer)
+**Secondary Actors:** LLM (executing protocol), plan-log.md (log target), Era streams (task events via mk)
 
 ## In/Out List
 
 | In Scope | Out of Scope |
 |----------|--------------|
 | `/i` improve cycles at both gates | Automated grading triggers |
+| Auto `/i` cycles before presentation | |
 | `/c` compliance grading | Grading rubrics or scoring |
 | `/g` external review grading | Per-criterion task tracking |
 | Task events via mk at gates | Interaction events in Era streams |
@@ -33,17 +34,18 @@
 
 ## Success Guarantee
 
-- Grading cycles visible as first-class states in all protocol diagrams
-- `/i`, `/c`, `/g` documented with bash blocks for plan-log entries
-- Gate events published as task/task-done via mk (not direct era publish)
+- All grading interactions logged to plan-log.md
+- Gate task events published via mk
 
 ## Minimal Guarantee
 
-- Grading cycles documented in gate sections
+- Grading interaction logged to plan-log.md even if fix attempt fails
 
 ## Trigger
 
 User types `/i`, `/c`, or `/g` at either gate.
+
+Recommended sequence: `/g` (once at entry), then `/i` (repeated), then `/c` (after plateau).
 
 ## Main Success Scenario
 
@@ -51,8 +53,8 @@ User types `/i`, `/c`, or `/g` at either gate.
 2. LLM logs Interaction entry to plan-log.md
 3. LLM self-assesses work, identifies issues
 4. LLM fixes issues
-5. LLM re-presents at step 3b
-6. User repeats or types `proceed`
+5. LLM re-presents at the current gate's presentation step (1d or 3b)
+6. User repeats or advances the gate
 
 ## Extensions
 
@@ -64,8 +66,21 @@ User types `/i`, `/c`, or `/g` at either gate.
     1b1. LLM applies external review feedback
     1b2. Continue at step 2
 
-6a. User types `proceed`:
-    6a1. LLM executes Completion Gate bash block (mk done, commit)
+1c. User types `/g` but external review already occurred at this gate:
+    1c1. LLM informs user `/g` is once per gate, suggests `/i`
+
+2a. Auto `/i` cycles ran before initial presentation (up to 3):
+    2a1. Issues already fixed before user sees results
+    2a2. Continue at step 5 (user sees polished result)
+
+3a. Self-assessment finds no issues:
+    3a1. LLM reports no issues found, re-presents unchanged
+
+6a. User advances the gate (accepts plan at Gate 1, or `proceed` at Gate 2):
+    6a1. LLM executes the gate's bash block
+
+6b. mk command fails during gate execution:
+    6b1. LLM reports error to user, does not commit
 
 ## Guard Conditions
 
@@ -74,7 +89,8 @@ User types `/i`, `/c`, or `/g` at either gate.
 | `/i` at either gate | Interaction logged, issues found and fixed, re-present |
 | `/c` at either gate | Compliance grade against guides, fix violations |
 | `/g` at either gate | External feedback applied |
-| `proceed` after grading | Gate bash block executed |
+| `/g` repeated at same gate | Once per gate — suggest `/i` instead |
+| Gate advanced after grading | Gate bash block executed |
 
 ## Event Types
 

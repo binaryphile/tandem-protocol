@@ -1,4 +1,4 @@
-# Tandem Protocol v0.12
+# Tandem Protocol v0.13
 
  Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 

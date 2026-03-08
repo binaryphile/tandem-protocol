@@ -1,21 +1,32 @@
 # Advanced Features
 
-## Self-Grading & Improve Cycles
+## Grading Cycles
 
-At each approval gate, you can ask Claude to grade its own work before deciding whether to proceed.
+At either gate, run grading cycles before approving. Each cycle returns to the preceding stage's presentation step (1d or 3b) after making fixes.
 
 ```mermaid
 flowchart TD
-    G2{"GATE 2<br/>May I proceed?"} -->|"Grade your work"| GRADE["Grade: A- (93/100)<br/>- deduction 1<br/>- deduction 2"]
-    GRADE -->|"Improve"| IMPROVE["Address deductions"]
-    IMPROVE --> G2
-    G2 -->|"Approve"| S4["Commit"]
+    GATE{"GATE<br/>May I proceed?"} -->|"/g"| EXTERN["Apply feedback + fix"]
+    EXTERN --> GATE
+    GATE -->|"/i"| IMPROVE["Self-assess + fix"]
+    IMPROVE --> GATE
+    GATE -->|"/c"| COMPLY["Grade vs guides + fix"]
+    COMPLY --> GATE
+    GATE -->|"proceed"| NEXT["Next stage"]
 
-    style G2 fill:#fff3e0,stroke:#ff9800
-    style GRADE fill:#e8f5e9,stroke:#388e3c
+    style GATE fill:#fff3e0,stroke:#ff9800
+    style IMPROVE fill:#e8f5e9,stroke:#388e3c
+    style COMPLY fill:#e8f5e9,stroke:#388e3c
+    style EXTERN fill:#e8f5e9,stroke:#388e3c
 ```
 
-The grading cycle works at both gates. Use it for complex or high-stakes work.
+**Typical sequence:**
+1. `/g` external review (once, at initial gate presentation — calibrated projects only)
+2. `/i` cycles until self-assessment finds nothing more
+3. `/c` to check compliance against project guides
+4. Accept plan (Gate 1) or `proceed` (Gate 2) to advance
+
+`/i` is the workhorse — it combines assessment and fixing in one step. `/g` and `/c` are optional.
 
 ## Lesson Capture
 
@@ -36,13 +47,13 @@ All protocol events are logged directly to `plan-log.md` using timestamped entri
 |------------|------|---------|
 | **Contract** | Gate 1 approval | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests` |
 | **Completion** | Gate 2 approval | `Completion: Phase 1 \| [x] middleware (auth.go:45)` |
-| **Interaction** | User feedback | `Interaction: grade -> B/84, missing edge case` |
+| **Interaction** | User feedback | `Interaction: /i -> found edge case, added handling` |
 
 **Format:** `YYYY-MM-DDTHH:MM:SSZ | Type: description`
 
 The Contract/Completion checkbox pattern ensures criteria verification is explicit.
 
-Events are also published to Era streams (`tasks.<project>`) for machine-readable detection. Orchestrators and other sessions can subscribe to these streams to detect gate crossings without parsing `plan-log.md`.
+Gate events are also published to Era streams via `mk task`/`mk done`, enabling orchestrators and other sessions to detect gate crossings without parsing `plan-log.md`.
 
 ## PI Cognitive Model
 
@@ -63,10 +74,12 @@ For projects spanning multiple sessions or requiring distinct phases:
 flowchart TD
     START(["Start"]) -->|"Make a plan to..."| PLAN["Plan Stage"]
     PLAN --> G1{"GATE 1"}
-    G1 -->|"Approve"| IMPL["Implement Stage"]
+    G1 -->|"/g /i /c"| PLAN
+    G1 -->|"accept plan"| IMPL["Implement Stage"]
     IMPL --> PRESENT["Present Results"]
     PRESENT --> G2{"GATE 2"}
-    G2 -->|"Approve"| COMMIT["Commit"]
+    G2 -->|"/g /i /c"| IMPL
+    G2 -->|"proceed"| COMMIT["Commit"]
     COMMIT --> DONE(["Done / Next phase"])
 
     style G1 fill:#fff3e0,stroke:#ff9800

@@ -2,7 +2,7 @@
 
 **Focus:** Meta-level lessons about protocol design and structure
 
-**Note:** This is the place for lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, grade/improve cycles, feedback patterns). The planning guide is for cognitive stages; this guide is for protocol process improvements.
+**Note:** This is the place for lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, /i /c /g cycles, feedback patterns). The planning guide is for cognitive stages; this guide is for protocol process improvements.
 
 ## Lessons
 
@@ -23,7 +23,7 @@
 **Source:** README restructure session - repeated telescoping failures
 
 ### Interaction Logging: Use explicit append_to_log
-**Context:** During grade/improve cycles in Step 3b
+**Context:** During /i cycles in Step 3b
 **Lesson:** Abstract calls like `log_interaction()` don't show the required format, leading to omission. Explicit `append_to_log("plan-log.md", f"{timestamp} | Interaction: ...")` ensures compliance.
 **Source:** README restructure session - Interaction entries not logged
 
@@ -118,7 +118,7 @@ When reviewing protocol changes:
 
 ### Lessons Missed
 - "Terminology: Use consistent, clear terms": Used "blow out" instead of "expand"
-- "Interaction Logging: Use explicit append_to_log": Forgot to log grade/improve cycle
+- "Interaction Logging: Use explicit append_to_log": Forgot to log /i cycle
 ```
 
 ## Lessons from Phase 7: TaskAPI Investigation

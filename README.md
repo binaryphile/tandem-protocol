@@ -19,8 +19,8 @@ Claude: Questions before planning:                           # ← (1) Plan
         - Missing config: error or defaults?
 You:    YAML, defaults
 
-Claude: [creates plan] May I proceed?
-You:    proceed                                              # ← (2) Impl Gate
+Claude: [creates plan, presents for review]
+You:    [accept plan]                                        # ← (2) Impl Gate
 
 Claude: [logs to plan-log.md]
         2024-01-15T10:00:00Z | Contract: Config loader
@@ -29,6 +29,9 @@ Claude: [logs to plan-log.md]
 
         [implements]                                         # ← (3) Implement
 
+        Done. May I proceed?
+You:    /i                                                   # ← improve cycle
+Claude: [self-assesses, finds missing validation, fixes]
         Done. May I proceed?
 You:    proceed                                              # ← (4) Compl Gate
 ```
@@ -46,7 +49,7 @@ Use `/tandem` anytime to refocus when things drift.
 ## Learn More
 
 See [FEATURES.md](FEATURES.md) for details on:
-- **Self-grading cycles** - Grade and improve work before committing
+- **Grading cycles** - Iterative `/g`, `/i`, `/c` improvement before committing
 - **Lesson capture** - Route learnings to guides for future sessions
 - **Event logging** - Audit trail with Contract/Completion/Interaction entries
 - **PI cognitive stages** - Structured thinking for complex tasks
@@ -61,8 +64,10 @@ See [FEATURES.md](FEATURES.md) for details on:
 ```mermaid
 flowchart LR
     S1["(1) Plan"] --> S2{"(2) Impl Gate"}
+    S2 -->|"/g /i /c"| S1
     S2 --> S3["(3) Implement"]
     S3 --> S4{"(4) Compl Gate"}
+    S4 -->|"/g /i /c"| S3
     S4 -.-> S1
 
     style S1 fill:#e3f2fd,stroke:#1976d2
@@ -73,11 +78,11 @@ flowchart LR
 
 **Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
-Checklist before requesting approval:
+Checklist before exiting plan mode:
 - [ ] "At Implementation Gate" section with bash block (Contract + task creation)
 - [ ] "At Completion Gate" section with bash block (Completion + task deletion + commit)
 
-Do not request "May I proceed?" without these executable bash blocks in the plan file.
+Do not exit plan mode without these executable bash blocks in the plan file.
 
 ## 1. Plan
 
@@ -114,7 +119,7 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ```
 
 **Plan template** (gate sections contain literal bash blocks to execute).
-When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<project>` with actual values. Do NOT use `ls -t` to find them at execution time — multiple plans/sessions may coexist and `ls -t` will pick the wrong one.
+When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans/sessions at execution time — multiple may coexist and `ls -t` will pick the wrong one.
 
 **Multi-phase plans:**
 1. **Initial planning**: Plan current phase fully; list future phases at end (no skeletons).
@@ -155,7 +160,8 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<project>` 
     [ ] criterion2
     EOF
 
-    era publish -s tasks.<project> --type Contract "Contract: Phase 1 - objective"
+    mk task "Phase 1 - objective"
+    # Note the task ID from output for the Completion Gate mk done command
 
     # Create tasks via direct file write (use actual session dir name)
     cat > ~/.claude/tasks/<session-dir>/1.json << TASK
@@ -173,7 +179,7 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<project>` 
     [x] criterion2 (evidence)
     EOF
 
-    era publish -s tasks.<project> --type Completion "Completion: Phase 1"
+    mk done <task-id> "Phase 1 complete"
 
     # Delete task files (use actual session dir name)
     rm ~/.claude/tasks/<session-dir>/*.json 2>/dev/null
@@ -211,13 +217,42 @@ test -f "$PLAN" || exit 1
 grep -q "At Implementation Gate" "$PLAN" || exit 1
 grep -q "At Completion Gate" "$PLAN" || exit 1
 
-AskUserQuestion "May I proceed?"
-# STOP until approved
+ExitPlanMode  # user acceptance = Implementation Gate "proceed"
+# STOP until accepted
 ```
 
 ## 2. Implementation Gate
 
-**IMPLEMENTATION GATE ACTIONS** (when user says "proceed"):
+Grading cycles happen during plan review (before user accepts):
+
+| Command | Action | When |
+|---------|--------|------|
+| `/g` | Apply external review feedback + fix | Once, at initial plan presentation (calibrated projects only) |
+| `/i` | Self-assess plan + fix, re-present at 1d | Repeated until exhausted |
+| `/c` | Grade plan against project guides + fix | After `/i` cycles plateau |
+
+**On `/g`** (once at plan presentation — log, apply external feedback + fix, re-present at step 1d):
+```bash
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /g -> reviewer noted Y, addressed
+EOF
+```
+
+**On `/i`** (log, improve plan, re-present at step 1d):
+```bash
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /i -> found gap in plan, addressed
+EOF
+```
+
+**On `/c`** (log, grade plan against guides + fix, re-present at step 1d):
+```bash
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /c -> plan non-compliant with X guide, fixed
+EOF
+```
+
+**IMPLEMENTATION GATE ACTIONS** (when user accepts the plan):
 
 Execute the bash block from the plan file's "At Implementation Gate" section. This logs the Contract AND creates tasks in one atomic operation.
 
@@ -266,22 +301,33 @@ AskUserQuestion "May I proceed?"
 
 ## 4. Completion Gate
 
-**On "grade"** (log immediately, then self-assess and re-present):
+Grading cycles at the gate (until "proceed"):
+
+| Command | Action | When |
+|---------|--------|------|
+| `/g` | Apply external review feedback + fix | Once, at initial gate presentation (calibrated projects only) |
+| `/i` | Self-assess + fix, re-present at 3b | Repeated until exhausted |
+| `/c` | Grade against project guides + fix | After `/i` cycles plateau |
+
+**On `/g`** (once at gate entry — log, apply external feedback + fix, re-present at step 3b):
 ```bash
 cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: grade -> B+/88, missing edge case
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /g -> reviewer noted Y, addressed
 EOF
-
-era publish -s tasks.<project> --type Interaction "grade -> B+/88, missing edge case"
 ```
 
-**On "improve"** (log immediately, then make changes and re-present):
+**On `/i`** (log, improve, re-present at step 3b):
 ```bash
 cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: improve -> added edge case handling
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /i -> found edge case, added handling
 EOF
+```
 
-era publish -s tasks.<project> --type Interaction "improve -> added edge case handling"
+**On `/c`** (log, grade against guides + fix, re-present at step 3b):
+```bash
+cat >> plan-log.md << EOF
+$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /c -> non-compliant with X guide, fixed
+EOF
 ```
 
 **COMPLETION GATE ACTIONS** (when user says "proceed"):

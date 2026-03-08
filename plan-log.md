@@ -765,3 +765,21 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] Grade/improve publishes Interaction events (README.md:275, 284)
 [x] <project> variable documented (README.md:117)
 [x] FEATURES.md updated (FEATURES.md:44-45)
+2026-03-08T20:15:42Z | Contract: UC9 - Grading cycles in state machines
+[ ] README example session shows /i cycle
+[ ] README overview diagram shows grading loop
+[ ] README Completion Gate uses /i /c /g
+[ ] FEATURES Self-Grading section updated
+[ ] FEATURES Multi-Phase diagram updated
+[ ] docs/uc9-design.md created
+[ ] UC7 docs and test updated
+[ ] Task #9014 closed
+2026-03-08T21:43:38Z | Completion: UC9 - Grading cycles in state machines
+[x] README example session shows /i cycle
+[x] README overview diagram shows grading loop
+[x] README Completion Gate uses /i /c /g
+[x] FEATURES Self-Grading section updated
+[x] FEATURES Multi-Phase diagram updated
+[x] docs/uc9-design.md created
+[x] UC7 docs and test updated
+[x] Task #9014 closed

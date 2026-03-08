@@ -2,11 +2,11 @@
 # UC7 Integration Test: Event Logging
 # Verifies Contract, Completion, and Interaction entries are logged correctly
 #
-# Scenario: Full gate sequence with grade/improve cycle
+# Scenario: Full gate sequence with /i improve cycle
 # 1. Plan task (no Contract yet)
 # 2. "proceed" (Gate 1) → Contract logged
-# 3. "grade" → Interaction logged
-# 4. "improve" → Interaction logged
+# 3. "/i" → Interaction logged
+# 4. "/i" → Interaction logged
 # 5. "proceed" (Gate 2) → Completion logged
 
 source "$(dirname "$0")/common.sh"
@@ -50,27 +50,27 @@ assert_not_exists "No Completion yet" "Completion:" "$TEST_CWD/plan-log.md"
 
 # Grade
 echo ""
-echo "Step 3: Request grade..."
+echo "Step 3: Request /i..."
 sleep 2
-resume_session "grade" 5 > /dev/null
+resume_session "/i" 5 > /dev/null
 sleep 1  # allow file writes to complete
 
 # Checkpoint 3: Interaction logged for grade
 echo ""
-echo "Checkpoint 3: After grade"
+echo "Checkpoint 3: After /i"
 # Relaxed pattern - protocol works if Interaction is logged, format varies
-assert_exists "Interaction entry for grade" 'Interaction:.*grade' "$TEST_CWD/plan-log.md"
+assert_exists "Interaction entry for /i" 'Interaction:.*/i' "$TEST_CWD/plan-log.md"
 
 # Improve
 echo ""
-echo "Step 4: Request improve..."
+echo "Step 4: Request /i..."
 sleep 2
-resume_session "improve" 10 > /dev/null
+resume_session "/i" 10 > /dev/null
 sleep 1  # allow file writes to complete
 
 # Checkpoint 4: Second Interaction logged
 echo ""
-echo "Checkpoint 4: After improve"
+echo "Checkpoint 4: After second /i"
 # Relaxed pattern - count any Interaction entries
 assert_count "2+ Interaction entries" 'Interaction:' "$TEST_CWD/plan-log.md" 2
 

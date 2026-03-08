@@ -66,5 +66,5 @@ After executing, present your grades and ask: "May I proceed?"
 - **Proceeding without approval:** Never pass a gate without "yes"/"approved"/"proceed"
 - **Feedback = Plan Change:** User feedback that changes scope/approach -> return to Plan
 - **Tasks API drift:** Keep Tasks API updated in real-time
-- **Missing logs:** Log Contract at Gate 1, Completion at Gate 2, Interaction on grade/improve
+- **Missing logs:** Log Contract at Gate 1, Completion at Gate 2, Interaction on /i /c /g
 - **Mental model drift:** Don't assume you know the protocol - quote the actual section text

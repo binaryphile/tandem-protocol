@@ -1,4 +1,4 @@
-# Tandem Protocol v0.10
+# Tandem Protocol v0.11
 
  Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 
@@ -211,6 +211,14 @@ Do NOT plan these until they become current. Remove from this list when planning
 ### 1d: Present
 
 ```bash
+# Auto-improve: self-assess and fix until exhausted (max 3 cycles)
+for round in 1 2 3; do
+    improvements=$(self_assess_plan)
+    if [ -z "$improvements" ]; then break; fi
+    fix_issues "$improvements"
+    log_interaction "auto /i -> $improvements"
+done
+
 # Validate plan file (use the known plan filename from step 1c)
 PLAN=~/.claude/plans/<plan-name>.md
 test -f "$PLAN" || exit 1
@@ -279,6 +287,14 @@ done
 ### 3b: Present
 
 ```bash
+# Auto-improve: self-assess and fix until exhausted (max 3 cycles)
+for round in 1 2 3; do
+    improvements=$(self_assess_implementation)
+    if [ -z "$improvements" ]; then break; fi
+    fix_issues "$improvements"
+    log_interaction "auto /i -> $improvements"
+done
+
 show_results
 for criterion in $contract_criteria; do
     show_verification "$criterion"  # how user can verify

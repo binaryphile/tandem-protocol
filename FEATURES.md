@@ -21,12 +21,13 @@ flowchart TD
 ```
 
 **Typical sequence:**
-1. `/g` external review (once, at initial gate presentation — calibrated projects only)
-2. `/i` cycles until self-assessment finds nothing more
-3. `/c` to check compliance against project guides
-4. Accept plan (Gate 1) or `proceed` (Gate 2) to advance
+1. Auto `/i` cycles (up to 3, before initial presentation)
+2. `/g` external review (once, at initial gate presentation — calibrated projects only)
+3. Manual `/i` cycles until self-assessment finds nothing more
+4. `/c` to check compliance against project guides
+5. Accept plan (Gate 1) or `proceed` (Gate 2) to advance
 
-`/i` is the workhorse — it combines assessment and fixing in one step. `/g` and `/c` are optional.
+`/i` is the workhorse — up to 3 auto-cycles run before initial presentation, and manual `/i` remains available at the gate.
 
 ## Lesson Capture
 

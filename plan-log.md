@@ -783,3 +783,13 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] docs/uc9-design.md created
 [x] UC7 docs and test updated
 [x] Task #9014 closed
+2026-03-08T21:57:41Z | Contract: Auto /i cycling
+[ ] Step 1d has auto /i loop before ExitPlanMode
+[ ] Step 3b has auto /i loop before presenting
+[ ] FEATURES.md sequence and prose updated
+[ ] Version bumped to v0.11
+2026-03-08T22:15:17Z | Completion: Auto /i cycling
+[x] Step 1d has auto /i loop before ExitPlanMode
+[x] Step 3b has auto /i loop before presenting
+[x] FEATURES.md sequence and prose updated
+[x] Version bumped to v0.11

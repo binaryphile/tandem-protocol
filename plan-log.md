@@ -793,3 +793,21 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] Step 3b has auto /i loop before presenting
 [x] FEATURES.md sequence and prose updated
 [x] Version bumped to v0.11
+2026-03-08T22:38:32Z | Contract: Remove /t, add attention activation
+[ ] tandem.md deleted
+[ ] commands/begin.md created
+[ ] README Slash Commands section added
+[ ] README setup instructions updated
+[ ] README example session updated
+[ ] README /tandem usage section removed
+[ ] FEATURES.md recovery references updated
+[ ] Version bumped to v0.12
+2026-03-08T22:44:11Z | Completion: Remove /t, add attention activation
+[x] tandem.md deleted
+[x] commands/begin.md created
+[x] README Slash Commands section added
+[x] README setup instructions updated
+[x] README example session updated
+[x] README /tandem usage section removed
+[x] FEATURES.md recovery references updated
+[x] Version bumped to v0.12

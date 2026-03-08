@@ -1,4 +1,4 @@
-# Tandem Protocol v0.11
+# Tandem Protocol v0.12
 
  Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 
@@ -6,14 +6,14 @@
 
 ```bash
 cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
-mkdir -p ~/.claude/commands && ln -sf ~/tandem-protocol/tandem.md ~/.claude/commands/tandem.md
+ln -sf ~/tandem-protocol/commands/begin.md ~/.claude/commands/begin.md
 echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> your-project/CLAUDE.md
 ```
 
 ## Example Session
 
 ```
-You:    /tandem add a config file loader to the CLI
+You:    /begin add a config file loader to the CLI
 Claude: Questions before planning:                           # ← (1) Plan
         - YAML, JSON, or TOML?
         - Missing config: error or defaults?
@@ -36,15 +36,23 @@ Claude: [self-assesses, finds missing validation, fixes]
 You:    proceed                                              # ← (4) Compl Gate
 ```
 
-Use `/tandem` anytime to refocus when things drift.
+## Slash Commands
 
-## Usage
+All slash commands are protocol interactions. On any invocation, locate your
+current protocol stage and act within it.
 
-### When to use `/tandem`
-
-- At session start: `/tandem make a plan to...`
-- When Claude skips steps or scope changes
-- Anytime things feel off track
+| Command | Action |
+|---------|--------|
+| `/begin` | Start planning a task (step 1) |
+| `/i` | Self-assess + fix current stage's work |
+| `/pr` | Proceed past gate |
+| `/q` | Quote current protocol step (recovery) |
+| `/g` | Copy adversarial review request to clipboard |
+| `/c` | Grade compliance against project guides |
+| `/p` | Grade the plan |
+| `/w` | Grade final results |
+| `/a` | Grade your analysis |
+| `/s` | Skeptical review |
 
 ## Learn More
 

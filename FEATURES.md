@@ -98,13 +98,13 @@ The protocol achieves reliability through a two-part model:
 | Component | Compliance | How |
 |-----------|------------|-----|
 | **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
-| **Recovery** | Works reliably | `/tandem` command when drift occurs |
+| **Recovery** | Works reliably | `/q` command when drift occurs |
 | **Gate logging** | 100% | Bash heredocs (executable, not descriptive) |
 
 This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
 
 ```
-~80% baseline + /tandem recovery = viable workflow
+~80% baseline + /q recovery = viable workflow
 ```
 
 ### Why Gates Are 100% Reliable
@@ -129,15 +129,13 @@ Behavioral instructions like "quote the plan VERBATIM" require Claude to choose 
 - Only executable syntax achieves 100%
 - ~80% is the practical ceiling for descriptive guidance
 
-### Recovery with `/tandem`
+### Recovery with `/q`
 
 When you notice drift (implementation without approval, missing logs, skipped gates):
 
-1. Run `/tandem` with context about current state
+1. Run `/q` to quote the current protocol step
 2. Protocol awareness returns
 3. Continue with gates and logging
-
-Tested: 5/5 recovery scenarios passed. Works for initial drift, mid-session drift, and repeated recovery cycles.
 
 ## Design Philosophy
 
@@ -149,7 +147,7 @@ Tested: 5/5 recovery scenarios passed. Works for initial drift, mid-session drif
 
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
-- Lightweight `/tandem` for recovery
+- Lightweight `/q` for recovery
 - Bash heredocs at gates for 100% reliable logging
 - Accepts ~80% baseline, relies on recovery mechanism
 
@@ -164,7 +162,7 @@ bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
 bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
 
 # Recovery mechanism validation
-bash tests/integration/tandem-recovery.sh      # /tandem drift recovery
+bash tests/integration/tandem-recovery.sh      # /q drift recovery
 
 # Full test suite
 for t in tests/integration/*.sh; do bash "$t"; done

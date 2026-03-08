@@ -21,9 +21,6 @@
             git
             go
           ];
-          shellHook = ''
-            export IN_NIX_DEVELOP=1
-          '';
         };
       }
     );

@@ -1,4 +1,4 @@
-# Tandem Protocol v0.13
+# Tandem Protocol v0.14
 
  Structured checkpoints for Claude Code. You approve each step, Claude checks in along the way to stay in sync with the developer's intention.
 
@@ -22,10 +22,8 @@ You:    YAML, defaults
 Claude: [creates plan, presents for review]
 You:    [accept plan]                                        # ← (2) Impl Gate
 
-Claude: [logs to plan-log.md]
-        2024-01-15T10:00:00Z | Contract: Config loader
-        [ ] YAML parsing
-        [ ] default fallback
+Claude: [publishes contract to Era]
+        mk contract "Config loader | [ ] YAML parsing | [ ] default fallback"
 
         [implements]                                         # ← (3) Implement
 
@@ -87,8 +85,8 @@ flowchart LR
 **Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before exiting plan mode:
-- [ ] "At Implementation Gate" section with bash block (Contract + task creation)
-- [ ] "At Completion Gate" section with bash block (Completion + task deletion + commit)
+- [ ] "At Implementation Gate" section with bash block (mk contract + mk task)
+- [ ] "At Completion Gate" section with bash block (mk complete + mk done + commit)
 
 Do not exit plan mode without these executable bash blocks in the plan file.
 
@@ -126,7 +124,16 @@ done
 EnterPlanMode  # creates ~/.claude/plans/<name>.md
 ```
 
+**If existing plan found** (system-reminder shows plan content):
+1. Quote plan verbatim (no summarizing)
+2. Grade analysis: "Do I understand this?"
+3. Grade plan quality: "Is this sound?"
+4. Wait for user direction before proceeding
+
+**Otherwise, create new plan:**
+
 **Plan template** (gate sections contain literal bash blocks to execute).
+Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `mk contract` at the gate, not stored in the plan file.
 When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans/sessions at execution time — multiple may coexist and `ls -t` will pick the wrong one.
 
 **Multi-phase plans:**
@@ -147,27 +154,13 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
 
 # Phase 1: [Name]
 
-## Objective
-[1-2 sentences]
-
-## Success Criteria
-- [ ] criterion1
-- [ ] criterion2
-
 ## Changes
-[files + line refs]
+[files + approach]
 
 ## At Implementation Gate
 
     ```bash
-    # Log Contract + Create Tasks (execute this entire block)
-    touch plan-log.md
-    cat >> plan-log.md << EOF
-    $(date -u +%Y-%m-%dT%H:%M:%SZ) | Contract: Phase 1 - objective
-    [ ] criterion1
-    [ ] criterion2
-    EOF
-
+    mk contract "Phase 1 - objective | [ ] criterion1 | [ ] criterion2"
     mk task "Phase 1 - objective"
     # Note the task ID from output for the Completion Gate mk done command
 
@@ -180,13 +173,7 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
 ## At Completion Gate
 
     ```bash
-    # Log + Delete + Commit (execute this entire block)
-    cat >> plan-log.md << EOF
-    $(date -u +%Y-%m-%dT%H:%M:%SZ) | Completion: Phase 1
-    [x] criterion1 (evidence)
-    [x] criterion2 (evidence)
-    EOF
-
+    mk complete "Phase 1 | [x] criterion1 (evidence) | [x] criterion2 (evidence)"
     mk done <task-id> "Phase 1 complete"
 
     # Delete task files (use actual session dir name)
@@ -197,14 +184,14 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     rm ~/.claude/plans/<plan-name>.md  # <- ONLY for single-phase or final phase!
 
     # Stage files changed by this phase (write actual list at completion time, not planning time)
-    git add file1.go file2.go plan-log.md
+    git add file1.go file2.go
     git commit -m "Phase 1 complete
 
     Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
 
 ## Verification
-[Commands to verify success criteria]
+[Commands to verify]
 
 ---
 
@@ -249,28 +236,23 @@ Grading cycles happen during plan review (before user accepts):
 
 **On `/g`** (once at plan presentation — log, apply external feedback + fix, re-present at step 1d):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /g -> reviewer noted Y, addressed
-EOF
+mk interaction "/g -> reviewer noted Y, addressed"
 ```
 
 **On `/i`** (log, improve plan, re-present at step 1d):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /i -> found gap in plan, addressed
-EOF
+mk interaction "/i -> found gap in plan, addressed"
 ```
 
 **On `/c`** (log, grade plan against guides + fix, re-present at step 1d):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /c -> plan non-compliant with X guide, fixed
-EOF
+mk interaction "/c -> plan non-compliant with X guide, fixed"
+# Before deducting: "Can I fix this now?" YES → deduction, NO → capture in guide
 ```
 
 **IMPLEMENTATION GATE ACTIONS** (when user accepts the plan):
 
-Execute the bash block from the plan file's "At Implementation Gate" section. This logs the Contract AND creates tasks in one atomic operation.
+Execute the bash block from the plan file's "At Implementation Gate" section. This publishes the Contract to Era AND creates tasks in one atomic operation.
 
 **STOP: Do not implement until the Implementation Gate bash block has been executed.**
 
@@ -335,26 +317,21 @@ Grading cycles at the gate (until "proceed"):
 
 **On `/g`** (once at gate entry — log, apply external feedback + fix, re-present at step 3b):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /g -> reviewer noted Y, addressed
-EOF
+mk interaction "/g -> reviewer noted Y, addressed"
 ```
 
 **On `/i`** (log, improve, re-present at step 3b):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /i -> found edge case, added handling
-EOF
+mk interaction "/i -> found edge case, added handling"
 ```
 
 **On `/c`** (log, grade against guides + fix, re-present at step 3b):
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Interaction: /c -> non-compliant with X guide, fixed
-EOF
+mk interaction "/c -> non-compliant with X guide, fixed"
+# Before deducting: "Can I fix this now?" YES → deduction, NO → capture in guide
 ```
 
 **COMPLETION GATE ACTIONS** (when user says "proceed"):
 
-Execute the Completion Gate bash block from the plan file. This logs Completion with evidence, deletes tasks, and commits.
+Execute the Completion Gate bash block from the plan file. This publishes Completion to Era, deletes tasks, and commits.
 

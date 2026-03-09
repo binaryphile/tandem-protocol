@@ -42,19 +42,16 @@ Lessons accumulate across sessions, so Claude gets better at your specific proje
 
 ## Event Logging
 
-All protocol events are logged directly to `plan-log.md` using timestamped entries:
+All protocol events are published to Era streams via `mk` commands:
 
-| Entry Type | When | Example |
-|------------|------|---------|
-| **Contract** | Gate 1 approval | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests` |
-| **Completion** | Gate 2 approval | `Completion: Phase 1 \| [x] middleware (auth.go:45)` |
-| **Interaction** | User feedback | `Interaction: /i -> found edge case, added handling` |
+| Entry Type | mk command | Example |
+|------------|-----------|---------|
+| **Contract** | `mk contract` | `mk contract "Phase 1 - auth \| [ ] middleware \| [ ] tests"` |
+| **Completion** | `mk complete` | `mk complete "Phase 1 \| [x] middleware (auth.go:45)"` |
+| **Interaction** | `mk interaction` | `mk interaction "/i -> found edge case, added handling"` |
+| **Task** | `mk task` / `mk done` | Task lifecycle events for orchestrator detection |
 
-**Format:** `YYYY-MM-DDTHH:MM:SSZ | Type: description`
-
-The Contract/Completion checkbox pattern ensures criteria verification is explicit.
-
-Gate events are also published to Era streams via `mk task`/`mk done`, enabling orchestrators and other sessions to detect gate crossings without parsing `plan-log.md`.
+The Contract/Completion checkbox pattern ensures criteria verification is explicit. Era is the single event store — no local log files.
 
 ## PI Cognitive Model
 
@@ -87,7 +84,7 @@ flowchart TD
     style G2 fill:#fff3e0,stroke:#ff9800
 ```
 
-Each phase follows the same PI workflow. Plan files persist across sessions, and the event log maintains continuity.
+Each phase follows the same PI workflow. Plan files persist across sessions, and Era events maintain continuity.
 
 ## Compliance Model
 
@@ -99,7 +96,7 @@ The protocol achieves reliability through a two-part model:
 |-----------|------------|-----|
 | **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
 | **Recovery** | Works reliably | `/q` command when drift occurs |
-| **Gate logging** | 100% | Bash heredocs (executable, not descriptive) |
+| **Gate logging** | 100% | mk commands (executable, not descriptive) |
 
 This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
 
@@ -109,12 +106,11 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 
 ### Why Gates Are 100% Reliable
 
-Gate actions use **bash heredocs** - executable syntax that Claude runs directly:
+Gate actions use **mk commands** - executable bash that Claude runs directly:
 
 ```bash
-cat >> plan-log.md << EOF
-$(date -u +%Y-%m-%dT%H:%M:%SZ) | Contract: Phase 1 | [ ] criterion
-EOF
+mk contract "Phase 1 | [ ] criterion"
+mk task "Phase 1 objective"
 ```
 
 This works because:
@@ -148,7 +144,7 @@ When you notice drift (implementation without approval, missing logs, skipped ga
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
 - Lightweight `/q` for recovery
-- Bash heredocs at gates for 100% reliable logging
+- mk commands at gates for 100% reliable logging
 - Accepts ~80% baseline, relies on recovery mechanism
 
 ## Testing

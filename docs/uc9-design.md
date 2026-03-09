@@ -7,7 +7,7 @@
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
 - Gate events use `mk` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
-- Interaction events (/i /c /g) log to plan-log.md only — they're session-internal feedback, not task lifecycle events.
+- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk task`, `mk done`.
 
 ### Grading Model
 

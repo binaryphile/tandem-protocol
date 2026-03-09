@@ -133,7 +133,7 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 
 **Plan template** (gate sections contain literal bash blocks to execute).
 Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `mk contract` at the gate, not stored in the plan file.
-When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans/sessions at execution time — multiple may coexist and `ls -t` will pick the wrong one.
+When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans at execution time — multiple may coexist and `ls -t` will pick the wrong one.
 
 ```markdown
 # [Project Name]
@@ -158,11 +158,6 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     # Note the task ID from output, then:
     mk claim <task-id> claude
     # <task-id> also needed for Completion Gate mk done command
-
-    # Create tasks via direct file write (use actual session dir name)
-    cat > ~/.claude/tasks/<session-dir>/1.json << TASK
-    {"id": "1", "subject": "Task 1", "status": "in_progress", "blocks": [], "blockedBy": []}
-    TASK
     ```
 
 ## At Completion Gate
@@ -174,9 +169,6 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     <compose from contract criteria at completion time>
     TOML
     mk done <task-id> "complete"
-
-    # Delete task files (use actual session dir name)
-    rm ~/.claude/tasks/<session-dir>/*.json 2>/dev/null
 
     # Stage files changed (write actual list at completion time, not planning time)
     git add file1.go file2.go

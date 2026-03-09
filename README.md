@@ -22,8 +22,7 @@ You:    YAML, defaults
 Claude: [creates plan, presents for review]
 You:    [accept plan]                                        # ← (2) Impl Gate
 
-Claude: [publishes contract to Era]
-        mk contract "Config loader | [ ] YAML parsing | [ ] default fallback"
+Claude: [publishes TOML contract and plan to Era]
 
         [implements]                                         # ← (3) Implement
 
@@ -160,7 +159,15 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
 ## At Implementation Gate
 
     ```bash
-    mk contract "Phase 1 - objective | [ ] criterion1 | [ ] criterion2"
+    mk contract << 'TOML'
+    phase = "Phase 1 - objective"
+
+    [[criteria]]
+    name = "criterion1"
+
+    [[criteria]]
+    name = "criterion2"
+    TOML
     mk plan ~/.claude/plans/<plan-name>.md
     mk task "Phase 1 - objective"
     # Note the task ID from output, then:
@@ -176,7 +183,11 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
 ## At Completion Gate
 
     ```bash
-    mk complete "Phase 1 | [x] criterion1 (evidence) | [x] criterion2 (evidence)"
+    # Compose ATTESTATION TOML — every contract criterion must appear:
+    #   status: "delivered" + evidence, "dropped" + reason, "added" + evidence
+    mk complete << 'TOML'
+    <compose from contract criteria at completion time>
+    TOML
     mk done <task-id> "Phase 1 complete"
 
     # Delete task files (use actual session dir name)
@@ -297,6 +308,11 @@ done
 # (the plan template has placeholders — replace with real file list now)
 PLAN=~/.claude/plans/<plan-name>.md
 update_git_add_in "$PLAN"
+
+# Compose ATTESTATION TOML in plan file's Completion Gate:
+# Copy each criterion from contract, add status + evidence/reason
+# mk complete validates coverage — missing criteria trigger warnings
+update_completion_attestation_in "$PLAN"
 
 cat "$PLAN"  # puts bash block back in context
 

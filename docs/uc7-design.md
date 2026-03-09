@@ -8,24 +8,25 @@
 
 ### Event Types and Commands
 
-| Type | When | mk Command | Example |
-|------|------|------------|---------|
-| Contract | Implementation Gate | `mk contract` | `mk contract "Phase 1 - auth \| [ ] middleware \| [ ] tests"` |
-| Completion | Completion Gate | `mk complete` | `mk complete "Phase 1 \| [x] middleware (auth.go:45) \| [x] tests (pass)"` |
+| Type | When | mk Command | Format |
+|------|------|------------|--------|
+| Contract | Implementation Gate | `mk contract << 'TOML'` | TOML heredoc with `[[criteria]]` entries |
+| Completion | Completion Gate | `mk complete << 'TOML'` | TOML attestation composed at completion time |
 | Interaction | `/i` `/c` `/g` at gates | `mk interaction` | `mk interaction "/i -> missing edge case, added"` |
 | Task | Implementation Gate | `mk task` | `mk task "Phase 1 - auth"` |
 | Task-done | Completion Gate | `mk done` | `mk done <id> "Phase 1 complete"` |
 
-### Contract/Completion Criteria Format
+### Contract/Completion TOML Format
 
-**Contract:** Lists criteria with `[ ]` checkboxes (pipe-separated)
-**Completion:** Copies criteria, fills `[x]` with evidence
+**Contract:** TOML with phase and `[[criteria]]` entries (names only).
+**Attestation:** LLM composes at completion time — each criterion gets a status.
 
-**Markers:**
-- `[x]` = completed with evidence
-- `[ ]` = not completed (failure)
-- `[-]` = removed (with reason)
-- `[+]` = added (with reason)
+**Statuses:**
+- `delivered` = completed, with `evidence` field
+- `dropped` = not delivered, with `reason` field
+- `added` = discovered during implementation, with `evidence` field
+
+`mk complete` validates that every contract criterion appears in the attestation.
 
 ### Protocol Integration
 
@@ -37,13 +38,41 @@
 
 ### Example Event Flow
 
-```
-mk contract "Phase 1 - auth middleware | [ ] middleware | [ ] tests | [ ] docs"
+```bash
+mk contract << 'TOML'
+phase = "Phase 1 - auth middleware"
+
+[[criteria]]
+name = "middleware"
+
+[[criteria]]
+name = "tests"
+
+[[criteria]]
+name = "docs"
+TOML
 mk task "Phase 1 - auth middleware"
 # ... implementation ...
 mk interaction "/i -> missing edge case handling, added"
 mk interaction "/c -> naming violation per Go guide, fixed"
-mk complete "Phase 1 | [x] middleware (auth.go:45) | [x] tests (pass) | [x] docs (README:12)"
+mk complete << 'TOML'
+phase = "Phase 1"
+
+[[criteria]]
+name = "middleware"
+status = "delivered"
+evidence = "auth.go:45"
+
+[[criteria]]
+name = "tests"
+status = "delivered"
+evidence = "auth_test.go:12"
+
+[[criteria]]
+name = "docs"
+status = "delivered"
+evidence = "README:12"
+TOML
 mk done 14752 "Phase 1 complete"
 ```
 

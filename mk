@@ -53,13 +53,26 @@ cmd.test() {
 ## protocol event commands
 
 cmd.contract() {
-  [[ $# -ge 1 ]] || { echo "usage: $Prog contract <criteria>" >&2; return 1; }
-  era publish -s $TaskStream --type contract "$1"
+  local payload
+  if [[ $# -ge 1 ]]; then
+    payload=$1
+  else
+    payload=$(cat)
+  fi
+  [[ -n $payload ]] || { echo "usage: $Prog contract <criteria> (or pipe/heredoc)" >&2; return 1; }
+  era publish -s $TaskStream --type contract "$payload"
 }
 
 cmd.complete() {
-  [[ $# -ge 1 ]] || { echo "usage: $Prog complete <evidence>" >&2; return 1; }
-  era publish -s $TaskStream --type complete "$1"
+  local payload
+  if [[ $# -ge 1 ]]; then
+    payload=$1
+  else
+    payload=$(cat)
+  fi
+  [[ -n $payload ]] || { echo "usage: $Prog complete <attestation> (or pipe/heredoc)" >&2; return 1; }
+  era publish -s $TaskStream --type complete "$payload"
+  echo "$payload" | $ProjectRoot/$BinDir/validate-attestation $TaskStream
 }
 
 cmd.interaction() {

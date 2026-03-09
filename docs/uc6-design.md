@@ -10,10 +10,10 @@
 
 | Type | When | Mechanism |
 |------|------|-----------|
-| Lesson | Non-actionable gap during grading | `mk interaction "/c -> lesson: [title] -> [guide]"` |
+| Lesson | Non-actionable gap during grading | `evtctl interaction "/c -> lesson: [title] -> [guide]"` |
 
 **Example:**
-`mk interaction "/c -> lesson: Integration test ≠ post-hoc verification -> protocol-guide.md"`
+`evtctl interaction "/c -> lesson: Integration test ≠ post-hoc verification -> protocol-guide.md"`
 
 ### File Routing Guide
 

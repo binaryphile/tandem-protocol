@@ -7,7 +7,7 @@
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
 - Gate events use `mk` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
-- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk plan`, `mk task`, `mk claim`, `mk done`.
+- All protocol events use `mk` commands (which call `era publish`): `evtctl contract`, `evtctl complete`, `evtctl interaction`, `evtctl plan`, `evtctl task`, `evtctl claim`, `evtctl done`.
 
 ### Grading Model
 
@@ -23,21 +23,21 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 
 | Gate | mk command | Era event type |
 |------|-----------|----------------|
-| Implementation Gate | `mk task "description"` | `task` |
-| Implementation Gate | `mk claim <task-id> claude` | `claim` |
-| Completion Gate | `mk done <task-id> "evidence"` | `task-done` |
+| Implementation Gate | `evtctl task "description"` | `task` |
+| Implementation Gate | `evtctl claim <task-id> claude` | `claim` |
+| Completion Gate | `evtctl done <task-id> "evidence"` | `task-done` |
 
-`<task-id>` is the era event ID returned by `mk task` — record it at Implementation Gate, use for `mk claim` and substitute into Completion Gate's `mk done`.
+`<task-id>` is the era event ID returned by `evtctl task` — record it at Implementation Gate, use for `evtctl claim` and substitute into Completion Gate's `evtctl done`.
 
 ### Event Types
 
 | Event | Source | Destination | Mechanism |
 |-------|--------|-------------|-----------|
-| Interaction | `/i` `/c` `/g` at either gate | Era stream | `mk interaction "/i -> description"` |
-| Plan | Implementation Gate | Era stream | `mk plan ~/.claude/plans/<plan-name>.md` |
-| Task | Implementation Gate | Era stream | `mk task "description"` |
-| Claim | Implementation Gate | Era stream | `mk claim <task-id> claude` |
-| Task-done | Completion Gate | Era stream | `mk done <task-id> "evidence"` |
+| Interaction | `/i` `/c` `/g` at either gate | Era stream | `evtctl interaction "/i -> description"` |
+| Plan | Implementation Gate | Era stream | `evtctl plan ~/.claude/plans/<plan-name>.md` |
+| Task | Implementation Gate | Era stream | `evtctl task "description"` |
+| Claim | Implementation Gate | Era stream | `evtctl claim <task-id> claude` |
+| Task-done | Completion Gate | Era stream | `evtctl done <task-id> "evidence"` |
 
 ## Behavioral Test Cases
 
@@ -48,7 +48,7 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 | T3 | `/g` command in both gate sections | `On \x60/g\x60` |
 | T4 | Grading loop in overview diagram | `/i /c /g` |
 | T5 | No old grade/improve actions | NOT `On "grade"` AND NOT `On "improve"` |
-| T6 | mk task in Implementation Gate template | `mk task` |
-| T7 | mk done in Completion Gate template | `mk done` |
+| T6 | evtctl task in Implementation Gate template | `evtctl task` |
+| T7 | evtctl done in Completion Gate template | `evtctl done` |
 | T8 | No direct era publish in templates | NOT `era publish` in gate blocks |
-| T9 | mk claim in Implementation Gate template | `mk claim` |
+| T9 | evtctl claim in Implementation Gate template | `evtctl claim` |

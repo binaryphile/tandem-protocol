@@ -84,8 +84,8 @@ flowchart LR
 **Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before exiting plan mode:
-- [ ] "At Implementation Gate" section with bash block (mk contract + mk plan + mk task + mk claim)
-- [ ] "At Completion Gate" section with bash block (mk complete + mk done + commit)
+- [ ] "At Implementation Gate" section with bash block (evtctl contract + evtctl plan + evtctl task + evtctl claim)
+- [ ] "At Completion Gate" section with bash block (evtctl complete + evtctl done + commit)
 
 Do not exit plan mode without these executable bash blocks in the plan file.
 
@@ -132,8 +132,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 **Otherwise, create new plan:**
 
 **Plan template** (gate sections contain literal bash blocks to execute).
-Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `mk contract` at the gate, not stored in the plan file.
-When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans at execution time — multiple may coexist and `ls -t` will pick the wrong one.
+Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `evtctl contract` at the gate, not stored in the plan file.
+When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `evtctl task` at the Implementation Gate — record it then, substitute into the Completion Gate's `evtctl done` call. Do NOT use `ls -t` to find plans at execution time — multiple may coexist and `ls -t` will pick the wrong one.
 
 ```markdown
 # [Project Name]
@@ -144,16 +144,16 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
 ## At Implementation Gate
 
     ```bash
-    mk contract << 'JSONL'
+    evtctl contract << 'JSONL'
     {"phase":"objective"}
     {"name":"criterion1"}
     {"name":"criterion2"}
     JSONL
-    mk plan ~/.claude/plans/<plan-name>.md
-    mk task "objective"
+    evtctl plan ~/.claude/plans/<plan-name>.md
+    evtctl task "objective"
     # Note the task ID from output, then:
-    mk claim <task-id> claude
-    # <task-id> also needed for Completion Gate mk done command
+    evtctl claim <task-id> claude
+    # <task-id> also needed for Completion Gate evtctl done command
     ```
 
 ## At Completion Gate
@@ -161,10 +161,10 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
     ```bash
     # Compose attestation JSONL — every contract criterion must appear:
     #   status: "delivered" + evidence, "dropped" + reason, "added" + evidence
-    mk complete << 'JSONL'
+    evtctl complete << 'JSONL'
     <compose from contract criteria at completion time>
     JSONL
-    mk done <task-id> "complete"
+    evtctl done <task-id> "complete"
 
     # Stage files changed (write actual list at completion time, not planning time)
     git add file1.go file2.go
@@ -210,17 +210,17 @@ Grading cycles happen during plan review (before user accepts):
 
 **On `/g`** (once at plan presentation — log, apply external feedback + fix, re-present at step 1d):
 ```bash
-mk interaction "/g -> reviewer noted Y, addressed"
+evtctl interaction "/g -> reviewer noted Y, addressed"
 ```
 
 **On `/i`** (log, improve plan, re-present at step 1d):
 ```bash
-mk interaction "/i -> found gap in plan, addressed"
+evtctl interaction "/i -> found gap in plan, addressed"
 ```
 
 **On `/c`** (log, grade plan against guides + fix, re-present at step 1d):
 ```bash
-mk interaction "/c -> plan non-compliant with X guide, fixed"
+evtctl interaction "/c -> plan non-compliant with X guide, fixed"
 # Before deducting: "Can I fix this now?" YES → deduction, NO → capture in guide
 ```
 
@@ -271,7 +271,7 @@ update_git_add_in "$PLAN"
 
 # Compose attestation JSONL in plan file's Completion Gate:
 # Copy each criterion from contract, add status + evidence/reason
-# mk complete validates coverage — missing criteria trigger warnings
+# evtctl complete validates coverage — missing criteria trigger warnings
 update_completion_attestation_in "$PLAN"
 
 cat "$PLAN"  # puts bash block back in context
@@ -296,17 +296,17 @@ Grading cycles at the gate (until "proceed"):
 
 **On `/g`** (once at gate entry — log, apply external feedback + fix, re-present at step 3b):
 ```bash
-mk interaction "/g -> reviewer noted Y, addressed"
+evtctl interaction "/g -> reviewer noted Y, addressed"
 ```
 
 **On `/i`** (log, improve, re-present at step 3b):
 ```bash
-mk interaction "/i -> found edge case, added handling"
+evtctl interaction "/i -> found edge case, added handling"
 ```
 
 **On `/c`** (log, grade against guides + fix, re-present at step 3b):
 ```bash
-mk interaction "/c -> non-compliant with X guide, fixed"
+evtctl interaction "/c -> non-compliant with X guide, fixed"
 # Before deducting: "Can I fix this now?" YES → deduction, NO → capture in guide
 ```
 

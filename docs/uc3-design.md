@@ -37,8 +37,8 @@ if plan_file:
 # On approval
 ExitPlanMode()
 # Execute Implementation Gate bash block:
-#   mk contract << 'JSONL' ...
-#   mk task "description"
+#   evtctl contract << 'JSONL' ...
+#   evtctl task "description"
 ```
 
 ### Integration Points
@@ -47,7 +47,7 @@ ExitPlanMode()
 |---------------|--------|
 | Step 1c (Design) | Enter plan mode, check for existing plan |
 | Step 1d (Present) | Quote verbatim, grade, wait for direction |
-| Step 2 (Impl Gate) | On approval: exit plan mode, publish contract via `mk contract << 'JSONL'` |
+| Step 2 (Impl Gate) | On approval: exit plan mode, publish contract via `evtctl contract << 'JSONL'` |
 | CLAUDE.md | Reinforces: quote verbatim, grade, wait |
 
 ### File Content at Each Step

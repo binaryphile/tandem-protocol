@@ -20,7 +20,7 @@
 ## Cross-Cutting Gaps
 
 ### Protocol features without UC coverage
-- JSONL attestation validation (mk complete checks contract coverage) — UC7 covers event logging but not the validation mechanic specifically
+- JSONL attestation validation (evtctl complete checks contract coverage) — UC7 covers event logging but not the validation mechanic specifically
 - Auto-/i cycles at steps 1d and 3b — UC9 covers manual /i but not the auto-improve loop
 
 ## Recommended Tasks

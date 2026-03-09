@@ -10,31 +10,31 @@
 
 | Command | Event Type | Metadata | Purpose |
 |---------|-----------|----------|---------|
-| `mk task "desc"` | `task` | — | Create task, returns ID |
-| `mk claim <id> <name>` | `claim` | `refs=<id>,claimer=<name>` | Assign task to agent |
-| `mk unclaim <id>` | `unclaim` | `refs=<id>` | Release assignment |
-| `mk done <id> "evidence"` | `task-done` | `refs=<id>` | Complete task (releases claim) |
+| `evtctl task "desc"` | `task` | — | Create task, returns ID |
+| `evtctl claim <id> <name>` | `claim` | `refs=<id>,claimer=<name>` | Assign task to agent |
+| `evtctl unclaim <id>` | `unclaim` | `refs=<id>` | Release assignment |
+| `evtctl done <id> "evidence"` | `task-done` | `refs=<id>` | Complete task (releases claim) |
 
 ### Inspection Commands
 
 | Command | Action |
 |---------|--------|
-| `mk open` | List open (uncompleted) tasks |
-| `mk claims` | List active claims (on open tasks only) |
-| `mk audit` | Full reconciliation: total, matched, open |
+| `evtctl open` | List open (uncompleted) tasks |
+| `evtctl claims` | List active claims (on open tasks only) |
+| `evtctl audit` | Full reconciliation: total, matched, open |
 
 ### Protocol Integration
 
 Implementation Gate bash block:
 ```bash
-mk task "Phase 1 - objective"
+evtctl task "Phase 1 - objective"
 # Note the task ID from output, then:
-mk claim <task-id> claude
+evtctl claim <task-id> claude
 ```
 
 Completion Gate bash block:
 ```bash
-mk done <task-id> "Phase 1 complete"
+evtctl done <task-id> "Phase 1 complete"
 # No explicit unclaim needed — done releases claims
 ```
 
@@ -47,20 +47,20 @@ State derived from event stream:
 - `unclaim` event with `refs` → claim released
 
 **Rules:**
-- Done tasks filter out of `mk open` and `mk claims`
+- Done tasks filter out of `evtctl open` and `evtctl claims`
 - Last-writer-wins for claims (re-claiming overwrites)
-- `mk claim` warns if already claimed but publishes anyway
+- `evtctl claim` warns if already claimed but publishes anyway
 
 ### Claim Check Logic
 
-`mk claim` calls `task-audit check <stream> <id>`:
+`evtctl claim` calls `task-audit check <stream> <id>`:
 - Exit 0: not claimed (or done) → proceed silently
-- Exit 1: already claimed → print claimer, `mk claim` warns
+- Exit 1: already claimed → print claimer, `evtctl claim` warns
 
 ## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
-| T1 | mk claim in plan template | `mk claim` in Implementation Gate |
-| T2 | mk done at Completion Gate | `mk done` in Completion Gate |
+| T1 | evtctl claim in plan template | `evtctl claim` in Implementation Gate |
+| T2 | evtctl done at Completion Gate | `evtctl done` in Completion Gate |
 | T3 | Task Management in FEATURES.md | `Task Management` |

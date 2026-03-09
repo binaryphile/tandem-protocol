@@ -34,7 +34,7 @@ gantt
     TodoWrite (optional)         :done, 2025-11-27, 2026-02-05
     TaskCreate API (0%)          :crit, 2026-02-05, 2026-02-08
     Direct file write (100%)     :done, 2026-02-08, 2026-03-08
-    mk task CLI                  :active, 2026-03-08, 2026-03-09
+    evtctl task CLI                  :active, 2026-03-08, 2026-03-09
 
     section Testing
     No tests                     :done, 2025-11-27, 2026-02-05
@@ -84,7 +84,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Mar 8** — Wrap it in a CLI.
 
 ```bash
-mk complete << 'TOML'
+evtctl complete << 'TOML'
 [[criteria]]
 name = "config loader"
 status = "delivered"
@@ -105,7 +105,7 @@ flowchart LR
         D["Inline:<br/>bash block in<br/>conversation"]
     end
     subgraph "Mar 2026"
-        E["CLI:<br/>mk complete<br/><< 'JSONL'"]
+        E["CLI:<br/>evtctl complete<br/><< 'JSONL'"]
     end
 
     A -->|"direct bash"| B
@@ -152,13 +152,13 @@ usage-patterns-evidence.md
 **Mar 8** — Contract and plan separated. Contract = WHAT (criteria). Plan = HOW (approach).
 
 ```bash
-mk contract "Config loader | [ ] YAML parsing | [ ] default fallback"
+evtctl contract "Config loader | [ ] YAML parsing | [ ] default fallback"
 ```
 
 **Mar 9** — One day later: TOML attestation with machine validation. Every criterion must be accounted for.
 
 ```bash
-mk contract << 'TOML'
+evtctl contract << 'TOML'
 phase = "Phase 1 - config loader"
 
 [[criteria]]
@@ -170,7 +170,7 @@ TOML
 ```
 
 ```bash
-mk complete << 'TOML'
+evtctl complete << 'TOML'
 [[criteria]]
 name = "YAML parsing"
 status = "delivered"
@@ -190,7 +190,7 @@ attestation valid: 2 criteria (2 from contract)
 **Mar 9** — JSONL payloads replace TOML. One JSON object per line — eliminates Python `tomllib` dependency, enables `jq` processing from shell.
 
 ```bash
-mk contract << 'JSONL'
+evtctl contract << 'JSONL'
 {"phase":"Phase 1 - config loader"}
 {"name":"YAML parsing"}
 {"name":"default fallback"}
@@ -242,8 +242,8 @@ TASK
 **Mar 8** — Wrap it in a CLI. One line.
 
 ```bash
-mk task "Implement config loader"
-mk claim <task-id> claude
+evtctl task "Implement config loader"
+evtctl claim <task-id> claude
 ```
 
 > *The axiom discovered here: syntax triggers execution; instructions trigger interpretation.*
@@ -252,7 +252,7 @@ mk claim <task-id> claude
 flowchart LR
     A["TodoWrite<br/>0% reliable"] --> B["TaskCreate API<br/>0% reliable"]
     B --> C["Direct file write<br/>100% reliable"]
-    C --> D["mk task<br/>100% reliable"]
+    C --> D["evtctl task<br/>100% reliable"]
 
     style A fill:#ffcdd2
     style B fill:#ffcdd2

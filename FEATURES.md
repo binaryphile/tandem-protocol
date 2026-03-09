@@ -46,11 +46,11 @@ All protocol events are published to Era streams via `mk` commands:
 
 | Entry Type | mk command | Format |
 |------------|-----------|--------|
-| **Contract** | `mk contract << 'JSONL'` | JSONL heredoc — one criterion per line |
-| **Completion** | `mk complete << 'JSONL'` | JSONL attestation composed at completion time |
-| **Interaction** | `mk interaction` | `mk interaction "/i -> found edge case, added handling"` |
-| **Plan** | `mk plan` | `mk plan ~/.claude/plans/auth-plan.md` |
-| **Task** | `mk task` / `mk done` | Task lifecycle events for orchestrator detection |
+| **Contract** | `evtctl contract << 'JSONL'` | JSONL heredoc — one criterion per line |
+| **Completion** | `evtctl complete << 'JSONL'` | JSONL attestation composed at completion time |
+| **Interaction** | `evtctl interaction` | `evtctl interaction "/i -> found edge case, added handling"` |
+| **Plan** | `evtctl plan` | `evtctl plan ~/.claude/plans/auth-plan.md` |
+| **Task** | `evtctl task` / `evtctl done` | Task lifecycle events for orchestrator detection |
 
 Contract and completion events use JSONL format (one JSON object per line):
 
@@ -68,7 +68,7 @@ Contract and completion events use JSONL format (one JSON object per line):
 {"name":"validation","status":"added","evidence":"input.go:12"}
 ```
 
-Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `mk complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
+Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `evtctl complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
 
 ## Task Management
 
@@ -76,15 +76,15 @@ Task lifecycle commands for multi-agent coordination:
 
 | Command | Action | Example |
 |---------|--------|---------|
-| `mk task` | Create a task | `mk task "implement auth"` |
-| `mk done` | Complete a task | `mk done 14825 "auth complete"` |
-| `mk claim` | Claim a task | `mk claim 14825 claude` |
-| `mk unclaim` | Release a claim | `mk unclaim 14825` |
-| `mk open` | List open tasks | `mk open` |
-| `mk claims` | List active claims | `mk claims` |
-| `mk audit` | Full task reconciliation | `mk audit` |
+| `evtctl task` | Create a task | `evtctl task "implement auth"` |
+| `evtctl done` | Complete a task | `evtctl done 14825 "auth complete"` |
+| `evtctl claim` | Claim a task | `evtctl claim 14825 claude` |
+| `evtctl unclaim` | Release a claim | `evtctl unclaim 14825` |
+| `evtctl open` | List open tasks | `evtctl open` |
+| `evtctl claims` | List active claims | `evtctl claims` |
+| `evtctl audit` | Full task reconciliation | `evtctl audit` |
 
-The protocol auto-claims tasks at the Implementation Gate (`mk task` + `mk claim`). Claims prevent double-assignment when multiple agents share a task stream. `mk done` implicitly releases claims.
+The protocol auto-claims tasks at the Implementation Gate (`evtctl task` + `evtctl claim`). Claims prevent double-assignment when multiple agents share a task stream. `evtctl done` implicitly releases claims.
 
 ## PI Cognitive Model
 
@@ -142,11 +142,11 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 Gate actions use **mk commands** - executable bash that Claude runs directly:
 
 ```bash
-mk contract << 'JSONL'
+evtctl contract << 'JSONL'
 {"phase":"Phase 1 objective"}
 {"name":"criterion1"}
 JSONL
-mk task "Phase 1 objective"
+evtctl task "Phase 1 objective"
 ```
 
 This works because:

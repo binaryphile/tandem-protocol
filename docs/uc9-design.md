@@ -7,7 +7,7 @@
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
 - Gate events use `mk` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
-- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk task`, `mk claim`, `mk done`.
+- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk plan`, `mk task`, `mk claim`, `mk done`.
 
 ### Grading Model
 
@@ -34,6 +34,7 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 | Event | Source | Destination | Mechanism |
 |-------|--------|-------------|-----------|
 | Interaction | `/i` `/c` `/g` at either gate | Era stream | `mk interaction "/i -> description"` |
+| Plan | Implementation Gate | Era stream | `mk plan ~/.claude/plans/<plan-name>.md` |
 | Task | Implementation Gate | Era stream | `mk task "description"` |
 | Claim | Implementation Gate | Era stream | `mk claim <task-id> claude` |
 | Task-done | Completion Gate | Era stream | `mk done <task-id> "evidence"` |

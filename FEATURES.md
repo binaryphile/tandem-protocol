@@ -49,6 +49,7 @@ All protocol events are published to Era streams via `mk` commands:
 | **Contract** | `mk contract` | `mk contract "Phase 1 - auth \| [ ] middleware \| [ ] tests"` |
 | **Completion** | `mk complete` | `mk complete "Phase 1 \| [x] middleware (auth.go:45)"` |
 | **Interaction** | `mk interaction` | `mk interaction "/i -> found edge case, added handling"` |
+| **Plan** | `mk plan` | `mk plan ~/.claude/plans/auth-plan.md` |
 | **Task** | `mk task` / `mk done` | Task lifecycle events for orchestrator detection |
 
 The Contract/Completion checkbox pattern ensures criteria verification is explicit. Era is the single event store — no local log files.

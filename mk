@@ -22,6 +22,7 @@ Usage:
     contract      -- publish a contract event
     complete      -- publish a completion event
     interaction   -- publish an interaction event
+    plan          -- publish a plan event (from file)
 
     task          -- publish a task event
     done          -- publish a task-done event
@@ -64,6 +65,12 @@ cmd.complete() {
 cmd.interaction() {
   [[ $# -ge 1 ]] || { echo "usage: $Prog interaction <description>" >&2; return 1; }
   era publish -s $TaskStream --type interaction "$1"
+}
+
+cmd.plan() {
+  [[ $# -ge 1 ]] || { echo "usage: $Prog plan <file>" >&2; return 1; }
+  [[ -f $1 ]] || { echo "error: '$1' not found" >&2; return 1; }
+  era publish -s $TaskStream --type plan "$(cat "$1")"
 }
 
 ## task stream commands

@@ -76,12 +76,12 @@ CONTRACT=$(get_era_payload "contract")
 if [[ -n "$CONTRACT" ]]; then
     echo "Contract: ${CONTRACT:0:80}..."
 
-    # Contract should have TOML criteria
-    if echo "$CONTRACT" | grep -qE '\[\[criteria\]\]|name\s*='; then
-        echo -e "${GREEN}PASS${NC}: Contract has TOML criteria"
+    # Contract should have JSONL criteria
+    if echo "$CONTRACT" | grep -qE '"name":'; then
+        echo -e "${GREEN}PASS${NC}: Contract has JSONL criteria"
         ((PASS++)) || true
     else
-        echo -e "${RED}FAIL${NC}: Contract missing TOML criteria"
+        echo -e "${RED}FAIL${NC}: Contract missing JSONL criteria"
         ((FAIL++)) || true
     fi
 

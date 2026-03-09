@@ -13,7 +13,7 @@
 | Enter plan mode | `EnterPlanMode` tool |
 | Write plan | Edit `~/.claude/plans/<name>.md` |
 | Exit plan mode | `ExitPlanMode` tool |
-| Publish contract | `mk contract << 'TOML'` (heredoc) at Implementation Gate |
+| Publish contract | `mk contract << 'JSONL'` (heredoc) at Implementation Gate |
 
 ### Content Routing
 
@@ -32,7 +32,7 @@
 |---------------|--------|
 | Step 1c (Design) | Enter plan mode, write plan file |
 | Step 1d (Present) | Validate plan, exit plan mode |
-| Step 2 (Impl Gate) | Publish contract via `mk contract << 'TOML'` |
+| Step 2 (Impl Gate) | Publish contract via `mk contract << 'JSONL'` |
 
 ## Behavioral Test Cases
 

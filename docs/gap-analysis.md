@@ -1,6 +1,6 @@
 # Gap Analysis: Use Cases vs Protocol Implementation
 
-*2026-03-09 — Protocol v0.14, post Era/TOML/mk migration*
+*2026-03-09 — Protocol v0.14, post Era/JSONL/mk migration*
 
 ## UC Compliance Matrix
 
@@ -20,7 +20,7 @@
 ## Cross-Cutting Gaps
 
 ### Protocol features without UC coverage
-- TOML attestation validation (mk complete checks contract coverage) — UC7 covers event logging but not the validation mechanic specifically
+- JSONL attestation validation (mk complete checks contract coverage) — UC7 covers event logging but not the validation mechanic specifically
 - Auto-/i cycles at steps 1d and 3b — UC9 covers manual /i but not the auto-improve loop
 
 ## Recommended Tasks

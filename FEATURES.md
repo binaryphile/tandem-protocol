@@ -46,43 +46,26 @@ All protocol events are published to Era streams via `mk` commands:
 
 | Entry Type | mk command | Format |
 |------------|-----------|--------|
-| **Contract** | `mk contract << 'TOML'` | TOML heredoc with `[[criteria]]` entries |
-| **Completion** | `mk complete << 'TOML'` | TOML attestation composed at completion time |
+| **Contract** | `mk contract << 'JSONL'` | JSONL heredoc — one criterion per line |
+| **Completion** | `mk complete << 'JSONL'` | JSONL attestation composed at completion time |
 | **Interaction** | `mk interaction` | `mk interaction "/i -> found edge case, added handling"` |
 | **Plan** | `mk plan` | `mk plan ~/.claude/plans/auth-plan.md` |
 | **Task** | `mk task` / `mk done` | Task lifecycle events for orchestrator detection |
 
-Contract and completion events use TOML format:
+Contract and completion events use JSONL format (one JSON object per line):
 
-```toml
+```
 # Contract — criteria to deliver
-phase = "Phase 1 - auth"
-
-[[criteria]]
-name = "middleware"
-
-[[criteria]]
-name = "tests"
+{"phase":"Phase 1 - auth"}
+{"name":"middleware"}
+{"name":"tests"}
 ```
 
-```toml
+```
 # Attestation — composed at completion time
-phase = "Phase 1"
-
-[[criteria]]
-name = "middleware"
-status = "delivered"
-evidence = "auth.go:45"
-
-[[criteria]]
-name = "tests"
-status = "dropped"
-reason = "deferred to phase 2"
-
-[[criteria]]
-name = "validation"
-status = "added"
-evidence = "input.go:12"
+{"name":"middleware","status":"delivered","evidence":"auth.go:45"}
+{"name":"tests","status":"dropped","reason":"deferred to phase 2"}
+{"name":"validation","status":"added","evidence":"input.go:12"}
 ```
 
 Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `mk complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
@@ -159,12 +142,10 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 Gate actions use **mk commands** - executable bash that Claude runs directly:
 
 ```bash
-mk contract << 'TOML'
-phase = "Phase 1 objective"
-
-[[criteria]]
-name = "criterion1"
-TOML
+mk contract << 'JSONL'
+{"phase":"Phase 1 objective"}
+{"name":"criterion1"}
+JSONL
 mk task "Phase 1 objective"
 ```
 

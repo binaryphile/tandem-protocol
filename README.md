@@ -22,7 +22,7 @@ You:    YAML, defaults
 Claude: [creates plan, presents for review]
 You:    [accept plan]                                        # ← (2) Impl Gate
 
-Claude: [publishes TOML contract and plan to Era]
+Claude: [publishes contract and plan to Era]
 
         [implements]                                         # ← (3) Implement
 
@@ -144,15 +144,11 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
 ## At Implementation Gate
 
     ```bash
-    mk contract << 'TOML'
-    phase = "objective"
-
-    [[criteria]]
-    name = "criterion1"
-
-    [[criteria]]
-    name = "criterion2"
-    TOML
+    mk contract << 'JSONL'
+    {"phase":"objective"}
+    {"name":"criterion1"}
+    {"name":"criterion2"}
+    JSONL
     mk plan ~/.claude/plans/<plan-name>.md
     mk task "objective"
     # Note the task ID from output, then:
@@ -163,11 +159,11 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
 ## At Completion Gate
 
     ```bash
-    # Compose ATTESTATION TOML — every contract criterion must appear:
+    # Compose attestation JSONL — every contract criterion must appear:
     #   status: "delivered" + evidence, "dropped" + reason, "added" + evidence
-    mk complete << 'TOML'
+    mk complete << 'JSONL'
     <compose from contract criteria at completion time>
-    TOML
+    JSONL
     mk done <task-id> "complete"
 
     # Stage files changed (write actual list at completion time, not planning time)
@@ -273,7 +269,7 @@ done
 PLAN=~/.claude/plans/<plan-name>.md
 update_git_add_in "$PLAN"
 
-# Compose ATTESTATION TOML in plan file's Completion Gate:
+# Compose attestation JSONL in plan file's Completion Gate:
 # Copy each criterion from contract, add status + evidence/reason
 # mk complete validates coverage — missing criteria trigger warnings
 update_completion_attestation_in "$PLAN"

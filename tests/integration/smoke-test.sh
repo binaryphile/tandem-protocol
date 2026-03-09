@@ -57,10 +57,7 @@ echo ""
 echo "Step 3: Test Era helpers..."
 
 # Publish a test event to Era
-era publish -s "$ERA_STREAM" --type contract 'phase = "smoke-test"
-
-[[criteria]]
-name = "infrastructure works"' 2>/dev/null
+era publish -s "$ERA_STREAM" --type contract "$(printf '{"phase":"smoke-test"}\n{"name":"infrastructure works"}')" 2>/dev/null
 
 # Test Era query helpers
 echo ""

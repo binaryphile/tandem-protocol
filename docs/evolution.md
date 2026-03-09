@@ -27,7 +27,8 @@ gantt
     Evidence files               :done, 2025-11-27, 2026-01-17
     plan-log.md append           :done, 2026-01-17, 2026-03-02
     Era streams                  :done, 2026-03-02, 2026-03-08
-    TOML + validation            :active, 2026-03-08, 2026-03-09
+    TOML + validation            :done, 2026-03-08, 2026-03-09
+    JSONL + validation           :active, 2026-03-09, 2026-03-10
 
     section Tasks
     TodoWrite (optional)         :done, 2025-11-27, 2026-02-05
@@ -104,7 +105,7 @@ flowchart LR
         D["Inline:<br/>bash block in<br/>conversation"]
     end
     subgraph "Mar 2026"
-        E["CLI:<br/>mk complete<br/><< 'TOML'"]
+        E["CLI:<br/>mk complete<br/><< 'JSONL'"]
     end
 
     A -->|"direct bash"| B
@@ -186,16 +187,28 @@ TOML
 attestation valid: 2 criteria (2 from contract)
 ```
 
+**Mar 9** — JSONL payloads replace TOML. One JSON object per line — eliminates Python `tomllib` dependency, enables `jq` processing from shell.
+
+```bash
+mk contract << 'JSONL'
+{"phase":"Phase 1 - config loader"}
+{"name":"YAML parsing"}
+{"name":"default fallback"}
+JSONL
+```
+
 ```mermaid
 flowchart LR
     A["Evidence files<br/><i>per phase</i>"] --> B["plan-log.md<br/><i>pipe-delimited</i>"]
     B --> C["Era streams<br/><i>event store</i>"]
     C --> D["TOML heredoc<br/><i>machine-validated</i>"]
+    D --> E["JSONL<br/><i>line-per-criterion</i>"]
 
     style A fill:#ffcdd2
     style B fill:#fff9c4
     style C fill:#c8e6c9
-    style D fill:#bbdefb
+    style D fill:#c8e6c9
+    style E fill:#bbdefb
 ```
 
 ---
@@ -266,7 +279,7 @@ xychart-beta
 | `c6867f6` | Dec 2025 | 781 | tandem-protocol.md | Consolidated to single doc |
 | `8d277f9` | Feb 2026 | 258 | README.md | PI model, merged into README |
 | `f912267` | Feb 2026 | 235 | README.md | Inline bash blocks — the minimum |
-| `2c0e93a` | Mar 2026 | 356 | README.md | TOML + mk commands — growing with purpose |
+| `2c0e93a` | Mar 2026 | 356 | README.md | JSONL + mk commands — growing with purpose |
 
 The arc: compress relentlessly until every line earns its place, then grow only when new capability demands it.
 
@@ -334,7 +347,7 @@ tests/lib/transcript-parser.sh
 >
 > 4 protocol versions tested. Gate 2 fails across ALL versions. Root cause is not structural — it's behavioral.
 
-**Mar 9** — Machine-validated contracts. `validate-attestation` reads the last contract from Era, compares against the attestation, exits non-zero on gaps.
+**Mar 9** — Machine-validated contracts. `validate-attestation` reads the last contract from Era, compares against the attestation JSONL, exits non-zero on gaps.
 
 ```
 attestation valid: 2 criteria (2 from contract)
@@ -362,7 +375,7 @@ flowchart LR
 
 What started as 1,697 lines of prose became an executable protocol.
 
-Today: 356 lines of README. 12 mk commands. 39 test files. 16 use cases. Machine-validated TOML contracts. Every gate action is a bash block that runs or fails.
+Today: 356 lines of README. 12 mk commands. 39 test files. 16 use cases. Machine-validated JSONL contracts. Every gate action is a bash block that runs or fails.
 
 The core discovery: **syntax triggers execution; instructions trigger interpretation.**
 

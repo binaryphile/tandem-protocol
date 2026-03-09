@@ -44,13 +44,13 @@ sleep 1  # allow file writes to complete
 echo ""
 echo "Checkpoint 2: After Gate 1"
 assert_era_event_exists "Contract entry exists" "contract"
-# TOML contract should have criteria
+# JSONL contract should have criteria
 CONTRACT_PAYLOAD=$(get_era_payload "contract")
-if [[ -n "$CONTRACT_PAYLOAD" ]] && echo "$CONTRACT_PAYLOAD" | grep -qE '\[\[criteria\]\]|name\s*='; then
-    echo -e "${GREEN}PASS${NC}: Contract has TOML criteria"
+if [[ -n "$CONTRACT_PAYLOAD" ]] && echo "$CONTRACT_PAYLOAD" | grep -qE '"name":'; then
+    echo -e "${GREEN}PASS${NC}: Contract has JSONL criteria"
     ((PASS++)) || true
 else
-    echo -e "${RED}FAIL${NC}: Contract missing TOML criteria"
+    echo -e "${RED}FAIL${NC}: Contract missing JSONL criteria"
     ((FAIL++)) || true
 fi
 assert_era_event_count "No Completion yet" "complete" 0 0
@@ -91,9 +91,9 @@ sleep 1  # allow file writes to complete
 echo ""
 echo "Checkpoint 5: After Gate 2"
 assert_era_event_exists "Completion entry exists" "complete"
-# TOML attestation should have status = "delivered" and evidence
+# JSONL attestation should have status "delivered" and evidence
 COMPLETION_PAYLOAD=$(get_era_payload "complete")
-if [[ -n "$COMPLETION_PAYLOAD" ]] && echo "$COMPLETION_PAYLOAD" | grep -qE 'status\s*=\s*"delivered"|evidence\s*='; then
+if [[ -n "$COMPLETION_PAYLOAD" ]] && echo "$COMPLETION_PAYLOAD" | grep -qE '"status":"delivered"|"evidence":'; then
     echo -e "${GREEN}PASS${NC}: Completion has attestation with evidence"
     ((PASS++)) || true
 else

@@ -10,15 +10,15 @@
 
 | Type | When | mk Command | Format |
 |------|------|------------|--------|
-| Contract | Implementation Gate | `mk contract << 'TOML'` | TOML heredoc with `[[criteria]]` entries |
-| Completion | Completion Gate | `mk complete << 'TOML'` | TOML attestation composed at completion time |
+| Contract | Implementation Gate | `mk contract << 'JSONL'` | JSONL heredoc — one criterion per line |
+| Completion | Completion Gate | `mk complete << 'JSONL'` | JSONL attestation composed at completion time |
 | Interaction | `/i` `/c` `/g` at gates | `mk interaction` | `mk interaction "/i -> missing edge case, added"` |
 | Task | Implementation Gate | `mk task` | `mk task "Phase 1 - auth"` |
 | Task-done | Completion Gate | `mk done` | `mk done <id> "Phase 1 complete"` |
 
-### Contract/Completion TOML Format
+### Contract/Completion Format
 
-**Contract:** TOML with phase and `[[criteria]]` entries (names only).
+**Contract:** JSONL with phase header + one criterion per line (names only).
 **Attestation:** LLM composes at completion time — each criterion gets a status.
 
 **Statuses:**
@@ -39,40 +39,21 @@
 ### Example Event Flow
 
 ```bash
-mk contract << 'TOML'
-phase = "Phase 1 - auth middleware"
-
-[[criteria]]
-name = "middleware"
-
-[[criteria]]
-name = "tests"
-
-[[criteria]]
-name = "docs"
-TOML
+mk contract << 'JSONL'
+{"phase":"Phase 1 - auth middleware"}
+{"name":"middleware"}
+{"name":"tests"}
+{"name":"docs"}
+JSONL
 mk task "Phase 1 - auth middleware"
 # ... implementation ...
 mk interaction "/i -> missing edge case handling, added"
 mk interaction "/c -> naming violation per Go guide, fixed"
-mk complete << 'TOML'
-phase = "Phase 1"
-
-[[criteria]]
-name = "middleware"
-status = "delivered"
-evidence = "auth.go:45"
-
-[[criteria]]
-name = "tests"
-status = "delivered"
-evidence = "auth_test.go:12"
-
-[[criteria]]
-name = "docs"
-status = "delivered"
-evidence = "README:12"
-TOML
+mk complete << 'JSONL'
+{"name":"middleware","status":"delivered","evidence":"auth.go:45"}
+{"name":"tests","status":"delivered","evidence":"auth_test.go:12"}
+{"name":"docs","status":"delivered","evidence":"README:12"}
+JSONL
 mk done 14752 "Phase 1 complete"
 ```
 

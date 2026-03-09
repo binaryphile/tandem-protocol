@@ -82,6 +82,17 @@ def truncate(s, width):
     return s[:width - 1] + "…" if len(s) > width else s
 
 
+def display_payload(payload):
+    """Extract description from JSON payload, fall back to raw text."""
+    try:
+        obj = json.loads(payload)
+        if isinstance(obj, dict) and "description" in obj:
+            return obj["description"]
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return payload.replace("\n", " ")
+
+
 def cmd_open(tasks, done_refs, claims):
     open_tasks = sorted(
         (t for t in tasks.values() if t["id"] not in done_refs),
@@ -93,7 +104,7 @@ def cmd_open(tasks, done_refs, claims):
     for t in open_tasks:
         claim = claims.get(t["id"])
         tag = f"  [claimed:{claim['claimer']}]" if claim else ""
-        payload = truncate(t["payload"].replace("\n", " "), 80)
+        payload = truncate(display_payload(t["payload"]), 80)
         print(f"#{t['id']}  {t['date']}  {t['type']}{tag}  {payload}")
 
 
@@ -107,13 +118,13 @@ def cmd_audit(tasks, done_refs, claims):
             t = unmatched[tid]
             claim = claims.get(tid)
             tag = f"  [claimed:{claim['claimer']}]" if claim else ""
-            payload = truncate(t["payload"].replace("\n", " "), 80)
+            payload = truncate(display_payload(t["payload"]), 80)
             print(f"  #{tid}  {t['date']}  {t['type']}{tag}  {payload}")
     if matched:
         print(f"\n--- matched ({len(matched)}) ---")
         for tid in sorted(matched):
             t = matched[tid]
-            payload = truncate(t["payload"].replace("\n", " "), 60)
+            payload = truncate(display_payload(t["payload"]), 60)
             print(f"  #{tid}  {t['date']}  {t['type']}  {payload}")
 
 
@@ -128,7 +139,7 @@ def cmd_claims(tasks, done_refs, claims):
     for tid in sorted(active):
         c = active[tid]
         task = tasks.get(tid)
-        payload = truncate(task["payload"].replace("\n", " "), 60) if task else "(unknown task)"
+        payload = truncate(display_payload(task["payload"]), 60) if task else "(unknown task)"
         print(f"#{tid}  {c['date']}  {c['claimer']}  {payload}")
 
 

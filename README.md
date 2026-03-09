@@ -84,8 +84,8 @@ flowchart LR
 **Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before exiting plan mode:
-- [ ] "At Implementation Gate" section with bash block (evtctl contract + evtctl plan + evtctl task + evtctl claim)
-- [ ] "At Completion Gate" section with bash block (evtctl complete + evtctl done + commit)
+- [ ] "At Implementation Gate" section with bash block (evtctl contract + evtctl plan + evtctl task + evtctl claim + era store)
+- [ ] "At Completion Gate" section with bash block (evtctl complete + evtctl done + era store + commit)
 
 Do not exit plan mode without these executable bash blocks in the plan file.
 
@@ -154,6 +154,10 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
     # Note the task ID from output, then:
     evtctl claim <task-id> claude
     # <task-id> also needed for Completion Gate evtctl done command
+    era store --type session -t "<project-basename>,plan" "$(cat <<'MEMO'
+    <written during planning: 1-3 sentences — objective and key design decisions>
+    MEMO
+    )"
     ```
 
 ## At Completion Gate
@@ -165,6 +169,11 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
     <compose from contract criteria at completion time>
     JSONL
     evtctl done <task-id> "complete"
+
+    era store --type session -t "<project-basename>,completion" "$(cat <<'MEMO'
+    <composed at step 3b: what delivered/dropped, /i lessons, technical insights>
+    MEMO
+    )"
 
     # Stage files changed (write actual list at completion time, not planning time)
     git add file1.go file2.go
@@ -226,7 +235,7 @@ evtctl interaction "/c -> plan non-compliant with X guide, fixed"
 
 **IMPLEMENTATION GATE ACTIONS** (when user accepts the plan):
 
-Execute the bash block from the plan file's "At Implementation Gate" section. This publishes the Contract and plan to Era, creates tasks, and claims them in one atomic operation.
+Execute the bash block from the plan file's "At Implementation Gate" section. This publishes the Contract and plan to Era, creates tasks, claims them, and stores a session memory in one atomic operation.
 
 **STOP: Do not implement until the Implementation Gate bash block has been executed.**
 
@@ -274,6 +283,10 @@ update_git_add_in "$PLAN"
 # evtctl complete validates coverage — missing criteria trigger warnings
 update_completion_attestation_in "$PLAN"
 
+# Compose session memory in plan file's Completion Gate era store block
+# Summarize: what delivered/dropped, lessons from /i cycles, key insights
+update_session_memory_in "$PLAN"
+
 cat "$PLAN"  # puts bash block back in context
 
 # Show what will execute on approval
@@ -312,5 +325,5 @@ evtctl interaction "/c -> non-compliant with X guide, fixed"
 
 **COMPLETION GATE ACTIONS** (when user says "proceed"):
 
-Execute the Completion Gate bash block from the plan file. This publishes Completion to Era, deletes tasks, and commits.
+Execute the Completion Gate bash block from the plan file. This publishes Completion to Era, stores a session memory, deletes tasks, and commits.
 

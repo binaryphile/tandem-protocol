@@ -42,15 +42,16 @@ Lessons accumulate across sessions, so Claude gets better at your specific proje
 
 ## Event Logging
 
-All protocol events are published to Era streams via `mk` commands:
+All protocol events are published to Era streams via `evtctl` commands:
 
-| Entry Type | mk command | Format |
+| Entry Type | evtctl command | Format |
 |------------|-----------|--------|
 | **Contract** | `evtctl contract << 'JSONL'` | JSONL heredoc — one criterion per line |
 | **Completion** | `evtctl complete << 'JSONL'` | JSONL attestation composed at completion time |
 | **Interaction** | `evtctl interaction` | `evtctl interaction "/i -> found edge case, added handling"` |
 | **Plan** | `evtctl plan` | `evtctl plan ~/.claude/plans/auth-plan.md` |
 | **Task** | `evtctl task` / `evtctl done` | Task lifecycle events for orchestrator detection |
+| **Session** | `era store --type session` | Session summary composed at each gate |
 
 Contract and completion events use JSONL format (one JSON object per line):
 
@@ -69,6 +70,8 @@ Contract and completion events use JSONL format (one JSON object per line):
 ```
 
 Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `evtctl complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
+
+Session memories are stored at each gate via `era store` to capture objective, decisions, deliverables, and lessons learned. Future sessions find them via `mcp__era__search` or `era search -t <project>` to build on prior context.
 
 ## Task Management
 
@@ -129,7 +132,7 @@ The protocol achieves reliability through a two-part model:
 |-----------|------------|-----|
 | **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
 | **Recovery** | Works reliably | `/q` command when drift occurs |
-| **Gate logging** | 100% | mk commands (executable, not descriptive) |
+| **Gate logging** | 100% | evtctl commands (executable, not descriptive) |
 
 This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
 
@@ -139,7 +142,7 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 
 ### Why Gates Are 100% Reliable
 
-Gate actions use **mk commands** - executable bash that Claude runs directly:
+Gate actions use **evtctl commands** - executable bash that Claude runs directly:
 
 ```bash
 evtctl contract << 'JSONL'
@@ -180,7 +183,7 @@ When you notice drift (implementation without approval, missing logs, skipped ga
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
 - Lightweight `/q` for recovery
-- mk commands at gates for 100% reliable logging
+- evtctl commands at gates for 100% reliable logging
 - Accepts ~80% baseline, relies on recovery mechanism
 
 ## Testing

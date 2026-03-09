@@ -4,11 +4,11 @@
 
 **Location:** README.md - Implementation Gate actions, Completion Gate actions, grading cycle sections
 
-**Design principle:** All events published to Era via `mk` commands. Era is the single event store — no local log files.
+**Design principle:** All events published to Era via `evtctl` commands. Era is the single event store — no local log files.
 
 ### Event Types and Commands
 
-| Type | When | mk Command | Format |
+| Type | When | evtctl Command | Format |
 |------|------|------------|--------|
 | Contract | Implementation Gate | `evtctl contract << 'JSONL'` | JSONL heredoc — one criterion per line |
 | Completion | Completion Gate | `evtctl complete << 'JSONL'` | JSONL attestation composed at completion time |

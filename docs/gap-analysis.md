@@ -1,6 +1,6 @@
 # Gap Analysis: Use Cases vs Protocol Implementation
 
-*2026-03-09 — Protocol v0.14, post Era/JSONL/mk migration*
+*2026-03-09 — Protocol v0.14, post Era/JSONL/evtctl migration*
 
 ## UC Compliance Matrix
 

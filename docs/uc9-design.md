@@ -6,8 +6,8 @@
 
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
-- Gate events use `mk` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
-- All protocol events use `mk` commands (which call `era publish`): `evtctl contract`, `evtctl complete`, `evtctl interaction`, `evtctl plan`, `evtctl task`, `evtctl claim`, `evtctl done`.
+- Gate events use `evtctl` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
+- All protocol events use `evtctl` commands (which call `era publish`): `evtctl contract`, `evtctl complete`, `evtctl interaction`, `evtctl plan`, `evtctl task`, `evtctl claim`, `evtctl done`.
 
 ### Grading Model
 
@@ -21,7 +21,7 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 
 ### Task Event Model
 
-| Gate | mk command | Era event type |
+| Gate | evtctl command | Era event type |
 |------|-----------|----------------|
 | Implementation Gate | `evtctl task "description"` | `task` |
 | Implementation Gate | `evtctl claim <task-id> claude` | `claim` |

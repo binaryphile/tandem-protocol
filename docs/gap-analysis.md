@@ -42,5 +42,5 @@
 
 1. **Update test infrastructure** (#15426) — migrate `common.sh` helpers from plan-log.md to Era queries; update uc2, uc3, and uc7 tests
 2. ~~**Clean UC8 design doc** (#15427)~~ — DONE: deleted UC8 entirely (spec, design, test)
-3. **Archive plan-log.md** (#15428) — move to `docs/archive/` or add header noting it's historical
-4. **Clean experiment artifacts** (#15429) — delete or move `tests/experiments/`, `tests/hooks/inject-taskapi-context.sh`, stale fixtures
+3. ~~**Archive plan-log.md** (#15428)~~ — DONE: deleted (git history preserves it)
+4. ~~**Clean experiment artifacts** (#15429)~~ — DONE: deleted experiments, hooks, fixtures, stale validators/parsers

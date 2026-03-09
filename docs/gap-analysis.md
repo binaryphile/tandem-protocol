@@ -11,11 +11,11 @@
 | UC5 | Line reference guidance | current | current | minimal | OK | none |
 | UC6 | Lesson capture from grading | current | current | exists | OK | none |
 | UC7 | Event logging | current | current | **stale** (plan-log.md) | PARTIAL | update test |
-| UC8 | Todo integration | current | **stale** (TaskAPI experiments) | exists | MIXED | update design doc |
+| UC8 | Todo integration | **deleted** | **deleted** | **deleted** | DELETED | domain covered by UC7+UC10 |
 | UC9 | Grading cycles & task events | current | current | exists | OK | none |
 | UC10 | Task claiming | current | current | minimal | OK | none |
 
-**Summary:** 8 UCs. 4 current, 4 with stale components (all in tests or design docs, not specs).
+**Summary:** 7 active UCs (UC8 deleted — domain covered by UC7+UC10). 4 current, 3 with stale tests.
 
 ## Cross-Cutting Gaps
 
@@ -41,6 +41,6 @@
 ## Recommended Tasks
 
 1. **Update test infrastructure** (#15426) — migrate `common.sh` helpers from plan-log.md to Era queries; update uc2, uc3, and uc7 tests
-2. **Clean UC8 design doc** (#15427) — remove Phase 6-7 TaskAPI experiment discussion (~30 lines), reflect current mk task approach
+2. ~~**Clean UC8 design doc** (#15427)~~ — DONE: deleted UC8 entirely (spec, design, test)
 3. **Archive plan-log.md** (#15428) — move to `docs/archive/` or add header noting it's historical
 4. **Clean experiment artifacts** (#15429) — delete or move `tests/experiments/`, `tests/hooks/inject-taskapi-context.sh`, stale fixtures

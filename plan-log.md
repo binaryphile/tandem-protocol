@@ -827,3 +827,4 @@ The following entries are added retroactively for behavioral analysis. They capt
 [x] Recommended ordering documented
 [x] Guarantees rewritten as post-conditions
 [x] Version bumped to v0.13
+2026-03-09T02:44:20Z | Interaction: /i -> "publishes claim (last-writer-wins)" mechanism leak in UC10 extension 3a2, fixed to intent language

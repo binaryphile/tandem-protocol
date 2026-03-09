@@ -85,7 +85,7 @@ flowchart LR
 **Before Implementation Gate: MUST verify plan includes bash blocks at each gate.**
 
 Checklist before exiting plan mode:
-- [ ] "At Implementation Gate" section with bash block (mk contract + mk task)
+- [ ] "At Implementation Gate" section with bash block (mk contract + mk task + mk claim)
 - [ ] "At Completion Gate" section with bash block (mk complete + mk done + commit)
 
 Do not exit plan mode without these executable bash blocks in the plan file.
@@ -162,7 +162,9 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     ```bash
     mk contract "Phase 1 - objective | [ ] criterion1 | [ ] criterion2"
     mk task "Phase 1 - objective"
-    # Note the task ID from output for the Completion Gate mk done command
+    # Note the task ID from output, then:
+    mk claim <task-id> claude
+    # <task-id> also needed for Completion Gate mk done command
 
     # Create tasks via direct file write (use actual session dir name)
     cat > ~/.claude/tasks/<session-dir>/1.json << TASK
@@ -252,7 +254,7 @@ mk interaction "/c -> plan non-compliant with X guide, fixed"
 
 **IMPLEMENTATION GATE ACTIONS** (when user accepts the plan):
 
-Execute the bash block from the plan file's "At Implementation Gate" section. This publishes the Contract to Era AND creates tasks in one atomic operation.
+Execute the bash block from the plan file's "At Implementation Gate" section. This publishes the Contract to Era, creates tasks, and claims them in one atomic operation.
 
 **STOP: Do not implement until the Implementation Gate bash block has been executed.**
 

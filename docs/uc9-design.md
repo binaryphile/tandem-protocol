@@ -7,7 +7,7 @@
 **Design principles:**
 - Diagrams show structure; text explains sequences. Keep mermaid clean.
 - Gate events use `mk` (which calls `era publish`), not direct `era publish`. This ensures stream names derive from PROJECT_ROOT, eliminating the `<project>` variable.
-- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk task`, `mk done`.
+- All protocol events use `mk` commands (which call `era publish`): `mk contract`, `mk complete`, `mk interaction`, `mk task`, `mk claim`, `mk done`.
 
 ### Grading Model
 
@@ -24,9 +24,10 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 | Gate | mk command | Era event type |
 |------|-----------|----------------|
 | Implementation Gate | `mk task "description"` | `task` |
+| Implementation Gate | `mk claim <task-id> claude` | `claim` |
 | Completion Gate | `mk done <task-id> "evidence"` | `task-done` |
 
-`<task-id>` is the era event ID returned by `mk task` — record it at Implementation Gate, substitute into Completion Gate's `mk done`.
+`<task-id>` is the era event ID returned by `mk task` — record it at Implementation Gate, use for `mk claim` and substitute into Completion Gate's `mk done`.
 
 ### Event Types
 
@@ -34,6 +35,7 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 |-------|--------|-------------|-----------|
 | Interaction | `/i` `/c` `/g` at either gate | Era stream | `mk interaction "/i -> description"` |
 | Task | Implementation Gate | Era stream | `mk task "description"` |
+| Claim | Implementation Gate | Era stream | `mk claim <task-id> claude` |
 | Task-done | Completion Gate | Era stream | `mk done <task-id> "evidence"` |
 
 ## Behavioral Test Cases
@@ -48,3 +50,4 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 | T6 | mk task in Implementation Gate template | `mk task` |
 | T7 | mk done in Completion Gate template | `mk done` |
 | T8 | No direct era publish in templates | NOT `era publish` in gate blocks |
+| T9 | mk claim in Implementation Gate template | `mk claim` |

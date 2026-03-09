@@ -53,6 +53,22 @@ All protocol events are published to Era streams via `mk` commands:
 
 The Contract/Completion checkbox pattern ensures criteria verification is explicit. Era is the single event store — no local log files.
 
+## Task Management
+
+Task lifecycle commands for multi-agent coordination:
+
+| Command | Action | Example |
+|---------|--------|---------|
+| `mk task` | Create a task | `mk task "implement auth"` |
+| `mk done` | Complete a task | `mk done 14825 "auth complete"` |
+| `mk claim` | Claim a task | `mk claim 14825 claude` |
+| `mk unclaim` | Release a claim | `mk unclaim 14825` |
+| `mk open` | List open tasks | `mk open` |
+| `mk claims` | List active claims | `mk claims` |
+| `mk audit` | Full task reconciliation | `mk audit` |
+
+The protocol auto-claims tasks at the Implementation Gate (`mk task` + `mk claim`). Claims prevent double-assignment when multiple agents share a task stream. `mk done` implicitly releases claims.
+
 ## PI Cognitive Model
 
 The protocol uses the PI model for cognitive stages:

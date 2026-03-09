@@ -135,23 +135,8 @@ EnterPlanMode  # creates ~/.claude/plans/<name>.md
 Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `mk contract` at the gate, not stored in the plan file.
 When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` with actual values. `<task-id>` is the era event ID returned by `mk task` at the Implementation Gate — record it then, substitute into the Completion Gate's `mk done` call. Do NOT use `ls -t` to find plans/sessions at execution time — multiple may coexist and `ls -t` will pick the wrong one.
 
-**Multi-phase plans:**
-1. **Initial planning**: Plan current phase fully; list future phases at end (no skeletons).
-2. **When phase becomes current**: Plan that phase. Remove it from future phases list.
-3. **On phase completion**: Remove that phase's section from the plan file.
-4. **When last phase completes**: Delete the plan file.
-
 ```markdown
-# [Project Name] - Phased Implementation
-
-## Context
-1. **Phase 1: [Name]** ← CURRENT
-2. **Phase 2: [Name]**
-3. **Phase 3: [Name]**
-
----
-
-# Phase 1: [Name]
+# [Project Name]
 
 ## Changes
 [files + approach]
@@ -160,7 +145,7 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
 
     ```bash
     mk contract << 'TOML'
-    phase = "Phase 1 - objective"
+    phase = "objective"
 
     [[criteria]]
     name = "criterion1"
@@ -169,7 +154,7 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     name = "criterion2"
     TOML
     mk plan ~/.claude/plans/<plan-name>.md
-    mk task "Phase 1 - objective"
+    mk task "objective"
     # Note the task ID from output, then:
     mk claim <task-id> claude
     # <task-id> also needed for Completion Gate mk done command
@@ -188,33 +173,20 @@ When writing a plan, substitute `<plan-name>`, `<session-dir>`, and `<task-id>` 
     mk complete << 'TOML'
     <compose from contract criteria at completion time>
     TOML
-    mk done <task-id> "Phase 1 complete"
+    mk done <task-id> "complete"
 
     # Delete task files (use actual session dir name)
     rm ~/.claude/tasks/<session-dir>/*.json 2>/dev/null
 
-    # Single-phase: delete plan file by explicit name
-    # Multi-phase: (1) mark phase done in Context, (2) remove completed phase section
-    rm ~/.claude/plans/<plan-name>.md  # <- ONLY for single-phase or final phase!
-
-    # Stage files changed by this phase (write actual list at completion time, not planning time)
+    # Stage files changed (write actual list at completion time, not planning time)
     git add file1.go file2.go
-    git commit -m "Phase 1 complete
+    git commit -m "description
 
     Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
 
 ## Verification
 [Commands to verify]
-
----
-
-## Future Phases
-
-Do NOT plan these until they become current. Remove from this list when planning begins.
-
-- Phase 2: [Name]
-- Phase 3: [Name]
 ```
 
 ### 1d: Present

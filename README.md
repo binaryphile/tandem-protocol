@@ -6,7 +6,7 @@
 
 ```bash
 cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
-ln -sf ~/tandem-protocol/commands/begin.md ~/.claude/commands/begin.md
+mkdir -p ~/.claude/commands && ln -sf ~/tandem-protocol/commands/*.md ~/.claude/commands/
 echo -e "\n# Tandem Protocol\n@~/tandem-protocol/README.md" >> your-project/CLAUDE.md
 ```
 

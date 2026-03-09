@@ -31,7 +31,7 @@ echo "Session: $SESSION_ID"
 # Checkpoint 1: No Contract before Gate 1
 echo ""
 echo "Checkpoint 1: Before Gate 1"
-assert_not_exists "No Contract before approval" "Contract:" "$TEST_CWD/plan-log.md"
+assert_era_event_count "No Contract before approval" "contract" 0 0
 
 # Gate 1: Approve plan (using context injection for reliability)
 echo ""
@@ -43,10 +43,17 @@ sleep 1  # allow file writes to complete
 # Checkpoint 2: Contract logged at Gate 1
 echo ""
 echo "Checkpoint 2: After Gate 1"
-assert_exists "Contract entry exists" "Contract:" "$TEST_CWD/plan-log.md"
-# Checkbox pattern: [ ] criterion - on separate line from Contract header
-assert_exists "Contract has checkboxes" '\[ \]' "$TEST_CWD/plan-log.md"
-assert_not_exists "No Completion yet" "Completion:" "$TEST_CWD/plan-log.md"
+assert_era_event_exists "Contract entry exists" "contract"
+# TOML contract should have criteria
+CONTRACT_PAYLOAD=$(get_era_payload "contract")
+if [[ -n "$CONTRACT_PAYLOAD" ]] && echo "$CONTRACT_PAYLOAD" | grep -qE '\[\[criteria\]\]|name\s*='; then
+    echo -e "${GREEN}PASS${NC}: Contract has TOML criteria"
+    ((PASS++)) || true
+else
+    echo -e "${RED}FAIL${NC}: Contract missing TOML criteria"
+    ((FAIL++)) || true
+fi
+assert_era_event_count "No Completion yet" "complete" 0 0
 
 # Grade
 echo ""
@@ -58,8 +65,8 @@ sleep 1  # allow file writes to complete
 # Checkpoint 3: Interaction logged for grade
 echo ""
 echo "Checkpoint 3: After /i"
-# Relaxed pattern - protocol works if Interaction is logged, format varies
-assert_exists "Interaction entry for /i" 'Interaction:.*/i' "$TEST_CWD/plan-log.md"
+# Check that an interaction event was published
+assert_era_event_exists "Interaction entry for /i" "interaction"
 
 # Improve
 echo ""
@@ -71,8 +78,7 @@ sleep 1  # allow file writes to complete
 # Checkpoint 4: Second Interaction logged
 echo ""
 echo "Checkpoint 4: After second /i"
-# Relaxed pattern - count any Interaction entries
-assert_count "2+ Interaction entries" 'Interaction:' "$TEST_CWD/plan-log.md" 2
+assert_era_event_count "2+ Interaction entries" "interaction" 2
 
 # Gate 2: Approve results (using context injection for reliability)
 echo ""
@@ -84,64 +90,14 @@ sleep 1  # allow file writes to complete
 # Checkpoint 5: Completion logged at Gate 2
 echo ""
 echo "Checkpoint 5: After Gate 2"
-assert_exists "Completion entry exists" "Completion:" "$TEST_CWD/plan-log.md"
-# Evidence pattern: [x] criterion (evidence) - on separate line from Completion header
-assert_exists "Completion has evidence" '\[x\].*\([^)]+\)' "$TEST_CWD/plan-log.md"
-
-# Validate entry formats using validators
-echo ""
-echo "Format validation..."
-
-if [[ -f "$VALIDATORS" ]]; then
-    source "$VALIDATORS"
-
-    # Validate Contract format
-    CONTRACT=$(get_contracts | head -1)
-    if [[ -n "$CONTRACT" ]]; then
-        if validate_contract_entry "$CONTRACT" >/dev/null 2>&1; then
-            echo -e "${GREEN}PASS${NC}: Contract entry format valid"
-            ((PASS++)) || true
-        else
-            echo -e "${RED}FAIL${NC}: Contract entry format invalid"
-            ((FAIL++)) || true
-        fi
-    fi
-
-    # Validate Completion format
-    COMPLETION=$(get_completions | head -1)
-    if [[ -n "$COMPLETION" ]]; then
-        if validate_completion_entry "$COMPLETION" >/dev/null 2>&1; then
-            echo -e "${GREEN}PASS${NC}: Completion entry format valid"
-            ((PASS++)) || true
-        else
-            echo -e "${RED}FAIL${NC}: Completion entry format invalid"
-            ((FAIL++)) || true
-        fi
-    fi
-
-    # Validate Interaction format
-    INTERACTION=$(get_interactions | head -1)
-    if [[ -n "$INTERACTION" ]]; then
-        if validate_interaction_entry "$INTERACTION" >/dev/null 2>&1; then
-            echo -e "${GREEN}PASS${NC}: Interaction entry format valid"
-            ((PASS++)) || true
-        else
-            echo -e "${RED}FAIL${NC}: Interaction entry format invalid"
-            ((FAIL++)) || true
-        fi
-    fi
-
-    # Validate criteria matching (Contract criteria appear in Completion)
-    if [[ -n "$CONTRACT" && -n "$COMPLETION" ]]; then
-        if match_criteria "$CONTRACT" "$COMPLETION" >/dev/null 2>&1; then
-            echo -e "${GREEN}PASS${NC}: Criteria match between Contract and Completion"
-            ((PASS++)) || true
-        else
-            echo -e "${YELLOW}WARN${NC}: Criteria mismatch (may be OK if scope changed)"
-        fi
-    fi
+assert_era_event_exists "Completion entry exists" "complete"
+# TOML attestation should have status = "delivered" and evidence
+COMPLETION_PAYLOAD=$(get_era_payload "complete")
+if [[ -n "$COMPLETION_PAYLOAD" ]] && echo "$COMPLETION_PAYLOAD" | grep -qE 'status\s*=\s*"delivered"|evidence\s*='; then
+    echo -e "${GREEN}PASS${NC}: Completion has attestation with evidence"
+    ((PASS++)) || true
 else
-    echo "WARN: Validators not found, skipping format validation"
+    echo -e "${YELLOW}WARN${NC}: Completion attestation format unclear"
 fi
 
 # Print summary

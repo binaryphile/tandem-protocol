@@ -8,7 +8,6 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 PROTOCOL="${PROTOCOL_OVERRIDE:-$PROJECT_DIR/README.md}"
-VALIDATORS="$PROJECT_DIR/tests/lib/validators.sh"
 
 # Test state
 TEST_DIR=""
@@ -20,6 +19,8 @@ TEST_NAME=""
 LAST_TURNS=0
 TOTAL_COST=0
 PREEXISTING_PLANS=""  # Plan files that existed before test started
+ERA_STREAM=""         # Era stream for test workspace
+ERA_BEFORE=0          # Era position before test (for scoping queries)
 
 # Colors (if terminal supports it)
 if [[ -t 1 ]]; then
@@ -54,8 +55,18 @@ setup_workspace() {
     git add CLAUDE.md
     git commit -q -m "init"
 
-    # Initialize plan-log.md
-    touch plan-log.md
+    # Make tandem-protocol mk available in test PATH
+    export PATH="$PROJECT_DIR:$PATH"
+
+    # Capture Era stream position before test (for scoping queries)
+    ERA_STREAM="tasks.$(basename "$TEST_CWD")"
+    local raw
+    raw=$(era read "$ERA_STREAM" --json 2>/dev/null) || raw=""
+    if echo "$raw" | grep -q '^\['; then
+        ERA_BEFORE=$(echo "$raw" | jq '.[-1].id // 0' 2>/dev/null) || ERA_BEFORE=0
+    else
+        ERA_BEFORE=0
+    fi
 
     echo "Workspace: $TEST_CWD"
 }
@@ -148,12 +159,6 @@ completion_gate() {
     local prompt="${1:-proceed}"
     local max_turns="${2:-10}"
 
-    # Capture current state
-    local plan_log=""
-    if [[ -f "$TEST_CWD/plan-log.md" ]]; then
-        plan_log=$(cat "$TEST_CWD/plan-log.md")
-    fi
-
     local plan_file=$(get_plan_file)
     local plan_content=""
     if [[ -n "$plan_file" && -f "$plan_file" ]]; then
@@ -161,7 +166,7 @@ completion_gate() {
     fi
 
     # List implementation files
-    local impl_files=$(ls -la "$TEST_CWD" 2>/dev/null | grep -v "^d" | grep -v "CLAUDE.md" | grep -v "plan-log.md" || true)
+    local impl_files=$(ls -la "$TEST_CWD" 2>/dev/null | grep -v "^d" | grep -v "CLAUDE.md" || true)
 
     # Extract the At Completion Gate bash block from plan
     local completion_block=""
@@ -182,9 +187,6 @@ CRITICAL: Run this EXACT bash block NOW. Do not modify it. Do not ask questions.
 \`\`\`bash
 $completion_block
 \`\`\`
-
-## Current plan-log.md:
-$plan_log
 
 ## Implementation files:
 $impl_files
@@ -238,23 +240,8 @@ $plan_content
 
 User says: $prompt"
     else
-        # Fallback: No plan file found, instruct Claude to create Contract directly
-        context="<system-reminder>
-You are at the Implementation Gate in a Tandem Protocol session.
-No plan file was found, but you must still log a Contract entry.
-
-CRITICAL: Execute this bash block NOW to log the Contract:
-
-cat >> plan-log.md << 'EOF'
-$(date -Iseconds) | Contract: Implementation
-[ ] Primary objective completed
-[ ] Code works as expected
-EOF
-
-Then proceed to implement the task.
-</system-reminder>
-
-User says: $prompt"
+        echo "ERROR: No plan file found for Implementation Gate"
+        return 1
     fi
 
     # Run fresh session with context
@@ -338,31 +325,6 @@ assert_contains() {
         return 0
     else
         echo -e "${RED}FAIL${NC}: $name (substring '$substring' not found)"
-        ((FAIL++)) || true
-        return 1
-    fi
-}
-
-# Check validator function passes
-# Usage: assert_valid "test name" validator_function args...
-assert_valid() {
-    local name="$1"
-    shift
-    local result
-
-    if [[ -f "$VALIDATORS" ]]; then
-        source "$VALIDATORS"
-    fi
-
-    result=$("$@" 2>&1)
-    local exit_code=$?
-
-    if [[ $exit_code -eq 0 ]]; then
-        echo -e "${GREEN}PASS${NC}: $name"
-        ((PASS++)) || true
-        return 0
-    else
-        echo -e "${RED}FAIL${NC}: $name ($result)"
         ((FAIL++)) || true
         return 1
     fi
@@ -465,45 +427,70 @@ get_command_count() {
 # UTILITIES
 # ============================================================================
 
-# Get the latest plan file from workspace or ~/.claude/plans/
+# Get the latest plan file from ~/.claude/plans/
 get_plan_file() {
-    local plan_file=""
+    ls -t ~/.claude/plans/*.md 2>/dev/null | head -1
+}
 
-    # Check workspace first
-    for f in "$TEST_CWD"/*.md; do
-        if [[ -f "$f" && $(basename "$f") != "CLAUDE.md" && $(basename "$f") != "plan-log.md" ]]; then
-            if grep -qE '^\[.\] Phase' "$f" 2>/dev/null; then
-                plan_file="$f"
-            fi
-        fi
-    done
+# ============================================================================
+# ERA QUERY HELPERS
+# ============================================================================
 
-    # Check ~/.claude/plans/ if not found
-    if [[ -z "$plan_file" ]]; then
-        plan_file=$(ls -t ~/.claude/plans/*.md 2>/dev/null | head -1)
+# Get Era events of a given type published during this test
+# Usage: get_era_events "contract"
+get_era_events() {
+    local type="$1"
+    local raw
+    raw=$(era read "$ERA_STREAM" --type "$type" --after "$ERA_BEFORE" --json 2>/dev/null) || raw=""
+    # era returns "no events" string when empty, not []
+    if echo "$raw" | grep -q '^\['; then
+        echo "$raw"
+    else
+        echo "[]"
     fi
-
-    echo "$plan_file"
 }
 
-# Extract Contract entries from plan-log.md (multi-line: header + checkbox lines)
-get_contracts() {
-    awk '/\| Contract:/{p=1; print; next} p && /^\[/{print; next} p{p=0}' "$TEST_CWD/plan-log.md" 2>/dev/null || true
+# Get payload of first event of given type
+# Usage: PAYLOAD=$(get_era_payload "contract")
+get_era_payload() {
+    local type="$1"
+    get_era_events "$type" | jq -r '.[0].payload // empty' 2>/dev/null
 }
 
-# Extract Completion entries from plan-log.md (multi-line: header + checkbox lines)
-get_completions() {
-    awk '/\| Completion:/{p=1; print; next} p && /^\[/{print; next} p{p=0}' "$TEST_CWD/plan-log.md" 2>/dev/null || true
+# Assert that at least one event of the given type exists
+# Usage: assert_era_event_exists "Contract entry exists" "contract"
+assert_era_event_exists() {
+    local name="$1" type="$2"
+    local count
+    count=$(get_era_events "$type" | jq 'length' 2>/dev/null) || count=0
+
+    if [[ $count -gt 0 ]]; then
+        echo -e "${GREEN}PASS${NC}: $name"
+        ((PASS++)) || true
+        return 0
+    else
+        echo -e "${RED}FAIL${NC}: $name (no '$type' events found)"
+        ((FAIL++)) || true
+        return 1
+    fi
 }
 
-# Extract Interaction entries from plan-log.md
-get_interactions() {
-    grep '| Interaction:' "$TEST_CWD/plan-log.md" 2>/dev/null || true
-}
+# Assert event count in range
+# Usage: assert_era_event_count "2+ Interactions" "interaction" 2
+assert_era_event_count() {
+    local name="$1" type="$2" min="$3" max="${4:-999999}"
+    local count
+    count=$(get_era_events "$type" | jq 'length' 2>/dev/null) || count=0
 
-# Extract Lesson entries from plan-log.md
-get_lessons() {
-    grep '| Lesson:' "$TEST_CWD/plan-log.md" 2>/dev/null || true
+    if [[ $count -ge $min && $count -le $max ]]; then
+        echo -e "${GREEN}PASS${NC}: $name (count=$count, expected $min-$max)"
+        ((PASS++)) || true
+        return 0
+    else
+        echo -e "${RED}FAIL${NC}: $name (count=$count, expected $min-$max)"
+        ((FAIL++)) || true
+        return 1
+    fi
 }
 
 # ============================================================================

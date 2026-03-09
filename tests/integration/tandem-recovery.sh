@@ -42,7 +42,8 @@ echo "Checking for drift..."
 DRIFTED=false
 
 # No Contract should exist (drifted = no gate)
-if ! grep -q "Contract:" "$TEST_CWD/plan-log.md" 2>/dev/null; then
+DRIFT_CONTRACTS=$(get_era_events "contract" | jq 'length' 2>/dev/null) || DRIFT_CONTRACTS=0
+if [[ $DRIFT_CONTRACTS -eq 0 ]]; then
     echo -e "${GREEN}CONFIRMED${NC}: No Contract (session drifted)"
     DRIFTED=true
 else
@@ -85,12 +86,13 @@ echo "Step 3: Approve to verify Contract logging..."
 sleep 2
 implementation_gate "proceed" 10 > /dev/null
 
-# Check Contract now exists
-if grep -q "Contract:" "$TEST_CWD/plan-log.md" 2>/dev/null; then
-    echo -e "${GREEN}PASS${NC}: Contract logged after /tandem recovery"
+# Check Contract now exists in Era
+RECOVERY_CONTRACTS=$(get_era_events "contract" | jq 'length' 2>/dev/null) || RECOVERY_CONTRACTS=0
+if [[ $RECOVERY_CONTRACTS -gt 0 ]]; then
+    echo -e "${GREEN}PASS${NC}: Contract logged to Era after /tandem recovery"
     ((PASS++)) || true
 else
-    echo -e "${RED}FAIL${NC}: No Contract after recovery + approval"
+    echo -e "${RED}FAIL${NC}: No Contract in Era after recovery + approval"
     ((FAIL++)) || true
 fi
 
@@ -121,12 +123,13 @@ echo "Step 2: Approve plan (Gate 1)..."
 sleep 2
 implementation_gate "proceed" 10 > /dev/null
 
-# Verify Contract logged
-if grep -q "Contract:" "$TEST_CWD/plan-log.md" 2>/dev/null; then
-    echo -e "${GREEN}PASS${NC}: Contract logged at Gate 1"
+# Verify Contract logged in Era
+S2_CONTRACTS=$(get_era_events "contract" | jq 'length' 2>/dev/null) || S2_CONTRACTS=0
+if [[ $S2_CONTRACTS -gt 0 ]]; then
+    echo -e "${GREEN}PASS${NC}: Contract logged to Era at Gate 1"
     ((PASS++)) || true
 else
-    echo -e "${RED}FAIL${NC}: No Contract at Gate 1"
+    echo -e "${RED}FAIL${NC}: No Contract in Era at Gate 1"
     ((FAIL++)) || true
 fi
 

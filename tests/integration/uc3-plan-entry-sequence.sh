@@ -9,9 +9,8 @@
 # 4. Verify analysis grade before plan grade
 # 5. Verify blocking prompt
 #
-# Expected: 4/5 pass (80%) - verbatim quote requires Claude to execute bash block
-# The bash block is in tandem.md but Claude chooses whether to run it.
-# This is the documented compliance ceiling for descriptive instructions.
+# Expected: 4/5 pass (80%) - verbatim quote is the hardest compliance target.
+# Claude may summarize rather than quote verbatim.
 
 source "$(dirname "$0")/common.sh"
 
@@ -35,11 +34,11 @@ Use test-driven development with clear phase separation.
 - Create bin/fizzbuzz script
 - Add unit tests
 
-## At Gate 1 Approval
+## At Implementation Gate
 
 Log Contract and create tasks.
 
-## At Gate 2 Approval
+## At Completion Gate
 
 Log Completion and commit."
 

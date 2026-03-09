@@ -70,14 +70,20 @@ else
     echo "SKIP: No plan file found to validate"
 fi
 
-# Contract should have WHAT content
+# Contract should have WHAT content (via Era event)
 echo ""
-CONTRACT=$(get_contracts | head -1)
+CONTRACT=$(get_era_payload "contract")
 if [[ -n "$CONTRACT" ]]; then
     echo "Contract: ${CONTRACT:0:80}..."
 
-    # Contract should have criteria checkboxes
-    assert_exists "Contract has criteria checkboxes" '\[ \]' "$TEST_CWD/plan-log.md"
+    # Contract should have TOML criteria
+    if echo "$CONTRACT" | grep -qE '\[\[criteria\]\]|name\s*='; then
+        echo -e "${GREEN}PASS${NC}: Contract has TOML criteria"
+        ((PASS++)) || true
+    else
+        echo -e "${RED}FAIL${NC}: Contract missing TOML criteria"
+        ((FAIL++)) || true
+    fi
 
     # Contract should NOT have methodology
     if echo "$CONTRACT" | grep -qi "methodology"; then
@@ -97,7 +103,7 @@ if [[ -n "$CONTRACT" ]]; then
         ((PASS++)) || true
     fi
 else
-    echo -e "${RED}FAIL${NC}: No Contract entry found"
+    echo -e "${RED}FAIL${NC}: No Contract entry found in Era"
     ((FAIL++)) || true
 fi
 

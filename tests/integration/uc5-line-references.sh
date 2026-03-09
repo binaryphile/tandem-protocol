@@ -113,14 +113,6 @@ else
     echo -e "${YELLOW}INFO${NC}: No explicit mention of line shift"
 fi
 
-# Check plan-log for line references in entries
-if grep -qE ':[0-9]+\)' "$TEST_CWD/plan-log.md" 2>/dev/null; then
-    echo -e "${GREEN}PASS${NC}: plan-log.md has line references in evidence"
-    ((PASS++)) || true
-else
-    echo -e "${YELLOW}INFO${NC}: No line references in plan-log.md evidence"
-fi
-
 # Print summary
 print_summary
 

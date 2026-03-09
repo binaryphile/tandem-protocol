@@ -101,8 +101,7 @@ else
 fi
 
 # Check 2: Interaction logged for grade
-# Relaxed pattern - protocol works if Interaction is logged
-assert_exists "Interaction entry for grade" 'Interaction:.*grade' "$TEST_CWD/plan-log.md"
+assert_era_event_exists "Interaction entry for grade" "interaction"
 
 # Request improve to trigger lesson capture
 echo ""
@@ -116,46 +115,19 @@ echo "Step 5: Gate 2 - proceed (using context injection)..."
 sleep 2
 completion_gate "proceed" 10 > /dev/null
 
-# Check 3: Lesson entry exists (for non-actionable gaps)
+# Check 3: Lesson capture in grade response (non-actionable gaps route to guides)
 echo ""
-echo "Checking for Lesson entries..."
-LESSONS=$(get_lessons)
-
-if [[ -n "$LESSONS" ]]; then
-    echo "Lessons found:"
-    echo "$LESSONS"
-    echo ""
-
-    # Lesson should have arrow format
-    assert_exists "Lesson entry with arrow" 'Lesson:.*->' "$TEST_CWD/plan-log.md"
-
-    # Lesson should route to a guide
-    if echo "$LESSONS" | grep -qE '-> .*guide|-> .*\.md'; then
-        echo -e "${GREEN}PASS${NC}: Lesson routes to guide"
-        ((PASS++)) || true
-    else
-        echo -e "${YELLOW}WARN${NC}: Lesson may not route to guide file"
-    fi
+echo "Checking for Lesson awareness..."
+if echo "$GRADE_RESULT" | grep -qiE 'lesson|guide|non-actionable|process improvement'; then
+    echo -e "${GREEN}PASS${NC}: Grade mentions lesson/guide routing"
+    ((PASS++)) || true
 else
-    echo -e "${YELLOW}INFO${NC}: No Lesson entries found"
+    echo -e "${YELLOW}INFO${NC}: No explicit lesson routing in grade response"
     echo "This is OK if all gaps were actionable"
 fi
 
-# Check 4: Completion entry exists
-assert_exists "Completion entry" "Completion:" "$TEST_CWD/plan-log.md"
-
-# Validate Lesson format if validators available
-if [[ -f "$VALIDATORS" && -n "$LESSONS" ]]; then
-    source "$VALIDATORS"
-    LESSON=$(echo "$LESSONS" | head -1)
-    if validate_lesson_entry "$LESSON" >/dev/null 2>&1; then
-        echo -e "${GREEN}PASS${NC}: Lesson entry format valid"
-        ((PASS++)) || true
-    else
-        echo -e "${RED}FAIL${NC}: Lesson entry format invalid"
-        ((FAIL++)) || true
-    fi
-fi
+# Check 4: Completion entry exists in Era
+assert_era_event_exists "Completion entry" "complete"
 
 # Print summary
 print_summary

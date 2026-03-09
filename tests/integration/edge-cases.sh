@@ -8,7 +8,6 @@
 # 3. Empty plan file
 # 4. Grade perfect (100/100)
 # 5. Multi-session resume
-# 6. Missing plan-log.md
 
 source "$(dirname "$0")/common.sh"
 
@@ -53,7 +52,8 @@ else
     # Check: No Contract should be logged
     echo ""
     echo "Checking assertions..."
-    if ! grep -q 'Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null; then
+    CONTRACT_COUNT=$(get_era_events "contract" | jq 'length' 2>/dev/null) || CONTRACT_COUNT=0
+    if [[ $CONTRACT_COUNT -eq 0 ]]; then
         echo -e "${GREEN}PASS${NC}: No Contract logged after rejection"
         ((PASS++)) || true
         CASE_RESULTS["reject_plan"]="PASS"
@@ -115,7 +115,7 @@ else
     implementation_gate "proceed" 10 > /dev/null
 
     # Contract should exist now
-    CONTRACT_BEFORE=$(grep -c 'Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
+    CONTRACT_BEFORE=$(get_era_events "contract" | jq 'length' 2>/dev/null) || CONTRACT_BEFORE=0
 
     # Mid-phase scope change
     echo ""
@@ -126,8 +126,8 @@ else
     # Check: Should handle gracefully (either new Contract or amendment note)
     echo ""
     echo "Checking assertions..."
-    CONTRACT_AFTER=$(grep -c 'Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
-    INTERACTION_COUNT=$(grep -c 'Interaction:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
+    CONTRACT_AFTER=$(get_era_events "contract" | jq 'length' 2>/dev/null) || CONTRACT_AFTER=0
+    INTERACTION_COUNT=$(get_era_events "interaction" | jq 'length' 2>/dev/null) || INTERACTION_COUNT=0
 
     if [[ $CONTRACT_AFTER -gt $CONTRACT_BEFORE ]] || [[ $INTERACTION_COUNT -ge 1 ]]; then
         echo -e "${GREEN}PASS${NC}: Scope change handled (new Contract or Interaction logged)"
@@ -266,8 +266,9 @@ else
         CASE_RESULTS["perfect_grade"]="INFO"
     fi
 
-    # Check: No Lesson entry for perfect work
-    LESSON_COUNT=$(grep -c 'Lesson:' "$TEST_CWD/plan-log.md" 2>/dev/null || echo 0)
+    # Check: No Lesson entry for perfect work (check response instead)
+    LESSON_COUNT=0
+    if echo "$GRADE_RESULT" | grep -qiE 'lesson:'; then LESSON_COUNT=1; fi
     if [[ $LESSON_COUNT -eq 0 ]]; then
         echo -e "${GREEN}PASS${NC}: No Lesson entry for complete work"
         ((PASS++)) || true
@@ -326,62 +327,13 @@ else
         CASE_RESULTS["multi_session"]="FAIL"
     fi
 
-    # Check: Contract should still exist from before
-    if grep -q 'Contract:' "$TEST_CWD/plan-log.md" 2>/dev/null; then
-        echo -e "${GREEN}PASS${NC}: Contract preserved across sessions"
+    # Check: Contract should still exist in Era from before
+    ERA_CONTRACTS=$(get_era_events "contract" | jq 'length' 2>/dev/null) || ERA_CONTRACTS=0
+    if [[ $ERA_CONTRACTS -gt 0 ]]; then
+        echo -e "${GREEN}PASS${NC}: Contract preserved in Era across sessions"
         ((PASS++)) || true
     else
         echo -e "${YELLOW}WARN${NC}: Contract may not have been logged before break"
-    fi
-fi
-
-cleanup false
-
-# ============================================================================
-# CASE 6: Missing plan-log.md
-# ============================================================================
-
-run_case "Missing plan-log.md"
-
-setup_workspace
-trap 'cleanup true' EXIT
-
-# Remove plan-log.md
-rm -f "$TEST_CWD/plan-log.md"
-
-echo "Step 1: Start session without plan-log.md..."
-RESULT=$(start_session "/tandem plan to implement fizzbuzz" 10)
-SESSION_ID=$(extract_session_id "$RESULT")
-
-if [[ -z "$SESSION_ID" ]]; then
-    echo "ERROR: Failed to start session"
-    CASE_RESULTS["missing_planlog"]="SKIP"
-else
-    echo "Session: $SESSION_ID"
-
-    # Approve plan - should create plan-log.md
-    sleep 2
-    implementation_gate "proceed" 10 > /dev/null
-
-    # Check: plan-log.md should be created automatically
-    echo ""
-    echo "Checking assertions..."
-    if [[ -f "$TEST_CWD/plan-log.md" ]]; then
-        echo -e "${GREEN}PASS${NC}: plan-log.md created automatically"
-        ((PASS++)) || true
-        CASE_RESULTS["missing_planlog"]="PASS"
-
-        # Check: Contract should be logged
-        if grep -q 'Contract:' "$TEST_CWD/plan-log.md"; then
-            echo -e "${GREEN}PASS${NC}: Contract logged to new file"
-            ((PASS++)) || true
-        else
-            echo -e "${YELLOW}WARN${NC}: Contract not logged yet"
-        fi
-    else
-        echo -e "${RED}FAIL${NC}: plan-log.md not created"
-        ((FAIL++)) || true
-        CASE_RESULTS["missing_planlog"]="FAIL"
     fi
 fi
 

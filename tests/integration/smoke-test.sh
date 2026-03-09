@@ -54,27 +54,32 @@ else
 fi
 
 echo ""
-echo "Step 3: Create test artifact..."
-echo "2026-02-09T00:00:00Z | Contract: Smoke Test | [ ] infrastructure works" >> "$TEST_CWD/plan-log.md"
+echo "Step 3: Test Era helpers..."
 
-# Test assertions
+# Publish a test event to Era
+era publish -s "$ERA_STREAM" --type contract 'phase = "smoke-test"
+
+[[criteria]]
+name = "infrastructure works"' 2>/dev/null
+
+# Test Era query helpers
 echo ""
 echo "Step 4: Test assertions..."
 
-assert_exists "Contract in plan-log" "Contract:.*Smoke Test" "$TEST_CWD/plan-log.md"
-assert_not_exists "No Completion yet" "Completion:" "$TEST_CWD/plan-log.md"
-assert_count "Exactly 1 Contract" "Contract:" "$TEST_CWD/plan-log.md" 1 1
+assert_era_event_exists "Contract in Era" "contract"
+assert_era_event_count "No Completion yet" "complete" 0 0
+assert_era_event_count "Exactly 1 Contract" "contract" 1 1
 
 echo ""
 echo "Step 5: Test utilities..."
 
-# Test get_contracts
-CONTRACTS=$(get_contracts)
-if [[ -n "$CONTRACTS" ]]; then
-    echo -e "${GREEN}PASS${NC}: get_contracts works"
+# Test get_era_payload
+PAYLOAD=$(get_era_payload "contract")
+if [[ -n "$PAYLOAD" ]]; then
+    echo -e "${GREEN}PASS${NC}: get_era_payload works"
     ((PASS++)) || true
 else
-    echo -e "${RED}FAIL${NC}: get_contracts returned empty"
+    echo -e "${RED}FAIL${NC}: get_era_payload returned empty"
     ((FAIL++)) || true
 fi
 

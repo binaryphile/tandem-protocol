@@ -1,39 +1,44 @@
-# UC2-B Design: Plan Mode & Content Distinction Integration
+# UC2 Design: Plan Mode & Content Distinction
 
-## Current State Analysis
+## Design
 
-**Location:** README.md Step 1c
+**Location:** README.md Step 1c (plan template, HOW/WHAT distinction line)
 
-**Current pseudocode:**
-```python
-# Exit plan mode - enables write operations
-if tool_available("ExitPlanMode"):
-    ExitPlanMode()
-    # DISTINCTION (HOW vs WHAT):
-    # Plan file (~/.claude/plans/): HOW - approach, methodology, phasing
-    # Contract entry (plan-log.md): WHAT - scope, deliverables, success criteria
-    # Plan persists across phases; Contract entry captures per-phase scope
-```
+**Design principle:** Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `mk contract` at the Implementation Gate, not stored in the plan file.
 
-**Status:** Implemented. File distinction is now plan file vs Contract entry (not contract file).
+### Tool Mapping
 
-## Design Changes
+| UC Step | Tool/Mechanism |
+|---------|---------------|
+| Enter plan mode | `EnterPlanMode` tool |
+| Write plan | Edit `~/.claude/plans/<name>.md` |
+| Exit plan mode | `ExitPlanMode` tool |
+| Publish contract | `mk contract "criteria"` at Implementation Gate |
 
-No changes needed - the protocol already contains the HOW vs WHAT distinction.
+### Content Routing
 
-**Note:** UC7 eliminated contract files in favor of direct logging to plan-log.md:
-- **Before:** Contract file in project directory
-- **After:** Contract entry timestamped in plan-log.md
+| Content Type | Belongs In | Mechanism |
+|--------------|------------|-----------|
+| Approach | Plan file (`~/.claude/plans/`) | Written during plan mode |
+| Methodology | Plan file | Written during plan mode |
+| Research notes | Plan file | Written during plan mode |
+| Scope | Contract event | `mk contract` at Implementation Gate |
+| Success criteria | Contract event | `mk contract` at Implementation Gate |
+| Deliverables | Contract event | `mk contract` at Implementation Gate |
 
-## Behavioral Test Cases (for UC2-C)
+### Integration Points
 
-Tests verify README.md contains the required guidance.
+| Protocol Step | Action |
+|---------------|--------|
+| Step 1c (Design) | Enter plan mode, write plan file |
+| Step 1d (Present) | Validate plan, exit plan mode |
+| Step 2 (Impl Gate) | Publish contract via `mk contract` |
+
+## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
 | T1 | Plan file = HOW | `[Pp]lan file.*HOW\|HOW.*plan` |
-| T2 | Contract entry = WHAT | `[Cc]ontract.*WHAT\|WHAT.*[Cc]ontract` |
+| T2 | Contract = WHAT | `[Cc]ontract.*WHAT\|WHAT.*[Cc]ontract` |
 | T3 | Plan file location | `~/.claude/plans/\|plans/` |
-| T4 | Plan persists across phases | `persist.*phase\|across.*phase` |
-
-**Test Logic:** PASS if pattern found in Step 1c section of README.md
+| T4 | mk contract at gate | `mk contract` |

@@ -2,98 +2,68 @@
 
 **Scope:** Tandem Protocol
 **Level:** Blue
-**Primary Actor:** LLM (executing protocol)
-**Secondary Actors:** plan-log.md (log target)
+**Primary Actor:** User (developer)
+**Secondary Actors:** LLM (executing protocol), event store
 
 ## In/Out List
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Contract entries (scope/deliverables) | Automated log analysis |
-| Completion entries (step/deliverable done) | Log aggregation tools |
-| Interaction entries (user feedback, /i /c /g cycles) | Exceptional cases (Claude reasons through) |
-| Direct logging to plan-log.md | Contract file lifecycle |
+| Contract events (scope/deliverables) | Automated log analysis |
+| Completion events (deliverable done) | Log aggregation tools |
+| Interaction events (user feedback, /i /c /g cycles) | |
+| Events recorded in event store | |
 
 ## System-in-Use Story
 
-> Claude, starting a new phase, logs the scope with checkboxes: `2026-02-06T14:30:00Z | Contract: Phase 1 - auth middleware | [ ] middleware, [ ] tests, [ ] docs`. As work completes, Claude copies the criteria and fills checkboxes: `2026-02-06T14:45:00Z | Completion: Step 2 | [x] middleware (auth.go:45), [x] tests (auth_test.go), [x] docs (README:12)`. The user invokes `/i` to improve. Claude self-assesses, finds a missing edge case, and fixes it, logging: `2026-02-06T14:50:00Z | Interaction: /i -> missing edge case, added handling`. The user likes this because criteria verification is explicit—can't claim "3/3 met" without evidence. Claude likes it because the checkbox format enforces accountability.
+> Alex, starting a new phase, sees Claude publish the scope with criteria: "Phase 1 - auth middleware | middleware | tests | docs". As work completes, Claude publishes completion with evidence for each criterion. Alex invokes `/i` to improve. Claude self-assesses, finds a missing edge case, fixes it, and logs the interaction. Alex likes this because criteria verification is explicit — can't claim "3/3 met" without evidence.
 
 ## Stakeholders & Interests
 
-- **User:** Wants record of session flow without managing contract files
+- **User:** Wants record of session flow without managing files
 - **LLM:** Needs to capture behavioral data for improvement
-- **Protocol:** Enables future behavioral analysis via single log file
+- **Protocol:** Enables future behavioral analysis via event logging
 
 ## Preconditions
 
-- plan-log.md exists or will be created
-- LLM is executing protocol steps
+- Protocol execution is in progress
 
 ## Success Guarantee
 
-- All protocol events logged directly to plan-log.md
-- Entry types distinguish scope (Contract), progress (Completion), and feedback (Interaction)
-- Patterns visible for future analysis
+- All protocol events recorded
+- Event types distinguish scope (contract), progress (completion), and feedback (interaction)
 
 ## Minimal Guarantee
 
-- Major events captured in plan-log.md
+- Major events captured
 
 ## Trigger
 
-LLM reaches a logging point: phase start (Contract), step completion (Completion), or user input (Interaction).
+System reaches a protocol milestone: phase start (contract), deliverable done (completion), or user input (interaction).
 
 ## Main Success Scenario
 
-1. LLM reaches logging point during protocol execution
-2. LLM determines entry type (Contract, Completion, or Interaction)
-3. LLM appends timestamped entry to plan-log.md
-4. LLM continues protocol execution
+1. System reaches a protocol milestone
+2. System determines event type (contract, completion, or interaction)
+3. System records event
+4. System continues protocol execution
 
 ## Extensions
 
-3a. plan-log.md doesn't exist:
-    3a1. Create plan-log.md with header
-    3a2. Continue at step 3
+3a. Event store unavailable:
+    3a1. System reports error to user
+    3a2. Continue protocol execution without logging
 
-## Guard Conditions (Behavioral Tests)
+## Guard Conditions
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
-| Phase started | Must have Contract entry with scope |
-| Step completed | Must have Completion entry with result |
-| User feedback given | Must have Interaction entry with response |
-| /i cycle occurred | Must show /i -> description of fix |
-
-## Event Types
-
-| Type | When | Format |
-|------|------|--------|
-| Contract | Phase start (Step 1d) | `YYYY-MM-DDTHH:MM:SSZ \| Contract: [phase] \| [ ] criterion1, [ ] criterion2, ...` |
-| Completion | Step/deliverable done | `YYYY-MM-DDTHH:MM:SSZ \| Completion: [step] \| [x] criterion1 (evidence), [x] criterion2 (evidence), ...` |
-| Interaction | User input (feedback, skills) | `YYYY-MM-DDTHH:MM:SSZ \| Interaction: [input] -> [response]` |
-
-**Completion markers:**
-- `[x]` = completed with evidence
-- `[ ]` = not completed (failure)
-- `[-]` = removed (with reason)
-- `[+]` = added (with reason)
-
-## Integration Points
-
-| Protocol Step | Event Type | Example |
-|---------------|------------|---------|
-| Step 1d | Contract | `Contract: Phase 1 - auth \| [ ] middleware, [ ] tests, [ ] docs` |
-| Step 1e | Completion | `Completion: Step 1 - plan validated` |
-| Step 2b | Completion | `Completion: Step 2 \| [x] middleware (auth.go:45), [x] tests (pass), [x] docs (README)` |
-| Step 3a | Presentation | "Upon your approval" lists Step 4a/4b/4c explicitly |
-| Step 3b | Interaction | `Interaction: /i -> found issue, fixed` |
-| Step 4a | Completion | `Completion: Phase 1 approved` |
-| Step 4b | Commit | Commit deliverable + plan-log.md |
-| Step 4c | Transition | Groom plan file, route lessons, setup next phase |
+| Phase started (Implementation Gate) | Must have contract event with scope |
+| Deliverable complete (Completion Gate) | Must have completion event with evidence |
+| User feedback given | Must have interaction event with response |
+| `/i` cycle occurred | Must show interaction with description of fix |
 
 ## Project Info
 
 - Priority: P4 (New feature)
 - Frequency: Every protocol execution
-- Behavioral Goal Impact: +1 new goal (events logged for analysis)

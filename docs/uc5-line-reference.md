@@ -2,7 +2,8 @@
 
 **Scope:** Tandem Protocol
 **Level:** Blue
-**Primary Actor:** LLM (executing protocol)
+**Primary Actor:** User (developer)
+**Secondary Actors:** LLM (executing protocol)
 
 ## In/Out List
 
@@ -10,11 +11,11 @@
 |----------|--------------|
 | Verify line numbers after edits | Specific tooling for verification |
 | Guidance to re-check references | Automated line tracking |
-| Main success path only | Exceptional cases (Claude reasons through these) |
+| Main success path only | Exceptional cases |
 
 ## System-in-Use Story
 
-> Claude, having just edited README.md to add a new section, realizes the line numbers mentioned in the plan have shifted. Before presenting results, Claude re-reads the affected sections to verify line references still point to the right places. The user likes this because stale line numbers in documentation cause confusion. Claude likes the explicit reminder because it's easy to forget that edits shift line numbers downstream.
+> Alex, reviewing Claude's implementation results, notices the plan references line 45 of auth.go — but Claude just added 20 lines above that section. Before presenting, Claude re-reads the affected sections to verify line references still point to the right places. Alex likes this because stale line numbers in documentation cause confusion.
 
 ## Stakeholders & Interests
 
@@ -24,7 +25,7 @@
 
 ## Preconditions
 
-- LLM has made edits to a file
+- System has made edits to a file
 - Plan or contract references specific line numbers
 
 ## Success Guarantee
@@ -34,35 +35,27 @@
 
 ## Minimal Guarantee
 
-- LLM aware that line numbers may have shifted
+- System aware that line numbers may have shifted
 
 ## Trigger
 
-LLM completes edits to a file that has line references in plan/contract.
+System completes edits to a file that has line references in plan or contract.
 
 ## Main Success Scenario
 
-1. LLM completes edit to file
-2. LLM notes that plan/contract references line numbers in that file
-3. LLM re-reads relevant sections to verify line numbers
-4. LLM updates any stale references before presenting results
+1. System completes edits to a file
+2. System notes that plan or contract references line numbers in that file
+3. System re-reads relevant sections to verify line numbers
+4. System updates any stale references before presenting results
 
-## Guard Conditions (Behavioral Tests)
+## Guard Conditions
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
 | After edits with line refs | Must verify references still accurate |
 | Stale line number found | Must update before presenting |
 
-## Integration Points in Protocol
-
-| Step | Guidance Needed |
-|------|-----------------|
-| Step 3 | After completing edits, verify line references |
-| Step 4 | Grade should check for stale references |
-
 ## Project Info
 
 - Priority: P3 (Low frequency failure)
 - Frequency: When edits affect referenced lines
-- Behavioral Goal Impact: Strengthens existing goal (documentation accuracy)

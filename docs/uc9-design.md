@@ -28,6 +28,14 @@ Repeated `/i` cycles at gates, with auto-cycling before initial presentation:
 
 `<task-id>` is the era event ID returned by `mk task` — record it at Implementation Gate, substitute into Completion Gate's `mk done`.
 
+### Event Types
+
+| Event | Source | Destination | Mechanism |
+|-------|--------|-------------|-----------|
+| Interaction | `/i` `/c` `/g` at either gate | Era stream | `mk interaction "/i -> description"` |
+| Task | Implementation Gate | Era stream | `mk task "description"` |
+| Task-done | Completion Gate | Era stream | `mk done <task-id> "evidence"` |
+
 ## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |

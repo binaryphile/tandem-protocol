@@ -2,18 +2,24 @@
 
 ## Design
 
-**Location:** README.md - multiple steps (1d, 1e, 2b, 3b, 4a)
+**Location:** README.md - Implementation Gate actions, Completion Gate actions, grading cycle sections
 
-**Design principle:** Log to plan-log.md at step boundaries, not intermediate files.
+**Design principle:** All events published to Era via `mk` commands. Era is the single event store — no local log files.
 
-### Entry Format
+### Event Types and Commands
 
-```
-YYYY-MM-DDTHH:MM:SSZ | Type: description | [checkboxes with evidence]
-```
+| Type | When | mk Command | Example |
+|------|------|------------|---------|
+| Contract | Implementation Gate | `mk contract` | `mk contract "Phase 1 - auth \| [ ] middleware \| [ ] tests"` |
+| Completion | Completion Gate | `mk complete` | `mk complete "Phase 1 \| [x] middleware (auth.go:45) \| [x] tests (pass)"` |
+| Interaction | `/i` `/c` `/g` at gates | `mk interaction` | `mk interaction "/i -> missing edge case, added"` |
+| Task | Implementation Gate | `mk task` | `mk task "Phase 1 - auth"` |
+| Task-done | Completion Gate | `mk done` | `mk done <id> "Phase 1 complete"` |
 
-**Contract entry:** Lists criteria with `[ ]` checkboxes
-**Completion entry:** Copies criteria verbatim, fills `[x]/[-]/[+]` with evidence
+### Contract/Completion Criteria Format
+
+**Contract:** Lists criteria with `[ ]` checkboxes (pipe-separated)
+**Completion:** Copies criteria, fills `[x]` with evidence
 
 **Markers:**
 - `[x]` = completed with evidence
@@ -21,60 +27,31 @@ YYYY-MM-DDTHH:MM:SSZ | Type: description | [checkboxes with evidence]
 - `[-]` = removed (with reason)
 - `[+]` = added (with reason)
 
-### Entry Types
-
-| Type | When | Purpose |
-|------|------|---------|
-| Contract | Step 1d (phase start) | Captures scope/deliverables/criteria |
-| Completion | Results delivered | Tracks criteria met against contract |
-| Interaction | User input | Records feedback, /i /c /g cycles |
-
 ### Protocol Integration
 
-| Step | Action |
-|------|--------|
-| 1d | Log `Contract:` entry (scope, criteria) |
-| 1e | Log `Completion: Step 1` |
-| 2b | Log `Completion: Step 2` (all criteria met against contract) |
-| 3a | Present results with "Upon your approval" listing Step 4 substeps |
-| 3b | Log `Interaction:` on user feedback |
-| 4a | Log `Completion: Phase approved` |
-| 4b | Commit deliverable + plan-log.md |
-| 4c | Setup next phase (groom plan file, route lessons) |
+| Protocol Step | Event Type | Command |
+|---------------|------------|---------|
+| Step 2 (Impl Gate) | Contract + Task | `mk contract` + `mk task` |
+| Steps 2/4 (grading) | Interaction | `mk interaction` |
+| Step 4 (Compl Gate) | Completion + Task-done | `mk complete` + `mk done` |
 
-### Step 3a Presentation Template
+### Example Event Flow
 
 ```
-**Upon your approval, I will:**
-1. Log Completion entry for Step 3
-2. Step 4a: Log phase approval to plan-log.md
-3. Step 4b: Commit deliverable + plan-log.md
-4. Step 4c: Setup next phase (groom plan file, route lessons)
-
-**May I proceed?**
-```
-
-### Example Log
-
-```
-2026-02-06T14:30:00Z | Contract: Phase 1 - auth middleware | [ ] middleware, [ ] tests, [ ] docs
-2026-02-06T14:35:00Z | Completion: Step 1 - plan validated, approval received
-2026-02-06T15:00:00Z | Interaction: /i -> missing edge case handling, added
-2026-02-06T15:30:00Z | Completion: Step 2 | [x] middleware (auth.go:45), [x] tests (auth_test.go), [x] docs (README:12)
-2026-02-06T15:45:00Z | Interaction: /i -> found validation gap, fixed
-2026-02-06T15:50:00Z | Completion: Phase 1 approved
-
-# Example with changes:
-2026-02-06T16:00:00Z | Completion: Step 2 | [x] middleware (auth.go:45), [-] tests (deferred: user approved), [+] logging (added: dependency)
+mk contract "Phase 1 - auth middleware | [ ] middleware | [ ] tests | [ ] docs"
+mk task "Phase 1 - auth middleware"
+# ... implementation ...
+mk interaction "/i -> missing edge case handling, added"
+mk interaction "/c -> naming violation per Go guide, fixed"
+mk complete "Phase 1 | [x] middleware (auth.go:45) | [x] tests (pass) | [x] docs (README:12)"
+mk done 14752 "Phase 1 complete"
 ```
 
 ## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
-| T1 | Contract entry format with checkboxes | `Contract:.*\[ \]` |
-| T2 | Completion entry format with filled checkboxes | `Completion:.*\[x\]` |
-| T3 | Interaction entry format | `Interaction:.*->` |
-| T4 | No contract file references | NOT `phase-.*-contract.md` |
-| T5 | Completion copies Contract criteria | `copy.*Contract.*criteria\|criteria.*verbatim` |
-
+| T1 | mk contract at Implementation Gate | `mk contract` |
+| T2 | mk complete at Completion Gate | `mk complete` |
+| T3 | mk interaction at grading | `mk interaction` |
+| T4 | No plan-log.md references | NOT `plan-log` |

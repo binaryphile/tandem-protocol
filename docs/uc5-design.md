@@ -1,51 +1,27 @@
-# UC5-B Design: Line Reference Guidance
+# UC5 Design: Line Reference Guidance
 
 ## Design
 
-**Location:** README.md - Step 4 (Update Contract)
+**Location:** README.md - Step 1a (note_line_refs comment), Step 3a (implicit in implementation)
 
 **Design principle:** Protocol covers main success path only. Exceptional cases omitted.
 
-**Current state:** Step 4 already references line numbers in contract updates (lines 513, 520) but no reminder to verify after edits.
-
 **Problem:** Observed failures where line numbers become stale after edits but aren't updated.
 
-## Change
+### Mechanism
 
-Add comment reminding to verify line references before updating contract.
+Step 1a already includes `note_line_refs # will shift after edits` — this is the reminder that line numbers noted during investigation will drift during implementation. The system should re-read affected sections before presenting results at step 3b.
 
-**Location:** Step 4, before contract update block (~line 504)
+### Integration Points
 
-```python
-# After edits: verify line references still accurate (numbers shift)
-update_contract("""
-...
-```
+| Protocol Step | Action |
+|---------------|--------|
+| Step 1a (Investigate) | Note line refs (with caveat they'll shift) |
+| Step 3a (Execute) | After edits, verify line refs still accurate |
+| Step 3b (Present) | Present with corrected references |
 
-## Line Budget
-
-| Change | Lines |
-|--------|-------|
-| Comment at Step 4 | +1 |
-| **Total** | **+1** |
-
-Total UC4+UC5: +0 + +1 = +1 line. Well within budget.
-
-## Behavioral Test Cases (for UC5-C)
+## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
-| T1 | Line reference verification guidance | `verify.*line\|line.*shift\|numbers.*shift` |
-
-## UC5-C Implementation Sequence (Red/Green TDD)
-
-### Phase 1: RED
-1. Create `tests/uc5-line-reference.sh` with T1 test
-2. Run against current protocol - expect FAIL
-
-### Phase 2: GREEN
-1. Add comment to Step 4
-2. Verify T1 PASS
-
-### Phase 3: REFACTOR
-1. Already minimal - no refactoring needed
+| T1 | Line reference verification guidance | `verify.*line\|line.*shift\|numbers.*shift\|will shift` |

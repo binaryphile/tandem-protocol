@@ -1,127 +1,69 @@
-# UC3-B Design: Plan Mode Entry Sequence
+# UC3 Design: Plan Mode Entry Sequence
 
 ## Design
 
-**Location:** README.md - Step 1 start 
-**Design principle:** Protocol covers the main success path only. Exceptional cases (no existing plan, file too large, etc.) are omitted - Claude can reason through these without explicit guidance. This maintains protocol efficiency.
+**Location:** README.md - Step 1c (existing-plan guidance), CLAUDE.md (Plan Mode Entry)
+**Design principle:** Protocol covers the main success path only. Exceptional cases omitted — Claude can reason through these without explicit guidance.
 
-Step 1 sequence:
-1. Enter plan mode
-2. If existing plan: quote verbatim, grade /a then /p, wait for direction
-3. Present understanding + "Upon approval I will..." + "May I proceed?"
-4. On approval: exit plan mode, log Contract entry to plan-log.md
-5. Log Completion entry for Step 1
-6. Continue to Step 2 (complete deliverable)
+### Mechanism
 
-## Pseudocode
+Step 1c sequence:
+1. `EnterPlanMode` (creates `~/.claude/plans/<name>.md`)
+2. If existing plan (system-reminder shows plan content):
+   - Quote plan verbatim (no summarizing)
+   - Grade analysis: "Do I understand this?"
+   - Grade plan quality: "Is this sound?"
+   - Wait for user direction before proceeding
+3. Otherwise: create new plan
+4. On approval: `ExitPlanMode`, execute Implementation Gate bash block
 
-**Location:** Step 2 start
+### Pseudocode
 
 ```python
-# STEP 1 START: Plan mode entry 
-# 1a. Enter plan mode
-if tool_available("EnterPlanMode"):
-    EnterPlanMode()
+# Plan mode entry
+EnterPlanMode()
 
-# 1b. If existing plan, quote and grade
+# If existing plan appears in system-reminder
 plan_file = find_plan("~/.claude/plans/")
 if plan_file:
-    # Quote VERBATIM - no summarizing
-    present(f"```\n{read(plan_file)}\n```")
-
-    # Analysis grade FIRST (/a)
-    present(grade_analysis())  # "Do I understand this?"
-
-    # Plan grade SECOND (/p)
-    present(grade_plan())  # "Is this sound?"
-
-    # BLOCKING: wait for direction on grades
-    direction = wait_for("improve", "proceed")
-
+    present(f"```\n{read(plan_file)}\n```")  # VERBATIM
+    present(grade_analysis())   # "Do I understand this?" — FIRST
+    present(grade_plan())       # "Is this sound?" — SECOND
+    direction = wait_for("improve", "proceed")  # BLOCKING
     if direction == "improve":
         address_deductions()
         # Loop back to re-grade
 
-# 1c. APPROVAL GATE: Re-present understanding + what happens on proceed
-present(f"""
-## Plan Ready for Approval
-
-**Objective:** [from understanding]
-**Success criteria:** [count] items
-**Approach:** [summary]
-
-**Upon your approval, I will:**
-1. Exit plan mode
-2. Log Contract entry to plan-log.md (scope/criteria)
-3. Log Completion entry for Step 1
-4. Proceed to Step 2 (complete deliverable)
-
-**May I proceed?**
-""")
-
-# BLOCKING: wait for explicit approval
-wait_for("proceed", "yes", "approved")
-
-# 1d. Exit plan mode - enables write operations
-if tool_available("ExitPlanMode"):
-    ExitPlanMode()
-
-# Continue to Step 1d (create contract)...
+# On approval
+ExitPlanMode()
+# Execute Implementation Gate bash block:
+#   mk contract "criteria"
+#   mk task "description"
 ```
 
-## Step 1d-1e: Log Contract and Completion (after approval)
+### Integration Points
 
-After user says "proceed":
+| Protocol Step | Action |
+|---------------|--------|
+| Step 1c (Design) | Enter plan mode, check for existing plan |
+| Step 1d (Present) | Quote verbatim, grade, wait for direction |
+| Step 2 (Impl Gate) | On approval: exit plan mode, publish contract via `mk contract` |
+| CLAUDE.md | Reinforces: quote verbatim, grade, wait |
 
-```python
-# Step 1d: Log Contract entry (captures "what we agreed to")
-timestamp = datetime.now().isoformat() + "Z"
-criteria_checkboxes = ", ".join([f"[ ] {c}" for c in success_criteria])
-contract_entry = f"{timestamp} | Contract: Phase {N} - {objective} | {criteria_checkboxes}"
-append_to_log("plan-log.md", contract_entry)
+### File Content at Each Step
 
-# Example: 2026-02-06T14:30:00Z | Contract: Phase 1 - auth | [ ] middleware, [ ] tests, [ ] docs
+| Content Type | Belongs In | Example |
+|--------------|------------|---------|
+| Plan contents | Verbatim quote block | `` ```\n[exact plan text]\n``` `` |
+| Analysis grade | After quote | "Analysis Grade: B+ — understood scope but missed constraint" |
+| Plan grade | After analysis | "Plan Grade: A- — sound approach, minor ordering issue" |
+| Direction prompt | After grades | "Improve or proceed?" |
 
-# Step 1e: Log Completion entry for Step 1
-completion_entry = f"{timestamp} | Completion: Step 1 - plan validated, approval received"
-append_to_log("plan-log.md", completion_entry)
-```
-
-**Entry format:** See UC7 for Contract/Completion entry details
-
-## Behavioral Test Cases (for UC3-C)
+## Behavioral Test Cases
 
 | Test ID | What Protocol Must Contain | Grep Pattern |
 |---------|---------------------------|--------------|
 | T1 | Quote verbatim guidance | `[Qq]uote.*verbatim\|VERBATIM\|no summar` |
-| T2 | Analysis grade before plan grade | `analysis.*FIRST\|/a.*before\|grade.*analysis.*grade.*plan` |
-| T3 | BLOCKING wait for direction | `BLOCKING.*wait\|wait.*direction` |
-| T4 | Improve path (all deductions) | `improve.*ALL\|ALL.*deductions\|address.*deductions` |
-
-## Integration Points
-
-- **README.md:** Step 1 start - **Mermaid diagram:** Step 1 is Plan Validation (no contract check)
-
-## Line Budget
-
-| Item | Lines |
-|------|-------|
-| Plan mode entry pseudocode | +20 |
-| **Net** | **+20** |
-
-Compliance buffer: UC1 (+5) + UC2 (+2) + UC3 (+20) = +27 of +30 available.
-
-## UC3-C Implementation Sequence (Red/Green TDD)
-
-### Phase 1: RED
-1. Create `tests/uc3-plan-mode-entry.sh` with T1-T4 tests
-2. Run against current protocol
-3. Verify tests FAIL
-
-### Phase 2: GREEN
-1. Add Plan Mode Entry section to README.md
-2. Verify tests PASS
-
-### Phase 3: REFACTOR
-1. Tune for efficiency (target: ≤+20 lines)
-2. Verify tests still pass
+| T2 | Analysis grade before plan grade | `analysis.*FIRST\|grade.*analysis` |
+| T3 | BLOCKING wait for direction | `[Ww]ait.*direction\|BLOCKING` |
+| T4 | Improve path | `address.*deductions\|improve` |

@@ -2,8 +2,8 @@
 
 **Scope:** Tandem Protocol
 **Level:** Blue
-**Primary Actor:** LLM (executing protocol)
-**Secondary Actors:** Guide files (self-grading-guide.md, etc.)
+**Primary Actor:** User (developer)
+**Secondary Actors:** LLM (executing protocol), guide files
 
 ## In/Out List
 
@@ -11,11 +11,12 @@
 |----------|--------------|
 | Capturing non-actionable lessons during grading | Guide file format/structure |
 | Routing lessons to appropriate guide | Automated lesson extraction |
-| Main success path only | Exceptional cases (Claude reasons through these) |
+| Distinguishing deductions from lessons | |
+| Main success path only | Exceptional cases |
 
 ## System-in-Use Story
 
-> Claude, grading its work on a feature implementation, identifies a gap: "The error messages could be more user-friendly." This isn't fixable now—the feature works, the contract is complete. Instead of inflating the grade deduction or ignoring it, Claude notes the lesson in self-grading-guide.md: "Consider user-facing error message clarity during implementation." The user likes this because insights aren't lost. Claude likes it because the grade stays focused on actionable items while patterns still get captured for future work.
+> Alex, reviewing Claude's grade on a feature implementation, notices Claude identified a gap: "The error messages could be more user-friendly." This isn't fixable now — the feature works, the contract is complete. Instead of inflating the grade deduction or ignoring it, Claude notes the lesson in the appropriate guide for future reference. Alex likes this because insights aren't lost. The grade stays focused on actionable items while patterns still get captured for future work.
 
 ## Stakeholders & Interests
 
@@ -25,13 +26,13 @@
 
 ## Preconditions
 
-- LLM is performing grading (Step 4b or any /w invocation)
+- System is performing grading at a gate
 - Gap identified that isn't actionable in current session
 
 ## Success Guarantee
 
-- Actionable gaps → grade deductions
-- Non-actionable gaps → lessons in guides
+- Actionable gaps become grade deductions
+- Non-actionable gaps become lessons in guides
 - No grade inflation from non-actionable items
 - Lessons preserved for future reference
 
@@ -42,43 +43,34 @@
 
 ## Trigger
 
-LLM identifies a gap during grading that cannot be fixed in the current session.
-
-## Lesson Entry Format
-
-| Type | When | Format |
-|------|------|--------|
-| Lesson | Non-actionable gap during grading | `TIMESTAMP \| Lesson: [title] -> [guide] \| [context]` |
-
-**Example:**
-`2026-02-07T15:30:00Z | Lesson: Integration test ≠ post-hoc verification -> protocol-guide.md | Asked for step-by-step, built final-state`
+System identifies a gap during grading that cannot be fixed in the current session.
 
 ## Main Success Scenario
 
-1. LLM performs grading on completed work
-2. LLM identifies gap in deliverable
-3. LLM applies actionability test: "Can I fix this now?"
+1. System performs grading on completed work
+2. System identifies gap in deliverable
+3. System applies actionability test: "Can I fix this now?"
 4. Gap is NOT actionable (out of scope, future work, process improvement)
-5. LLM captures lesson in appropriate guide file
-6. LLM continues grading without deducting for this gap
+5. System captures lesson in appropriate guide
+6. System continues grading without deducting for this gap
 
 ## Extensions
 
 3a. Gap IS actionable:
-    3a1. LLM includes as grade deduction
-    3a2. If user says "improve", LLM fixes it
+    3a1. System includes as grade deduction
+    3a2. If user says "improve", system fixes it
     3a3. Continue at step 2 for next gap
 
 5a. No appropriate guide exists:
-    5a1. LLM notes lesson in grading output
+    5a1. System notes lesson in grading output
     5a2. Suggests guide creation if pattern recurring
     5a3. Continue at step 6
 
 5b. Lesson duplicates existing guide content:
-    5b1. LLM notes "already captured"
+    5b1. System notes "already captured"
     5b2. Continue at step 6
 
-## Guard Conditions (Behavioral Tests)
+## Guard Conditions
 
 | Condition | Expected Behavior |
 |-----------|-------------------|
@@ -95,36 +87,7 @@ LLM identifies a gap during grading that cannot be fixed in the current session.
 - Not requiring user decisions not yet made
 - Not a process/methodology improvement (those go to guides)
 
-## File Routing Guide
-
-Route lessons to the PI stage where they apply:
-
-| Lesson Type | PI Stage | Target Guide |
-|-------------|----------|--------------|
-| "Should have explored X" | Plan | planning-guide.md |
-| "Misunderstood Y" | Plan | planning-guide.md |
-| "Better approach Z" | Plan | planning-guide.md |
-| Code quality patterns | Implement | (domain-specific guide) |
-| Protocol compliance | (meta) | protocol-guide.md |
-
-## Integration Points
-
-| Event | Lesson Action | Example |
-|-------|---------------|---------|
-| Grading (/w, /p) | Identify non-actionable gaps, queue for capture | "Integration ≠ verification" noted |
-| Gate 2 Approval | Log Lesson entries to plan-log.md | `Lesson: X -> guide \| context` |
-| Gate 2 Approval | Append lesson content to target guide file | Add section to planning-guide.md |
-
-**Locality:** Plan files should include explicit lesson routing instructions at Gate 2:
-```markdown
-## At Gate 2 Approval
-- Review session for gaps between ask and delivery
-- Log Lesson entries to plan-log.md for non-actionable insights
-- Append lesson content to appropriate guide files
-```
-
 ## Project Info
 
 - Priority: P4 (New feature)
 - Frequency: Every grading cycle
-- Behavioral Goal Impact: +1 new goal (lessons captured in guides)

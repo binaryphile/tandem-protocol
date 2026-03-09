@@ -1,8 +1,8 @@
-# UC8-B Design: Todo Integration with Plan File
+# UC8 Design: Todo Integration with Plan File
 
 ## Design
 
-**Location:** README.md - Step 1 (start) and Step 4c
+**Location:** README.md - Plan template (gate sections)
 
 **Design principle:** Plan file (document) and Tasks API (tool) are separate but synchronized.
 
@@ -111,9 +111,9 @@ Tests should verify plan file compliance; TaskAPI compliance is interactive-sess
 
 ## Change
 
-### Change 1: Step 2 - Expand current phase
+### Change 1: Implementation Gate - Expand current phase
 
-**Location:** Step 2 start, after plan mode entry (~line 285)
+**Location:** Implementation Gate actions (after plan approval)
 
 ```python
 # Expand current phase in plan file to protocol steps
@@ -130,9 +130,9 @@ if tool_available("TaskCreate"):
     sync_tasks_from_plan()
 ```
 
-### Change 2: Step 4c - Collapse and expand
+### Change 2: Completion Gate - Collapse and expand
 
-**Location:** Step 4c, replace current content (~line 738)
+**Location:** Completion Gate actions (after user says "proceed")
 
 ```python
 # Collapse completed phase in plan file
@@ -198,8 +198,8 @@ Step 2 deliverables (copy to TaskCreate calls after approval):
 
 | Change | Lines |
 |--------|-------|
-| Step 2 expansion pseudocode | +8 |
-| Step 4c collapse/expand | +10 |
+| Impl Gate expansion pseudocode | +8 |
+| Compl Gate collapse/expand | +10 |
 | **Total** | **+18** |
 
 ## Behavioral Test Cases (for UC8-C)
@@ -217,8 +217,8 @@ Step 2 deliverables (copy to TaskCreate calls after approval):
 2. Run against current protocol - expect FAIL
 
 ### Phase 2: GREEN
-1. Add expansion pseudocode to Step 2
-2. Update Step 4c with collapse/expand
+1. Add expansion pseudocode to Implementation Gate
+2. Update Completion Gate with collapse/expand
 3. Verify T1-T3 PASS
 
 ### Phase 3: REFACTOR

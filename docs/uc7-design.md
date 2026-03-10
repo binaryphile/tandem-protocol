@@ -10,16 +10,16 @@
 
 | Type | When | evtctl Command | Format |
 |------|------|------------|--------|
-| Contract | Implementation Gate | `evtctl contract << 'JSONL'` | JSONL heredoc — one criterion per line |
-| Completion | Completion Gate | `evtctl complete << 'JSONL'` | JSONL attestation composed at completion time |
+| Contract | Implementation Gate | `evtctl contract '<json>'` | Single JSON object with phase + criteria array |
+| Completion | Completion Gate | `evtctl complete '<json>'` | Single JSON object with criteria + statuses |
 | Interaction | `/i` `/c` `/g` at gates | `evtctl interaction` | `evtctl interaction "/i -> missing edge case, added"` |
 | Task | Implementation Gate | `evtctl task` | `evtctl task "Phase 1 - auth"` |
 | Task-done | Completion Gate | `evtctl done` | `evtctl done <id> "Phase 1 complete"` |
 
 ### Contract/Completion Format
 
-**Contract:** JSONL with phase header + one criterion per line (names only).
-**Attestation:** LLM composes at completion time — each criterion gets a status.
+**Contract:** Single JSON object with phase and criteria array (names only).
+**Attestation:** Single JSON object composed at completion time — each criterion gets a status.
 
 **Statuses:**
 - `delivered` = completed, with `evidence` field
@@ -39,21 +39,12 @@
 ### Example Event Flow
 
 ```bash
-evtctl contract << 'JSONL'
-{"phase":"Phase 1 - auth middleware"}
-{"name":"middleware"}
-{"name":"tests"}
-{"name":"docs"}
-JSONL
+evtctl contract '{"phase":"Phase 1 - auth middleware","criteria":["middleware","tests","docs"]}'
 evtctl task "Phase 1 - auth middleware"
 # ... implementation ...
 evtctl interaction "/i -> missing edge case handling, added"
 evtctl interaction "/c -> naming violation per Go guide, fixed"
-evtctl complete << 'JSONL'
-{"name":"middleware","status":"delivered","evidence":"auth.go:45"}
-{"name":"tests","status":"delivered","evidence":"auth_test.go:12"}
-{"name":"docs","status":"delivered","evidence":"README:12"}
-JSONL
+evtctl complete '{"criteria":[{"name":"middleware","status":"delivered","evidence":"auth.go:45"},{"name":"tests","status":"delivered","evidence":"auth_test.go:12"},{"name":"docs","status":"delivered","evidence":"README:12"}]}'
 evtctl done 14752 "Phase 1 complete"
 ```
 

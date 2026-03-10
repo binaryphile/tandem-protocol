@@ -144,11 +144,7 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
 ## At Implementation Gate
 
     ```bash
-    evtctl contract << 'JSONL'
-    {"phase":"objective"}
-    {"name":"criterion1"}
-    {"name":"criterion2"}
-    JSONL
+    evtctl contract '{"phase":"objective","criteria":["criterion1","criterion2"]}'
     evtctl plan ~/.claude/plans/<plan-name>.md
     evtctl task "objective"
     # Note the task ID from output, then:
@@ -163,11 +159,9 @@ When writing a plan, substitute `<plan-name>` and `<task-id>` with actual values
 ## At Completion Gate
 
     ```bash
-    # Compose attestation JSONL — every contract criterion must appear:
-    #   status: "delivered" + evidence, "dropped" + reason, "added" + evidence
-    evtctl complete << 'JSONL'
-    <compose from contract criteria at completion time>
-    JSONL
+    # Compose single-line JSON — every contract criterion must appear:
+    #   "delivered" + evidence, "dropped" + reason, "added" + evidence
+    evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
     evtctl done <task-id> "complete"
 
     era store --type session -t "<project-basename>,completion" "$(cat <<'MEMO'
@@ -278,7 +272,7 @@ done
 PLAN=~/.claude/plans/<plan-name>.md
 update_git_add_in "$PLAN"
 
-# Compose attestation JSONL in plan file's Completion Gate:
+# Compose attestation JSON in plan file's Completion Gate:
 # Copy each criterion from contract, add status + evidence/reason
 # evtctl complete validates coverage — missing criteria trigger warnings
 update_completion_attestation_in "$PLAN"

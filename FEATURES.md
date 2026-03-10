@@ -46,27 +46,23 @@ All protocol events are published to Era streams via `evtctl` commands:
 
 | Entry Type | evtctl command | Format |
 |------------|-----------|--------|
-| **Contract** | `evtctl contract << 'JSONL'` | JSONL heredoc — one criterion per line |
-| **Completion** | `evtctl complete << 'JSONL'` | JSONL attestation composed at completion time |
+| **Contract** | `evtctl contract '<json>'` | Single JSON object with phase + criteria array |
+| **Completion** | `evtctl complete '<json>'` | Single JSON object with criteria + statuses |
 | **Interaction** | `evtctl interaction` | `evtctl interaction "/i -> found edge case, added handling"` |
 | **Plan** | `evtctl plan` | `evtctl plan ~/.claude/plans/auth-plan.md` |
 | **Task** | `evtctl task` / `evtctl done` | Task lifecycle events for orchestrator detection |
 | **Session** | `era store --type session` | Session summary composed at each gate |
 
-Contract and completion events use JSONL format (one JSON object per line):
+Contract and completion events use JSON format (single object per event):
 
 ```
-# Contract — criteria to deliver
-{"phase":"Phase 1 - auth"}
-{"name":"middleware"}
-{"name":"tests"}
+# Contract — phase + criteria names
+{"phase":"Phase 1 - auth","criteria":["middleware","tests"]}
 ```
 
 ```
 # Attestation — composed at completion time
-{"name":"middleware","status":"delivered","evidence":"auth.go:45"}
-{"name":"tests","status":"dropped","reason":"deferred to phase 2"}
-{"name":"validation","status":"added","evidence":"input.go:12"}
+{"criteria":[{"name":"middleware","status":"delivered","evidence":"auth.go:45"},{"name":"tests","status":"dropped","reason":"deferred to phase 2"},{"name":"validation","status":"added","evidence":"input.go:12"}]}
 ```
 
 Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `evtctl complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
@@ -145,10 +141,7 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 Gate actions use **evtctl commands** - executable bash that Claude runs directly:
 
 ```bash
-evtctl contract << 'JSONL'
-{"phase":"Phase 1 objective"}
-{"name":"criterion1"}
-JSONL
+evtctl contract '{"phase":"Phase 1 objective","criteria":["criterion1"]}'
 evtctl task "Phase 1 objective"
 ```
 

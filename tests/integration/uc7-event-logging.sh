@@ -44,13 +44,13 @@ sleep 1  # allow file writes to complete
 echo ""
 echo "Checkpoint 2: After Gate 1"
 assert_era_event_exists "Contract entry exists" "contract"
-# JSONL contract should have criteria
+# JSON contract should have criteria array
 CONTRACT_PAYLOAD=$(get_era_payload "contract")
-if [[ -n "$CONTRACT_PAYLOAD" ]] && echo "$CONTRACT_PAYLOAD" | grep -qE '"name":'; then
-    echo -e "${GREEN}PASS${NC}: Contract has JSONL criteria"
+if [[ -n "$CONTRACT_PAYLOAD" ]] && echo "$CONTRACT_PAYLOAD" | grep -qE '"criteria"'; then
+    echo -e "${GREEN}PASS${NC}: Contract has JSON criteria"
     ((PASS++)) || true
 else
-    echo -e "${RED}FAIL${NC}: Contract missing JSONL criteria"
+    echo -e "${RED}FAIL${NC}: Contract missing JSON criteria"
     ((FAIL++)) || true
 fi
 assert_era_event_count "No Completion yet" "complete" 0 0
@@ -91,7 +91,7 @@ sleep 1  # allow file writes to complete
 echo ""
 echo "Checkpoint 5: After Gate 2"
 assert_era_event_exists "Completion entry exists" "complete"
-# JSONL attestation should have status "delivered" and evidence
+# JSON attestation should have status "delivered" and evidence
 COMPLETION_PAYLOAD=$(get_era_payload "complete")
 if [[ -n "$COMPLETION_PAYLOAD" ]] && echo "$COMPLETION_PAYLOAD" | grep -qE '"status":"delivered"|"evidence":'; then
     echo -e "${GREEN}PASS${NC}: Completion has attestation with evidence"

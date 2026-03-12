@@ -49,6 +49,7 @@ Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to
 
 | Protocol Step | Action |
 |---|---|
+| Step 1b (Clarify) | MUST ask at least one question — user controls scope |
 | Step 1c (Design) | Enter plan mode, check for existing plan |
 | Step 1d (Present) | Quote verbatim, grade, wait for direction, validate, exit |
 | Step 2 (Impl Gate) | Publish contract via `evtctl contract` |
@@ -73,13 +74,11 @@ Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to
 
 ### Grading Model
 
-Repeated cycles at gates, with auto-cycling before initial presentation:
+At either gate, if there are guides for compliance, issue `/c` first before the presentation step (1d or 3b). Auto `/i` cycles run min 2, max 3 before presentation.
 
-| Command | Action | When |
-|---|---|---|
-| `/g` | Apply external review feedback + fix | Once, at initial gate presentation (calibrated projects only) |
-| `/i` | Self-assess + fix in one step | Default — repeated until exhausted |
-| `/c` | Grade against project guides + fix | After `/i` cycles plateau |
+- `/i`: find opportunities to improve and execute on them
+- `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
+- `/g`: for staff-level designs, copy a grading request to clipboard for user to service with external resources
 
 ### Lesson Capture
 
@@ -118,7 +117,7 @@ The actionability test is a simple decision rule. Claude can reason through the 
 | Interaction | `/i` `/c` `/g` at gates | `evtctl interaction "desc"` | JSON: description |
 | Completion | Completion Gate | `evtctl complete '<json>'` | JSON: criteria + statuses |
 | Task-done | Completion Gate | `evtctl done <id> "evidence"` | JSON: refs + description |
-| Session | Both gates | `era store --type session` | Session summary |
+| Session | Both gates | `era store --type session` | Session summary: objective, decisions, deliverables, lessons, decision points and rationales |
 
 ### Contract/Completion Format
 
@@ -184,6 +183,7 @@ Last-writer-wins for claims. `evtctl claim` warns if already claimed but publish
 | T2.2 | UC2 | Contract = WHAT | `[Cc]ontract.*WHAT\|WHAT.*[Cc]ontract` |
 | T2.3 | UC2 | Plan file location | `plans/` |
 | T2.4 | UC2 | evtctl contract at gate | `evtctl contract` |
+| T2.5 | UC2 | Must ask at least one question at 1b | `MUST ask.*question\|at least one question` |
 | T3.1 | UC3 | Quote verbatim guidance | `[Qq]uote.*verbatim\|VERBATIM` |
 | T3.2 | UC3 | Analysis grade before plan grade | `grade.*analysis\|Do I understand` |
 | T3.3 | UC3 | BLOCKING wait for direction | `STOP.*user\|wait.*direction` |

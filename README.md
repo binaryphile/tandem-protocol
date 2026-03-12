@@ -7,15 +7,9 @@ Structured checkpoints for Claude Code. You approve each step, Claude checks in 
 On any invocation, locate your current protocol stage and act within it.
 
 - `/begin` — start planning
-- `/i` — self-assess + fix
-- `/pr` — proceed past gate
-- `/q` — quote current step
+- `/i` — "improve" - self-assess + fix
 - `/g` — adversarial review
-- `/c` — compliance vs guides
-- `/p` — grade plan
-- `/w` — grade results
-- `/a` — grade analysis
-- `/s` — skeptical review
+- `/c` — compliance with guidelines
 
 ---
 
@@ -24,10 +18,10 @@ On any invocation, locate your current protocol stage and act within it.
 ```mermaid
 flowchart LR
     S1["(1) Plan"] --> S2{"(2) Impl Gate"}
-    S2 -->|"/g /i /c"| S1
+    S2 -->|"/i improve cycle"| S1
     S2 --> S3["(3) Implement"]
     S3 --> S4{"(4) Compl Gate"}
-    S4 -->|"/g /i /c"| S3
+    S4 -->|"/i improve cycle"| S3
     S4 -.-> S1
 
     style S1 fill:#e3f2fd,stroke:#1976d2
@@ -51,7 +45,7 @@ flowchart LR
 
 **1a Investigate:** Read codebase, identify affected files, note line refs, `mcp__era__search` for prior context, web search if needed.
 
-**1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer.
+**1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer.  You MUST ask at least one question.
 
 **1c Design:** `EnterPlanMode`. If existing plan found: quote verbatim, grade analysis ("Do I understand this?"), grade quality ("Is this sound?"), STOP for user direction. Otherwise create new plan:
 
@@ -85,7 +79,7 @@ Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes f
     evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
     evtctl done <task-id> "complete"
     era store --type session -t "<project-basename>,completion" "$(cat <<'MEMO'
-    <what delivered/dropped, /i lessons, technical insights>
+    <what delivered/dropped, /i lessons, technical insights, decision points and rationales>
     MEMO
     )"
     git add file1.go file2.go  # actual files at completion time
@@ -98,15 +92,15 @@ Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes f
 [commands to verify]
 ```
 
-**1d Present:** Auto `/i` (max 3, log each, stop when exhausted). Validate plan from 1c has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
+**1d Present:** Auto `/i` (min 2, max 3, log each). Validate plan from 1c has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
 
 ## Gate Grading
 
-At either gate, `/g` `/i` `/c` fix then return to current presentation step (1d or 3b).
+At either gate if there are guides for compliance, issue a single `/c` for compliance first and fix, prior to doing the current presentation step (1d or 3b).
 
-- `/g`: external review + fix (once at initial presentation, calibrated projects only)
-- `/i`: self-assess + fix, re-present (repeat until exhausted)
-- `/c`: grade vs guides + fix (after `/i` plateau); ask "Can I fix this now?" — yes → fix, no → capture in guide
+- `/i`: find opportunities to improve and execute on them
+- `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
+- `/g`: if this is a staff-level design, copy to the clipboard a grading request for the user to service with external resources.
 - Log: `evtctl interaction "/X -> what found and fixed"`
 
 ## 2. Implementation Gate
@@ -124,10 +118,10 @@ flowchart LR
 
 **3a Execute:** Implement each contract criterion.
 
-**3b Present:** Auto `/i` (max 3, log each, stop when exhausted). Show results + verification per criterion. Update plan file from 1c:
+**3b Present:** Auto `/i` (min 2, max 3, log each). Show results + verification per criterion. Update plan file from 1c:
 - Replace `git add` with actual files changed
 - Compose attestation JSON (each criterion + status + evidence)
-- Compose session memory (delivered/dropped, /i lessons, insights)
+- Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)
 
 Print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
 
@@ -142,4 +136,4 @@ cd ~ && git clone https://codeberg.org/binaryphile/tandem-protocol.git
 mkdir -p ~/.claude/commands && ln -sf ~/tandem-protocol/commands/*.md ~/.claude/commands/
 ```
 
-Add `@~/tandem-protocol/README.md` to your project's CLAUDE.md.
+This README is the protocol.  That's it.  Add `@~/tandem-protocol/README.md` to your project's CLAUDE.md.

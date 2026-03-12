@@ -52,7 +52,7 @@ User starts the protocol for a new task.
 1. User requests a task requiring planning
 2. System enters plan mode
 3. System writes approach and methodology to plan file
-4. System executes plan substeps (investigate, clarify, design)
+4. System executes plan substeps (investigate, clarify — at least one question, design)
 5. User approves the plan
 6. System exits plan mode
 7. System records contract with scope and criteria
@@ -74,6 +74,7 @@ User starts the protocol for a new task.
 | Contract event contains methodology | FAIL: Plan content in contract |
 | Plan mode exited before user approval | FAIL: Premature exit |
 | Contract published while plan mode active | FAIL: Should exit first |
+| Clarify step (1b) skipped without questions | FAIL: Must ask at least one question |
 
 ---
 
@@ -358,6 +359,7 @@ System reaches a protocol milestone: phase start (contract), deliverable done (c
 | Deliverable complete (Completion Gate) | Must have completion event with evidence |
 | User feedback given | Must have interaction event with response |
 | `/i` cycle occurred | Must show interaction with description of fix |
+| Gate crossed | Must have session memory with deliverables, lessons, decision points and rationales |
 
 ---
 
@@ -403,7 +405,7 @@ Claude finishes implementing and presents results at the Completion Gate. User t
 
 ### Trigger
 
-User types `/i`, `/c`, or `/g` at either gate. Recommended sequence: `/g` (once at entry, calibrated projects only), then `/i` (repeated), then `/c` (after plateau).
+User types `/i`, `/c`, or `/g` at either gate. If there are guides for compliance, a single `/c` runs first before the presentation step (1d or 3b).
 
 ### Main Success Scenario
 
@@ -419,7 +421,7 @@ User types `/i`, `/c`, or `/g` at either gate. Recommended sequence: `/g` (once 
 - 1a. User types `/c` → grade against project guides, continue at step 2
 - 1b. User types `/g` → apply external review feedback, continue at step 2
 - 1c. `/g` already used at this gate → inform user, suggest `/i`
-- 2a. Auto `/i` ran before initial presentation (up to 3) → user sees polished result
+- 2a. Auto `/i` ran before initial presentation (min 2, max 3) → user sees polished result
 - 3a. No issues found → report, re-present unchanged
 - 6a. User advances gate → execute gate actions
 - 6b. Gate event recording fails → report error, do not commit

@@ -122,18 +122,18 @@ Each phase follows the same PI workflow. Plan files persist across sessions, and
 
 The protocol achieves reliability through a two-part model:
 
-### Baseline + Recovery
+### Baseline + Grading
 
 | Component | Compliance | How |
 |-----------|------------|-----|
 | **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
-| **Recovery** | Works reliably | `/q` command when drift occurs |
+| **Grading cycles** | Works reliably | `/i`, `/c`, `/g` at gates |
 | **Gate logging** | 100% | evtctl commands (executable, not descriptive) |
 
 This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
 
 ```
-~80% baseline + /q recovery = viable workflow
+~80% baseline + grading cycles at gates = viable workflow
 ```
 
 ### Why Gates Are 100% Reliable
@@ -157,14 +157,6 @@ Behavioral instructions like "quote the plan VERBATIM" require Claude to choose 
 - Only executable syntax achieves 100%
 - ~80% is the practical ceiling for descriptive guidance
 
-### Recovery with `/q`
-
-When you notice drift (implementation without approval, missing logs, skipped gates):
-
-1. Run `/q` to quote the current protocol step
-2. Protocol awareness returns
-3. Continue with gates and logging
-
 ## Design Philosophy
 
 **Why not Skills?** Skills get summarized during compaction, requiring refresh.
@@ -175,9 +167,9 @@ When you notice drift (implementation without approval, missing logs, skipped ga
 
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
-- Lightweight `/q` for recovery
+- Grading cycles (`/i`, `/c`, `/g`) at gates for quality convergence
 - evtctl commands at gates for 100% reliable logging
-- Accepts ~80% baseline, relies on recovery mechanism
+- Accepts ~80% baseline, relies on grading cycles
 
 ## Testing
 
@@ -189,8 +181,8 @@ bash tests/integration/smoke-test.sh
 bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
 bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
 
-# Recovery mechanism validation
-bash tests/integration/tandem-recovery.sh      # /q drift recovery
+# Grading cycles
+bash tests/integration/uc9-grading-cycles.sh   # /i /c /g at gates
 
 # Full test suite
 for t in tests/integration/*.sh; do bash "$t"; done

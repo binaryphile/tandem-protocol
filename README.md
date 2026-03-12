@@ -31,7 +31,7 @@ flowchart LR
 ```
 
 Before `ExitPlanMode`, the plan must have executable bash under both gate sections:
-- **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task`, `evtctl claim`, `era store`
+- **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
 - **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`
 
 Do not exit plan mode without both.
@@ -50,7 +50,7 @@ flowchart LR
 **1c Design:** `EnterPlanMode`. If existing plan found: quote verbatim, grade analysis ("Do I understand this?"), grade quality ("Is this sound?"), STOP for user direction. Otherwise create new plan:
 
 Plan = HOW (approach, changes). Contract = WHAT (criteria, published via `evtctl contract` at gate).
-Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes from `evtctl task` at Impl Gate — record it, use in Completion Gate `evtctl done`. Do NOT use `ls -t` to find plans.
+Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` to find plans.
 
 ```markdown
 # [Project Name]
@@ -63,9 +63,12 @@ Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes f
     ```bash
     evtctl contract '{"phase":"objective","criteria":["criterion1","criterion2"]}'
     evtctl plan ~/.claude/plans/<plan-name>.md
-    evtctl task "objective"
-    # Note task ID from output, then:
-    evtctl claim <task-id> claude
+    # <task-id>: originating task ID if continuing existing task, or empty to create new
+    TASK_ID=<task-id>
+    if [ -z "$TASK_ID" ]; then
+      TASK_ID=$(evtctl task "objective" | grep -o 'id=[0-9]*' | cut -d= -f2)
+    fi
+    evtctl claim "$TASK_ID" claude
     era store --type session -t "<project-basename>,plan" "$(cat <<'MEMO'
     <1-3 sentences: objective and key design decisions>
     MEMO
@@ -77,6 +80,7 @@ Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes f
     ```bash
     # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence
     evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
+    # <task-id>: originating task ID if continuing existing task, or ID from evtctl task if created new
     evtctl done <task-id> "complete"
     era store --type session -t "<project-basename>,completion" "$(cat <<'MEMO'
     <what delivered/dropped, /i lessons, technical insights, decision points and rationales>
@@ -92,7 +96,7 @@ Substitute `<plan-name>` and `<task-id>` with actual values. `<task-id>` comes f
 [commands to verify]
 ```
 
-**1d Present:** Auto `/i` (min 2, max 3, log each). Validate plan from 1c has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
+**1d Present:** Auto `/i` (min 2, max 3, log each). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
 
 ## Gate Grading
 
@@ -118,7 +122,7 @@ flowchart LR
 
 **3a Execute:** Implement each contract criterion.
 
-**3b Present:** Auto `/i` (min 2, max 3, log each). Show results + verification per criterion. Update plan file from 1c:
+**3b Present:** Auto `/i` (min 2, max 3, log each). Show results + verification per criterion. Update plan file (`~/.claude/plans/<plan-name>.md`):
 - Replace `git add` with actual files changed
 - Compose attestation JSON (each criterion + status + evidence)
 - Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)

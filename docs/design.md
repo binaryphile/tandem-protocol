@@ -10,6 +10,8 @@
 
 **Executable syntax for gate invariants.** Gate actions use `evtctl` commands — executable bash that Claude runs directly. This achieves ~100% compliance because it's code Claude executes, not instructions Claude interprets. Behavioral instructions (like "quote verbatim") achieve ~80% compliance. The protocol uses executable syntax for critical invariants (gate commands, stop conditions) and prose for guidance (investigation, clarification). When the README names specific commands at gates, use "executable bash" language to signal these are runnable actions, not descriptions.
 
+**Denormalized README.** Each section is self-contained — no cross-references ("from 1c", "see above"), no inference at reading time. Rationale: LLM compliance drops when a section requires jumping to another section to understand its meaning; denormalization also survives context compaction where referenced sections may be lost.
+
 **Claims are event-sourced.** Derived from the stream, not stored as mutable state. `task-audit` reconciles task/done/claim/unclaim events to compute current state.
 
 ---
@@ -179,6 +181,7 @@ Last-writer-wins for claims. `evtctl claim` warns if already claimed but publish
 
 | ID | UC | What Protocol Must Contain | Grep Pattern |
 |---|---|---|---|
+| T0.1 | — | No cross-references in README | NOT `from [0-9][a-d]\|see step\|see section\|see above\|see below` |
 | T2.1 | UC2 | Plan file = HOW | `[Pp]lan.*HOW\|HOW.*plan` |
 | T2.2 | UC2 | Contract = WHAT | `[Cc]ontract.*WHAT\|WHAT.*[Cc]ontract` |
 | T2.3 | UC2 | Plan file location | `plans/` |

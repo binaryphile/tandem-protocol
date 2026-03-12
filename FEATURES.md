@@ -83,7 +83,7 @@ Task lifecycle commands for multi-agent coordination:
 | `evtctl claims` | List active claims | `evtctl claims` |
 | `evtctl audit` | Full task reconciliation | `evtctl audit` |
 
-The protocol auto-claims tasks at the Implementation Gate (`evtctl task` + `evtctl claim`). Claims prevent double-assignment when multiple agents share a task stream. `evtctl done` implicitly releases claims.
+The protocol claims tasks at the Implementation Gate via `evtctl claim`. If continuing an existing task, it claims the originating task ID; if no existing task, it creates one with `evtctl task` first. Claims prevent double-assignment when multiple agents share a task stream. `evtctl done` implicitly releases claims.
 
 ## PI Cognitive Model
 
@@ -142,7 +142,9 @@ Gate actions use **evtctl commands** - executable bash that Claude runs directly
 
 ```bash
 evtctl contract '{"phase":"Phase 1 objective","criteria":["criterion1"]}'
-evtctl task "Phase 1 objective"
+# Creates new task only if no originating task; otherwise claims existing
+TASK_ID=<originating-task-id-or-empty>
+if [ -z "$TASK_ID" ]; then TASK_ID=$(evtctl task "Phase 1 objective" | grep -o 'id=[0-9]*' | cut -d= -f2); fi
 ```
 
 This works because:

@@ -6,6 +6,12 @@
 
 ## Lessons
 
+### Originating Task Claiming: Use existing task, don't create new
+**Context:** When `evtctl open` shows an existing task for the same work at session start
+**Lesson:** Set TASK_ID to the originating task ID at the implementation gate. Do not create a new task when one already exists for the same work. The plan template says "if continuing existing task, claim originating task ID" — enforce this by checking `evtctl open` before assigning TASK_ID.
+**Example:** Session start showed open task #24589 "disable create-template-from-device button". Plan set TASK_ID=24590 (new), completing 24590 while leaving 24589 open. Required manual reconciliation at end of session.
+**Source:** URMA-7384 session - multi-dev coordination failure
+
 ### Locality: Instructions must be at point of use
 **Context:** When placing instructions in protocol steps
 **Lesson:** Instructions placed later in the flow won't be in attention when the action is needed. Place instructions where they'll be quoted/read, not deferred to later steps.

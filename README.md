@@ -127,6 +127,8 @@ flowchart LR
 - Compose attestation JSON (each criterion + status + evidence)
 - Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)
 
+**Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly. If `/i` reveals a criterion needs renaming, either (a) keep the attestation's name verbatim from the contract and explain the change in the evidence text, or (b) publish a corrected contract before completion. Diverging names produce `info: no matching contract found in stream, skipping validation` — completion publishes but is unvalidated.
+
 Print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
 
 ## 4. Completion Gate

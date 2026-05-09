@@ -33,10 +33,9 @@ flowchart LR
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
 - Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`
-- A **Post-Completion** section identifying use-case/design docs to refresh as a separate commit
-- A `docs refreshed` entry in the contract criteria list, so the doc refresh produces an attested evidence line at completion
+- For changes affecting **user-visible behavior or operator workflow**: a **Post-Completion** section identifying use-case/design docs to refresh, and a `docs refreshed` entry in the contract criteria list. Pure internal refactors (rename a private helper, reformat a comment) skip these to avoid no-op bookkeeping.
 
-Do not exit plan mode without all four.
+Do not exit plan mode without the gate sections, and the doc-refresh discipline when applicable.
 
 ## 1. Plan
 

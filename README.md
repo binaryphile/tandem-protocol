@@ -37,6 +37,56 @@ Before `ExitPlanMode`, the plan must have:
 
 Do not exit plan mode without the gate sections, and the doc-refresh discipline when applicable.
 
+## Stream as source of truth
+
+Streams are append-only journals of what happened. Plans and attestations
+**reference** stream-derived ids (event ids, task ids, commit SHAs) but
+must **not memoize** payload content. The stream is the record. Two
+implications for plan authoring:
+
+### Do not copy payloads into plans
+
+A plan that restates a contract, an attestation, or an interaction's
+content drifts from the stream the moment either side is edited. Quote
+the event id; let the reader run `evtctl` against the stream to fetch
+the current payload.
+
+### Use bash substitution to enforce adherence at gate time
+
+LLMs can write declarative plans that diverge from reality. Plans
+*can't* diverge from a `$(...)` substitution that runs in the gate
+bash — the substitution evaluates against the current stream, not
+against what the plan claims. This is the same trick
+`validate-attestation` uses at the Completion Gate; it generalizes.
+
+Concrete patterns (output formats verified live):
+
+- **Planning stage 1a**: surface what's already pending so it gets considered:
+  ```bash
+  OPEN=$(evtctl open)
+  [[ -z $OPEN ]] || cat <<<"$OPEN"
+  ```
+- **Implementation Gate**: refuse double-claim on a task already claimed
+  by another agent. `evtctl claims` (delegating to `task-audit claims`)
+  prints lines `#<id>  <date>  <claimer>  <desc>` or the literal
+  `no active claims`:
+  ```bash
+  evtctl claims | grep -qE "^#$TASK_ID\b" && {
+    echo "task $TASK_ID already claimed; resolve before claiming"; exit 1
+  }
+  ```
+- **Completion Gate**: confirm the task being closed is in fact open.
+  `evtctl open` prints `#<id>  <date>  task  <desc>`:
+  ```bash
+  evtctl open | grep -qE "^#$TASK_ID\b" || {
+    echo "task $TASK_ID not in open list"; exit 1
+  }
+  ```
+
+Plans should include such substitutions wherever the LLM's claim could
+diverge from stream state. The cost is a few lines of bash; the
+benefit is enforcement that doesn't depend on attestation prose.
+
 ## 1. Plan
 
 ```mermaid

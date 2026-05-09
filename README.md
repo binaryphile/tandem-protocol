@@ -43,7 +43,7 @@ flowchart LR
     A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"]
 ```
 
-**1a Investigate:** Read codebase, identify affected files, note line refs, `mcp__era__search` for prior context, web search if needed.
+**1a Investigate:** Read codebase, identify affected files, note line refs, `mcp__era__search` for prior context, web search if needed. For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
 
 **1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer.  You MUST ask at least one question.
 

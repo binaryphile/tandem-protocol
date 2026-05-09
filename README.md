@@ -30,11 +30,13 @@ flowchart LR
     style S4 fill:#fff3e0,stroke:#f57c00
 ```
 
-Before `ExitPlanMode`, the plan must have executable bash under both gate sections:
-- **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
-- **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`
+Before `ExitPlanMode`, the plan must have:
+- Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
+- Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`
+- A **Post-Completion** section identifying use-case/design docs to refresh as a separate commit
+- A `docs refreshed` entry in the contract criteria list, so the doc refresh produces an attested evidence line at completion
 
-Do not exit plan mode without both.
+Do not exit plan mode without all four.
 
 ## 1. Plan
 
@@ -61,7 +63,7 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 ## At Implementation Gate
 
     ```bash
-    evtctl contract '{"phase":"objective","criteria":["criterion1","criterion2"]}'
+    evtctl contract '{"phase":"objective","criteria":["criterion1","criterion2","docs refreshed"]}'
     evtctl plan ~/.claude/plans/<plan-name>.md
     # <task-id>: originating task ID if continuing existing task, or empty to create new
     TASK_ID=<task-id>
@@ -91,6 +93,12 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 
     Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
+
+## Post-Completion
+
+After the Completion Gate's commit lands, refresh use-case and design
+docs to reflect delivered behavior, as a separate commit. The
+`docs refreshed` contract criterion's evidence references that commit.
 
 ## Verification
 [commands to verify]

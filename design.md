@@ -38,7 +38,7 @@ Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to
 | Enter plan mode | `EnterPlanMode` |
 | Write plan | Edit `~/.claude/plans/<name>.md` |
 | Exit plan mode | `ExitPlanMode` |
-| Publish contract | `evtctl contract '<json>'` at Implementation Gate |
+| Publish contract | `evtctl contract <<'EOF' ... EOF` (stdin via heredoc) at Implementation Gate |
 
 ### Entry Sequence (Step 1c)
 
@@ -116,14 +116,14 @@ The actionability test is a simple decision rule. Claude can reason through the 
 
 | Type | When | Command | Format |
 |---|---|---|---|
-| Contract | Implementation Gate | `evtctl contract '<json>'` | JSON: phase + criteria array |
+| Contract | Implementation Gate | `evtctl contract <<'EOF' ... EOF` (stdin) | JSON: phase + criteria array |
 | Plan | Implementation Gate | `evtctl plan <file>` | Plan file contents |
 | Task | Implementation Gate | `evtctl task "desc"` | JSON: description |
 | Claim | Implementation Gate | `evtctl claim <id> <name>` | JSON: ref + claimer |
 | Interaction | `/i` `/c` `/g` at gates | `evtctl interaction "desc"` | JSON: description |
-| Completion | Completion Gate | `evtctl complete '<json>'` | JSON: criteria + statuses |
+| Completion | Completion Gate | `evtctl complete <<'EOF' ... EOF` (stdin) | JSON: criteria + statuses |
 | Task-done | Completion Gate | `evtctl done <id> "evidence"` | JSON: refs + description |
-| Session | Both gates | `era store --type session` | Session summary: objective, decisions, deliverables, lessons, decision points and rationales |
+| Session | Both gates | `era store --type session -t "..." <<'EOF' ... EOF` (stdin) | Session summary: objective, decisions, deliverables, lessons, decision points and rationales |
 
 ### Contract/Completion Format
 
@@ -138,13 +138,17 @@ The actionability test is a simple decision rule. Claude can reason through the 
 ### Example Event Flow
 
 ```bash
-evtctl contract '{"phase":"Phase 1 - auth","criteria":["middleware","tests","docs"]}'
+evtctl contract <<'EOF'
+{"phase":"Phase 1 - auth","criteria":["middleware","tests","docs"]}
+EOF
 evtctl task "Phase 1 - auth"
 evtctl claim <task-id> claude
 # ... implementation ...
 evtctl interaction "/i -> missing edge case, added"
 evtctl interaction "/c -> naming violation per Go guide, fixed"
-evtctl complete '{"criteria":[{"name":"middleware","status":"delivered","evidence":"auth.go:45"},{"name":"tests","status":"delivered","evidence":"auth_test.go:12"},{"name":"docs","status":"dropped","reason":"deferred"}]}'
+evtctl complete <<'EOF'
+{"criteria":[{"name":"middleware","status":"delivered","evidence":"auth.go:45"},{"name":"tests","status":"delivered","evidence":"auth_test.go:12"},{"name":"docs","status":"dropped","reason":"deferred"}]}
+EOF
 evtctl done <task-id> "Phase 1 complete"
 ```
 

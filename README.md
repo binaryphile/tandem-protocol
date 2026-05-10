@@ -32,10 +32,13 @@ flowchart LR
 
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
-- Completion-gate flow: a mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate`, then executable bash including a **pre-attestation docs-review step** before `evtctl complete` (re-read README, use-cases.md, design.md; amend + commit + push first if drift), followed by `evtctl complete`, `evtctl done`, `era store`, `git commit`.
-- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list. Evidence MUST be one of the literal forms: `docs drift detected: yes (<SHA>)`, `docs drift detected: no (reviewed: README, use-cases.md, design.md)`, `docs refreshed: not applicable (internal refactor)`, or `docs drift detected: deferred (task #<N>)`.
+- A **Phase 3c Khorikov Posture** checkpoint after 3b Present: review the cycle's tests/code through Khorikov's classical-school lens, refactor if needed (see §3).
+- A **Phase 3d Documentation Refresh** checkpoint after 3c: re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>)` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `deferred (task #<N>)`.
+- A mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs).
+- Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`. (Docs-review now lives in Phase 3d, not embedded in this gate bash.)
+- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list (evidence per the literal forms above).
 
-Do not exit plan mode without the gate sections, the GATE C STOP stanza, and the docs-review discipline when applicable.
+Do not exit plan mode without the gate sections, the GATE C STOP stanza, the Phase 3c Khorikov checkpoint, and the Phase 3d docs-review checkpoint when applicable.
 
 ## Stream as source of truth
 
@@ -133,14 +136,18 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
    (criterion name + status + evidence + SHAs from the impl phase).
 2. Update `<MEMO>` placeholder with the composed session memory.
 3. Replace `git add file1.go file2.go` with the actual files changed.
-4. Confirm pre-attestation docs-review will execute INSIDE the
-   bash block below, BEFORE `evtctl complete` runs (re-reads
-   README.md, use-cases.md, design.md; amendments commit + push
-   before attestation publishes; evidence form is
-   `docs drift detected: yes (<SHA>)` or `no (reviewed: ...)`).
-5. Print this updated plan file to the user.
-6. Show the completion-gate bash block as it now reads.
-7. Ask "May I proceed?" and **wait for explicit approval** before
+4. Confirm Phase 3c Khorikov posture review has been performed
+   (tests output-based / state-based via captured stdout; mocks at
+   inter-system boundary only; refactor logged via /i if applied).
+5. Confirm Phase 3d Documentation Refresh has been performed
+   (all affected normative docs re-read; drift amended + committed
+   + pushed BEFORE this gate; evidence form set on
+   `docs refreshed` criterion: `docs drift detected: yes (<SHA>)`
+   or `no (reviewed: ...)` or `not applicable (internal refactor)`
+   or `deferred (task #<N>)`).
+6. Print this updated plan file to the user.
+7. Show the completion-gate bash block as it now reads.
+8. Ask "May I proceed?" and **wait for explicit approval** before
    executing.
 
 The stanza is a behavioral safeguard, not a mechanical enforcement
@@ -148,14 +155,15 @@ mechanism — its purpose is execution-time locality: the halt
 instruction sits adjacent to the executable bash in the artifact
 the agent traverses. Mechanical enforcement (validate-plan) is
 deferred (#3883). Backward compatibility: legacy plans without the
-stanza are valid for in-flight cycles already past 1d; new plans
-MUST include it.
+stanza or without the 3c/3d checkpoints are valid for in-flight
+cycles already past 1d; new plans MUST include them.
 
 ## At Completion Gate
 
     ```bash
-    # Perform pre-attestation docs review (UC11) and set DOCS_DRIFT_EVIDENCE
-    DOCS_DRIFT_EVIDENCE='docs drift detected: no (reviewed: README, use-cases.md, design.md)'
+    # Phase 3c (Khorikov posture review) and Phase 3d (docs refresh)
+    # have completed before this gate. Docs-drift evidence is already
+    # set; amendments (if any) already committed and pushed.
 
     # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence.
     evtctl complete <<'EOF'
@@ -197,7 +205,7 @@ At either gate if there are guides for compliance, issue a single `/c` for compl
 
 ```mermaid
 flowchart LR
-    A["(3a) Execute"] --> B["(3b) Present"]
+    A["(3a) Execute"] --> B["(3b) Present"] --> C["(3c) Khorikov Posture"] --> D["(3d) Docs Refresh"]
 ```
 
 **3a Execute:** Implement each contract criterion.
@@ -209,7 +217,25 @@ flowchart LR
 
 **Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly. If `/i` reveals a criterion needs renaming, either (a) keep the attestation's name verbatim from the contract and explain the change in the evidence text, or (b) publish a corrected contract before completion. Diverging names produce `info: no matching contract found in stream, skipping validation` — completion publishes but is unvalidated.
 
-Print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
+**3c Khorikov Posture (rebalance / refactor):** review the cycle's code through Khorikov's classical-school testing lens before committing to attestation. Concretely:
+- **Quadrant**: classify each new SUT — Domain Model, Controller, Algorithm, or Overcomplicated. CLI command functions usually classify as Controllers (low domain complexity, many collaborators via subprocesses and external API calls). Domain logic that grew inside a controller may want to be extracted.
+- **Style**: tests should be output-based (or, for bash CLI controllers, state-based via captured stdout — Khorikov's strict "output-based" requires pure-function returns, which `cmd.X` writes-to-stdout simulates via `$()`).
+- **Mock boundary**: mocks live at the inter-system edge only (REST helpers, external binaries via bash function-redef). Internal helpers are NOT mocked — they're exercised through the public interface.
+- **Granularity**: integration tests on the controller; per Khorikov §6275, "test controllers briefly as part of a much smaller set of the overarching integration tests."
+- **FAIL-stub-as-assertion**: communication-based assertion is reserved for "this collaborator MUST NOT be called" — a mock that errors if reached.
+- **Refactor opportunities**: extract semantic helpers when structural reuse hides opposite intent (e.g., a parse loop that collects positionals vs one that rejects them — name the helper `rejectAllPositionals`, not `parseFlags`).
+
+If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: `evtctl interaction "/i 3c Khorikov: <finding + fix>"`.
+
+**3d Documentation Refresh:** re-read every normative doc affected by this cycle's changes; amend any drift; commit + push the amendments BEFORE the attestation publishes. The `docs refreshed` contract criterion's evidence MUST be one of these literal forms (UC11 verbatim):
+- `docs drift detected: yes (<SHA>)` — amendments landed in commit SHA
+- `docs drift detected: no (reviewed: <doc-list>)` — all docs re-read; no drift
+- `docs refreshed: not applicable (internal refactor)` — pure refactor
+- `docs drift detected: deferred (task #<N>)` — drift acknowledged; deferred
+
+Review covers: README, use-cases.md, design.md (and project-specific design docs like design-events.md), plus any CLAUDE.md imports the cycle touched. Re-read means actually reading the affected sections, not grep + spot-check (the latter catches arg-form residue and stale syntax but misses semantic drift). Log: `evtctl interaction "/i 3d docs-refresh: <evidence-form>"`.
+
+After 3d: print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
 
 ## 4. Completion Gate
 

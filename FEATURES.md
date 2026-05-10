@@ -46,12 +46,12 @@ All protocol events are published to Era streams via `evtctl` commands:
 
 | Entry Type | evtctl command | Format |
 |------------|-----------|--------|
-| **Contract** | `evtctl contract '<json>'` | Single JSON object with phase + criteria array |
-| **Completion** | `evtctl complete '<json>'` | Single JSON object with criteria + statuses |
+| **Contract** | `evtctl contract <<'EOF' ... EOF` (stdin) | Single JSON object with phase + criteria array |
+| **Completion** | `evtctl complete <<'EOF' ... EOF` (stdin) | Single JSON object with criteria + statuses |
 | **Interaction** | `evtctl interaction` | `evtctl interaction "/i -> found edge case, added handling"` |
 | **Plan** | `evtctl plan` | `evtctl plan ~/.claude/plans/auth-plan.md` |
 | **Task** | `evtctl task` / `evtctl done` | Task lifecycle events for orchestrator detection |
-| **Session** | `era store --type session` | Session summary composed at each gate |
+| **Session** | `era store --type session -t "..." <<'EOF' ... EOF` (stdin) | Session summary composed at each gate |
 
 Contract and completion events use JSON format (single object per event):
 
@@ -141,7 +141,9 @@ This is intentional. Chasing 100% initial compliance requires complex setup. Ins
 Gate actions use **evtctl commands** - executable bash that Claude runs directly:
 
 ```bash
-evtctl contract '{"phase":"Phase 1 objective","criteria":["criterion1"]}'
+evtctl contract <<'EOF'
+{"phase":"Phase 1 objective","criteria":["criterion1"]}
+EOF
 # Creates new task only if no originating task; otherwise claims existing
 TASK_ID=<originating-task-id-or-empty>
 if [ -z "$TASK_ID" ]; then TASK_ID=$(evtctl task "Phase 1 objective" | grep -o 'id=[0-9]*' | cut -d= -f2); fi

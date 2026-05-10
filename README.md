@@ -32,10 +32,12 @@ flowchart LR
 
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
-- Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`
-- For changes affecting **user-visible behavior or operator workflow**: a **Post-Completion** section identifying use-case/design docs to refresh, and a `docs refreshed` entry in the contract criteria list. Pure internal refactors (rename a private helper, reformat a comment) skip these to avoid no-op bookkeeping.
+- A **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs)
+- Executable bash at **At Completion Gate**, including the **pre-attestation docs-review step** BEFORE `evtctl complete`: re-read README.md, use-cases.md, design.md; if drift, amend + commit + push first.
+- Standard completion-gate commands: `evtctl complete`, `evtctl done`, `era store`, `git commit`
+- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list. Evidence on this criterion MUST be one of the literal forms `docs drift detected: yes (<SHA>)` or `docs drift detected: no (reviewed: README, use-cases.md, design.md)` (UC11). Pure internal refactors skip the criterion or use the form `docs refreshed: not applicable (internal refactor)`.
 
-Do not exit plan mode without the gate sections, and the doc-refresh discipline when applicable.
+Do not exit plan mode without the gate sections, the GATE C STOP stanza, and the docs-review discipline when applicable.
 
 ## Stream as source of truth
 
@@ -126,10 +128,50 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
     )"
     ```
 
+**🛑 GATE C — Before executing the bash block below:**
+
+1. Update `<compose>` placeholder with the actual attestation JSON
+   (criterion name + status + evidence + SHAs from the impl phase).
+2. Update `<MEMO>` placeholder with the composed session memory.
+3. Replace `git add file1.go file2.go` with the actual files changed.
+4. Confirm pre-attestation docs-review will execute INSIDE the
+   bash block below, BEFORE `evtctl complete` runs (re-reads
+   README.md, use-cases.md, design.md; amendments commit + push
+   before attestation publishes; evidence form is
+   `docs drift detected: yes (<SHA>)` or `no (reviewed: ...)`).
+5. Print this updated plan file to the user.
+6. Show the completion-gate bash block as it now reads.
+7. Ask "May I proceed?" and **wait for explicit approval** before
+   executing.
+
+The stanza is a behavioral safeguard, not a mechanical enforcement
+mechanism — its purpose is execution-time locality: the halt
+instruction sits adjacent to the executable bash in the artifact
+the agent traverses. Mechanical enforcement (validate-plan) is
+deferred (#3883). Backward compatibility: legacy plans without the
+stanza are valid for in-flight cycles already past 1d; new plans
+MUST include it.
+
 ## At Completion Gate
 
     ```bash
-    # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence
+    # Implementation commits must already be staged + pushed before this gate.
+
+    # Pre-attestation docs-review (UC11 docs-late closure).
+    # Required order: review → amend (if drift) → commit → push → publish attestation.
+    # Re-read all three normative docs against what shipped:
+    #   README.md       -- operational spec; most likely to drift
+    #   use-cases.md    -- UC fields surface impl-revealed edge cases?
+    #   design.md       -- rationale matches what was built?
+    # If drift detected: amend, commit ("docs: post-impl drift fix"),
+    # push, then update DOCS_DRIFT_EVIDENCE accordingly.
+    DOCS_DRIFT_EVIDENCE='docs drift detected: no (reviewed: README, use-cases.md, design.md)'
+    # OR (if drift was found and amended):
+    # AMEND_SHA=$(git rev-parse --short HEAD)
+    # DOCS_DRIFT_EVIDENCE="docs drift detected: yes ($AMEND_SHA)"
+
+    # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence.
+    # The `docs refreshed` criterion's evidence MUST be one of the literal forms above.
     evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
     # <task-id>: originating task ID if continuing existing task, or ID from evtctl task if created new
     evtctl done <task-id> "complete"
@@ -142,12 +184,6 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 
     Co-Authored-By: Claude <noreply@anthropic.com>"
     ```
-
-## Post-Completion
-
-After the Completion Gate's commit lands, refresh use-case and design
-docs to reflect delivered behavior, as a separate commit. The
-`docs refreshed` contract criterion's evidence references that commit.
 
 ## Verification
 [commands to verify]

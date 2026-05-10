@@ -124,7 +124,7 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
     # <task-id>: originating task ID if continuing existing task, or empty to create new
     TASK_ID=<task-id>
     if [ -z "$TASK_ID" ]; then
-      TASK_ID=$(evtctl task "objective" | grep -o 'id=[0-9]*' | cut -d= -f2)
+      TASK_ID=$(evtctl task "objective")
     fi
     evtctl claim "$TASK_ID" claude
     era store --type session -t "<project-basename>,plan" <<'MEMO'

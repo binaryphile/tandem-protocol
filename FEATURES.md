@@ -146,7 +146,7 @@ evtctl contract <<'EOF'
 EOF
 # Creates new task only if no originating task; otherwise claims existing
 TASK_ID=<originating-task-id-or-empty>
-if [ -z "$TASK_ID" ]; then TASK_ID=$(evtctl task "Phase 1 objective" | grep -o 'id=[0-9]*' | cut -d= -f2); fi
+if [ -z "$TASK_ID" ]; then TASK_ID=$(evtctl task "Phase 1 objective"); fi
 ```
 
 This works because:

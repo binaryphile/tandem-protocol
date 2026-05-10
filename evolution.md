@@ -201,8 +201,12 @@ JSONL
 **Mar 9** — Single-line JSON replaces JSONL heredocs. One event = one JSON object. Contract criteria become a string array, attestation criteria become an object array.
 
 ```bash
-evtctl contract '{"phase":"Phase 1 - config loader","criteria":["YAML parsing","default fallback"]}'
+evtctl contract <<'EOF'
+{"phase":"Phase 1 - config loader","criteria":["YAML parsing","default fallback"]}
+EOF
 ```
+
+*(Updated for consistency: the historical Mar-9 milestone originally showed `evtctl contract '<json>'` (positional arg). The arg form was removed in the era stdin-only cycle; the heredoc-stdin form shown here always worked and is the post-cycle canonical pattern. The semantic milestone — single-line JSON replacing JSONL — is unchanged.)*
 
 ```mermaid
 flowchart LR

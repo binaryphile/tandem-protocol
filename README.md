@@ -40,6 +40,8 @@ Before `ExitPlanMode`, the plan must have:
 
 Do not exit plan mode without the gate sections, the GATE C STOP stanza, the Phase 3c Khorikov checkpoint, and the Phase 3d docs-review checkpoint when applicable.
 
+**Doc-level WHAT/HOW separation.** Use cases describe **WHAT** (behavioral contracts, observable postconditions, stakeholder interests). Design docs describe **HOW** (mechanisms, wire formats, parse-loop patterns, retry strategies, REST endpoint specifics). Keep design-level details out of use cases — they drift faster than UCs do, and a UC's contract should survive a re-implementation. If a UC needs a "technology variation" with concrete details, the variation belongs in design, not in the UC body.
+
 ## Stream as source of truth
 
 Streams are append-only journals of what happened. Plans and attestations
@@ -97,7 +99,7 @@ flowchart LR
     A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"]
 ```
 
-**1a Investigate:** Read codebase, identify affected files, note line refs, `mcp__era__search` for prior context, web search if needed. For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
+**1a Investigate:** Read codebase, identify affected files, note line refs, `era search` for prior context, web search if needed. **Verify load-bearing static-analysis findings with a runtime experiment** before designing on them (static reads have false-positive and false-negative rates a discriminating experiment doesn't). For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
 
 **1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer.  You MUST ask at least one question.
 
@@ -224,6 +226,7 @@ flowchart LR
 - **Granularity**: integration tests on the controller; per Khorikov §6275, "test controllers briefly as part of a much smaller set of the overarching integration tests."
 - **FAIL-stub-as-assertion**: communication-based assertion is reserved for "this collaborator MUST NOT be called" — a mock that errors if reached.
 - **Refactor opportunities**: extract semantic helpers when structural reuse hides opposite intent (e.g., a parse loop that collects positionals vs one that rejects them — name the helper `rejectAllPositionals`, not `parseFlags`).
+- **Don't pin known-broken behavior in tests.** A test that asserts "this bug currently does X" violates Khorikov's resistance-to-refactoring pillar — it fails when someone correctly fixes the bug. Mark `xfail`/pending, or document as an explicit compatibility contract with rationale; do not bake the wrong answer into the assertion.
 
 If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: `evtctl interaction "/i 3c Khorikov: <finding + fix>"`.
 

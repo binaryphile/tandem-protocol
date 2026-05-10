@@ -67,7 +67,7 @@ Contract and completion events use JSON format (single object per event):
 
 Valid statuses: `delivered` (+ evidence), `dropped` (+ reason), `added` (+ evidence). `evtctl complete` validates that every contract criterion appears in the attestation. Era is the single event store — no local log files.
 
-Session memories are stored at each gate via `era store` to capture objective, decisions, deliverables, and lessons learned. Future sessions find them via `mcp__era__search` or `era search -t <project>` to build on prior context.
+Session memories are stored at each gate via `era store` to capture objective, decisions, deliverables, and lessons learned. Future sessions find them via `era search` (or `era search -t <project>` for tag-filtered) to build on prior context.
 
 ## Task Management
 

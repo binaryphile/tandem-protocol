@@ -14,9 +14,9 @@
 
 **Claims are event-sourced.** Derived from the stream, not stored as mutable state. `task-audit` reconciles task/done/claim/unclaim events to compute current state.
 
-**Behavioral safeguard vs mechanical enforcement.** Some protocol rules are prose discipline (compliance ~80% — e.g., "STOP until approved" in the plan template's GATE C stanza). Others are executable bash (compliance ~100% — e.g., `evtctl claims | grep -qE "^#$TASK_ID\b" && exit 1` in gate blocks). The protocol uses prose for *halt instructions to the executing agent* and bash for *precondition checks at gate time*. Where a rule needs to be authored separately for every cycle (e.g., the `<MEMO>` text), it is necessarily prose; where the rule is invariant across cycles (e.g., "claim must not exist before this cycle's claim"), it is bash. The STOP marker's purpose is execution-time locality: the halt instruction sits adjacent to the executable bash block in the artifact the agent traverses, rather than in a different file that requires recall. This is a behavioral safeguard, not a mechanical enforcement mechanism — mechanical enforcement (validate-plan) is task #3883.
+**Behavioral vs mechanical enforcement.** Halt instructions to the agent are prose (~80% compliance); precondition checks at gate time are executable bash (~100%). The two compose: prose tells the agent to stop, bash makes the gate fail-closed if the precondition is violated.
 
-**Context-space efficiency for protocol documents.** Protocol documents (README, design.md, use-cases.md, normative template text) SHOULD optimize for context-space efficiency where possible. Format preference: (1) tables/lists, (2) mermaid (in README only, per Diagrams+text axiom), (3) code blocks for executable/verbatim, (4) prose only where 1-3 don't fit. Plans themselves are NOT in scope — plan length is cycle-dependent and not a protocol invariant. Mechanical thresholds (line counts, compression ratios) are deferred to task #3883 (validate-plan); this axiom is guidance, not enforcement.
+**Context-space efficiency.** Protocol documents (README, design.md, use-cases.md, normative template text) prefer tables/lists, then mermaid (in README only), then code blocks, then prose. Plans are not in scope — their length is cycle-dependent. Mechanical enforcement is deferred to future validation tooling.
 
 ---
 
@@ -150,14 +150,16 @@ evtctl done <task-id> "Phase 1 complete"
 
 ### Docs-refreshed evidence form (UC11)
 
-The `docs refreshed` criterion in a contract must carry, at attestation time, one of two literal evidence forms:
+The `docs refreshed` criterion in a contract must carry, at attestation time, one of these literal forms:
 
-| Form | Meaning |
+| Form | When |
 |---|---|
-| `docs drift detected: yes (<SHA>)` | Drift was found during pre-attestation review; SHA is the amendment commit |
-| `docs drift detected: no (reviewed: README, use-cases.md, design.md)` | All three normative docs were re-read; no drift found |
+| `docs drift detected: yes (<SHA>)` | Drift found; SHA is the amendment commit |
+| `docs drift detected: no (reviewed: README, use-cases.md, design.md)` | All three docs re-read; no drift |
+| `docs refreshed: not applicable (internal refactor)` | Cycle is pure-internal-refactor (no user-visible or design change) |
+| `docs drift detected: deferred (task #<N>)` | Drift acknowledged; full update deferred to task <N> |
 
-Vague forms (e.g., "docs refreshed", "n/a", "ok") are rejected. Pure internal refactors that don't touch user-visible behavior or design may use the additional form `docs refreshed: not applicable (internal refactor)` (see UC11 Extension `*a`). The literal form is the auditable friction that prevents docs-late closure from becoming a rubber stamp.
+Vague forms ("docs refreshed", "n/a", "ok") are rejected. The literal form is the auditable friction that prevents docs-late closure from becoming a rubber stamp.
 
 ---
 
@@ -213,13 +215,7 @@ Attestation MUST NOT be published while any normative doc is known to be stale. 
 
 ### Scope Exemption
 
-Pure internal refactors (rename a private helper, reformat a comment) skip both docs-first and docs-late. Evidence form for this case: `docs refreshed: not applicable (internal refactor)`.
-
-### Cross-references
-
-- UC11 (Docs-First AND Docs-Late Closure Discipline) — the user-goal-level UC that drives this discipline.
-- UC7 Guard Conditions — fails the cycle if attestation publishes before docs re-read.
-- README §1c plan template — carries the GATE C STOP stanza and the inline pre-attestation docs-review bash step.
+Pure internal refactors (rename a private helper, reformat a comment) skip both docs-first and docs-late. The plan template's completion-gate docs-review sequence and UC7's Guard Conditions row enforce ordering for non-exempt cycles.
 
 ---
 
@@ -251,3 +247,6 @@ Pure internal refactors (rename a private helper, reformat a comment) skip both 
 | T9.6 | UC9 | No direct era publish in templates | NOT `era publish` in gate blocks |
 | T10.1 | UC10 | evtctl claim in plan template | `evtctl claim` |
 | T10.2 | UC10 | evtctl done at Completion Gate | `evtctl done` |
+| T11.1 | UC11 | GATE C STOP stanza in plan template | `🛑 GATE C — Before executing` |
+| T11.2 | UC11 | Docs-review precedes evtctl complete in template | `docs drift detected.*\nevtctl complete` (multiline / awk) |
+| T11.3 | UC11 | Literal evidence form enforced | `docs drift detected:` |

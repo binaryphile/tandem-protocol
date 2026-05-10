@@ -360,7 +360,7 @@ System reaches a protocol milestone: phase start (contract), deliverable done (c
 | User feedback given | Must have interaction event with response |
 | `/i` cycle occurred | Must show interaction with description of fix |
 | Gate crossed | Must have session memory with deliverables, lessons, decision points and rationales |
-| Attestation published before docs re-read | FAIL: docs-late closure violated; pre-attestation review required (UC11) |
+| Attestation published before docs re-read | FAIL: docs-late closure violated; pre-attestation review required |
 
 ---
 
@@ -513,8 +513,7 @@ System reaches the Implementation Gate (task creation) or Completion Gate (task 
 
 **Scope:** Tandem Protocol | **Level:** Blue
 **Primary Actor:** User (with delegated execution to LLM) | **Secondary Actor:** LLM (executing protocol)
-**Priority:** P1 (High) — directly addresses cycle-vs-doc drift | **Frequency:** Every cycle that affects user-visible behavior or design
-**Goal:** Ensure that the docs (README, use-cases.md, design.md) remain a faithful description of what the protocol actually specifies and what the cycle actually delivered, by reviewing them BEFORE impl (docs-first) and AGAIN before publishing the attestation (docs-late closure).
+**Priority:** P1 (High) — drift prevention | **Frequency:** Every cycle affecting user-visible behavior or design
 
 ### In/Out List
 
@@ -581,15 +580,12 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
 - 7a. Drift amendment itself reveals further drift (recursive review):
   1. LLM amends iteratively, capping at 2 amendment cycles
   2. If still surfacing drift after 2 cycles, halt and ask user (cycle may need scope reconsideration, not just doc fix)
-- *a. Cycle is pure-internal-refactor (no user-visible behavior or design impact):
+- 8a. Cycle is pure-internal-refactor (no user-visible behavior or design impact):
   1. Docs-first AND docs-late are skipped
   2. Evidence becomes `docs refreshed: not applicable (internal refactor)` (third allowed form for this case)
-
-### Technology & Data Variations
-
-- **Cycle scope is single doc**: review still covers all three; amendments may span only the in-scope doc.
-- **Cycle scope is multi-repo**: docs-late review applies only to THIS repo's docs; sibling repos' docs reviewed in their own cycles.
-- **Pure internal refactor**: see Extension *a above; both docs-first and docs-late skipped.
+- 9a. Drift acknowledged but deferred (e.g., scope grew during impl; full doc update is its own task):
+  1. LLM publishes a `task` event capturing the deferred docs work with revisit-trigger
+  2. Evidence becomes `docs drift detected: deferred (task #<N>)` (fourth allowed form for this case)
 
 ### Guard Conditions
 

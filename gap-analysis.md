@@ -14,8 +14,9 @@
 | UC8 | Todo integration | **deleted** | **deleted** | **deleted** | DELETED | domain covered by UC7+UC10 |
 | UC9 | Grading cycles & task events | current | current | exists | OK | none |
 | UC10 | Task claiming | current | current | minimal | OK | none |
+| UC11 | Docs-first AND docs-late closure | current | current | current | introduced this cycle | pending compliance assessment |
 
-**Summary:** 7 active UCs (UC8 deleted). All current.
+**Summary:** 8 active UCs (UC8 deleted). UC11 introduced in the docs/ flatten + GATE-C-stanza cycle.
 
 ## Cross-Cutting Gaps
 

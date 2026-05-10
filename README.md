@@ -32,10 +32,8 @@ flowchart LR
 
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
-- A **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs)
-- Executable bash at **At Completion Gate**, including the **pre-attestation docs-review step** BEFORE `evtctl complete`: re-read README.md, use-cases.md, design.md; if drift, amend + commit + push first.
-- Standard completion-gate commands: `evtctl complete`, `evtctl done`, `era store`, `git commit`
-- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list. Evidence on this criterion MUST be one of the literal forms `docs drift detected: yes (<SHA>)` or `docs drift detected: no (reviewed: README, use-cases.md, design.md)` (UC11). Pure internal refactors skip the criterion or use the form `docs refreshed: not applicable (internal refactor)`.
+- Completion-gate flow: a mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate`, then executable bash including a **pre-attestation docs-review step** before `evtctl complete` (re-read README, use-cases.md, design.md; amend + commit + push first if drift), followed by `evtctl complete`, `evtctl done`, `era store`, `git commit`.
+- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list. Evidence MUST be one of the literal forms: `docs drift detected: yes (<SHA>)`, `docs drift detected: no (reviewed: README, use-cases.md, design.md)`, `docs refreshed: not applicable (internal refactor)`, or `docs drift detected: deferred (task #<N>)`.
 
 Do not exit plan mode without the gate sections, the GATE C STOP stanza, and the docs-review discipline when applicable.
 
@@ -155,23 +153,10 @@ MUST include it.
 ## At Completion Gate
 
     ```bash
-    # Implementation commits must already be staged + pushed before this gate.
-
-    # Pre-attestation docs-review (UC11 docs-late closure).
-    # Required order: review → amend (if drift) → commit → push → publish attestation.
-    # Re-read all three normative docs against what shipped:
-    #   README.md       -- operational spec; most likely to drift
-    #   use-cases.md    -- UC fields surface impl-revealed edge cases?
-    #   design.md       -- rationale matches what was built?
-    # If drift detected: amend, commit ("docs: post-impl drift fix"),
-    # push, then update DOCS_DRIFT_EVIDENCE accordingly.
+    # Perform pre-attestation docs review (UC11) and set DOCS_DRIFT_EVIDENCE
     DOCS_DRIFT_EVIDENCE='docs drift detected: no (reviewed: README, use-cases.md, design.md)'
-    # OR (if drift was found and amended):
-    # AMEND_SHA=$(git rev-parse --short HEAD)
-    # DOCS_DRIFT_EVIDENCE="docs drift detected: yes ($AMEND_SHA)"
 
     # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence.
-    # The `docs refreshed` criterion's evidence MUST be one of the literal forms above.
     evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
     # <task-id>: originating task ID if continuing existing task, or ID from evtctl task if created new
     evtctl done <task-id> "complete"

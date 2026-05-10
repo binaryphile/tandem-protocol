@@ -389,3 +389,11 @@ Today: 356 lines of README. 12 mk commands. 39 test files. 16 use cases. Machine
 The core discovery: **syntax triggers execution; instructions trigger interpretation.**
 
 Make it bash. Make it run. Make it fail if it's wrong.
+
+---
+
+## STOP-marker carry-forward and docs-late closure (2026-05)
+
+A cycle landed three commits without going through the documented "STOP until approved" handshake at 3b. Root cause: the STOP instruction lived only in README prose, semantically distant from the executable bash block in the plan artifact the agent was actually traversing. Remediation: a `🛑 GATE C` stanza became mandatory directly above `## At Completion Gate` in the plan template, riding with the plan-as-artifact to execution time. The intervention is execution-time locality, not novelty of wording.
+
+The same cycle introduced docs-late closure (UC11): the docs-refresh step moved from an aspirational "Post-Completion" follow-up to a mandatory pre-attestation step inside the completion-gate bash, with a literal evidence form (`docs drift detected: yes (<SHA>)` etc.) preventing rubber-stamp closure. Concurrently, the project's `docs/` subdirectory was flattened to the repo root since the project is small enough that subfolders added overhead without value.

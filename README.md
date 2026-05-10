@@ -112,7 +112,9 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 ## At Implementation Gate
 
     ```bash
-    evtctl contract '{"phase":"objective","criteria":["criterion1","criterion2","docs refreshed"]}'
+    evtctl contract <<'EOF'
+    {"phase":"objective","criteria":["criterion1","criterion2","docs refreshed"]}
+    EOF
     evtctl plan ~/.claude/plans/<plan-name>.md
     # <task-id>: originating task ID if continuing existing task, or empty to create new
     TASK_ID=<task-id>
@@ -120,10 +122,9 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
       TASK_ID=$(evtctl task "objective" | grep -o 'id=[0-9]*' | cut -d= -f2)
     fi
     evtctl claim "$TASK_ID" claude
-    era store --type session -t "<project-basename>,plan" "$(cat <<'MEMO'
+    era store --type session -t "<project-basename>,plan" <<'MEMO'
     <1-3 sentences: objective and key design decisions>
     MEMO
-    )"
     ```
 
 **🛑 GATE C — Before executing the bash block below:**
@@ -157,13 +158,14 @@ MUST include it.
     DOCS_DRIFT_EVIDENCE='docs drift detected: no (reviewed: README, use-cases.md, design.md)'
 
     # Every contract criterion must appear: "delivered"+evidence, "dropped"+reason, or "added"+evidence.
-    evtctl complete '<compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}'
+    evtctl complete <<'EOF'
+    <compose: {"criteria":[{"name":"...","status":"...","evidence":"..."},...]}>
+    EOF
     # <task-id>: originating task ID if continuing existing task, or ID from evtctl task if created new
     evtctl done <task-id> "complete"
-    era store --type session -t "<project-basename>,completion" "$(cat <<'MEMO'
+    era store --type session -t "<project-basename>,completion" <<'MEMO'
     <what delivered/dropped, /i lessons, technical insights, decision points and rationales>
     MEMO
-    )"
     git add file1.go file2.go  # actual files at completion time
     git commit -m "description
 

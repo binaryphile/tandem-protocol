@@ -360,6 +360,7 @@ System reaches a protocol milestone: phase start (contract), deliverable done (c
 | User feedback given | Must have interaction event with response |
 | `/i` cycle occurred | Must show interaction with description of fix |
 | Gate crossed | Must have session memory with deliverables, lessons, decision points and rationales |
+| Attestation published before docs re-read | FAIL: docs-late closure violated; pre-attestation review required (UC11) |
 
 ---
 
@@ -505,4 +506,98 @@ System reaches the Implementation Gate (task creation) or Completion Gate (task 
 | Task already claimed | Warning shown, claim overwritten |
 | Open tasks queried | Accurate list of uncompleted tasks |
 | Active claims queried | Only claims on open tasks shown |
+
+---
+
+## UC11: Docs-First AND Docs-Late Closure Discipline
+
+**Scope:** Tandem Protocol | **Level:** Blue
+**Primary Actor:** User (with delegated execution to LLM) | **Secondary Actor:** LLM (executing protocol)
+**Priority:** P1 (High) — directly addresses cycle-vs-doc drift | **Frequency:** Every cycle that affects user-visible behavior or design
+**Goal:** Ensure that the docs (README, use-cases.md, design.md) remain a faithful description of what the protocol actually specifies and what the cycle actually delivered, by reviewing them BEFORE impl (docs-first) and AGAIN before publishing the attestation (docs-late closure).
+
+### In/Out List
+
+| In Scope | Out of Scope |
+|---|---|
+| Pre-impl review of all three docs | Internal refactors (no doc impact) |
+| Pre-attestation re-read of all three docs | evolution.md / gap-analysis.md updates |
+| Literal evidence form on `docs refreshed` | Mechanical line-count enforcement (#3883) |
+| Amendment commits BEFORE `evtctl complete` | Migrating UC2-UC10 to fully-dressed |
+
+### System-in-Use Story
+
+Alex starts a cycle that adds a STOP-marker requirement. Before impl, Claude updates use-cases.md and design.md to reflect the new requirement (docs-first). After impl lands, but BEFORE publishing the attestation, Claude re-reads all three docs against what was actually built. A subtle wording divergence in design.md is found and amended in a follow-up commit. The attestation's `docs refreshed` criterion carries evidence `docs drift detected: yes (<amend-SHA>)`. Without the docs-late review, the attestation would have referenced docs known to diverge from reality.
+
+### Stakeholders & Interests
+
+- **User:** Wants protocol docs that match what the protocol actually does; wants auditable evidence of doc-cycle alignment
+- **LLM:** Wants explicit gate-time procedure to follow; wants a literal evidence form to compose
+- **Protocol:** Wants drift between docs and impl to surface within the cycle that introduced it, not later
+
+### Preconditions
+
+- Cycle is at the Completion Gate (post-impl, pre-attestation)
+- README, use-cases.md, design.md all exist at repo root
+- The `docs refreshed` criterion is present in the cycle's contract
+
+### Success Guarantee
+
+- Pre-attestation review of all three docs has been performed
+- If drift was detected, amendment commits landed BEFORE `evtctl complete`
+- Attestation's `docs refreshed` evidence is one of two literal forms:
+  - `docs drift detected: yes (<SHA>)`
+  - `docs drift detected: no (reviewed: README, use-cases.md, design.md)`
+- Attestation never references docs known to be stale
+
+### Minimal Guarantee
+
+- The reviewer cannot satisfy `docs refreshed` with vague text; must commit to one of the two literal forms
+- An attestation with stale-known docs would fail this UC's Guard Conditions
+
+### Trigger
+
+LLM completes implementation-phase /i passes (≥2) and prepares the Completion Gate bash block.
+
+### Main Success Scenario
+
+1. LLM finishes impl + 3b /i passes
+2. LLM commits + pushes implementation changes
+3. LLM re-reads README.md (operational spec; most likely to drift)
+4. LLM re-reads use-cases.md (UC fields surface impl-revealed edge cases?)
+5. LLM re-reads design.md (rationale matches what was built?)
+6. LLM determines drift status (yes / no)
+7. If drift: LLM amends affected docs, commits ("docs: post-impl drift fix"), pushes; sets evidence to `docs drift detected: yes (<SHA>)`
+8. If no drift: LLM sets evidence to `docs drift detected: no (reviewed: README, use-cases.md, design.md)`
+9. LLM publishes attestation (`evtctl complete`) with the literal evidence on the `docs refreshed` criterion
+10. LLM publishes `done` and stores completion memory
+
+### Extensions
+
+- 6a. Drift found in MULTIPLE docs:
+  1. LLM amends each affected doc
+  2. Commits may be combined into one "docs: post-impl drift fix" commit or split per doc; evidence records the final SHA
+  3. Resume MSS step 9
+- 7a. Drift amendment itself reveals further drift (recursive review):
+  1. LLM amends iteratively, capping at 2 amendment cycles
+  2. If still surfacing drift after 2 cycles, halt and ask user (cycle may need scope reconsideration, not just doc fix)
+- *a. Cycle is pure-internal-refactor (no user-visible behavior or design impact):
+  1. Docs-first AND docs-late are skipped
+  2. Evidence becomes `docs refreshed: not applicable (internal refactor)` (third allowed form for this case)
+
+### Technology & Data Variations
+
+- **Cycle scope is single doc**: review still covers all three; amendments may span only the in-scope doc.
+- **Cycle scope is multi-repo**: docs-late review applies only to THIS repo's docs; sibling repos' docs reviewed in their own cycles.
+- **Pure internal refactor**: see Extension *a above; both docs-first and docs-late skipped.
+
+### Guard Conditions
+
+| Condition | Expected Behavior |
+|---|---|
+| Attestation published before docs re-read | FAIL: docs-late closure violated |
+| `docs refreshed` evidence not in literal form | FAIL: vague evidence rejected |
+| Amendment commits land AFTER attestation | FAIL: ordering invariant violated |
+| Drift found but no amendment, no skip-justification | FAIL: review observed drift but did not act |
+| docs-first skipped on user-visible-behavior change | FAIL: docs-first discipline violated |
 

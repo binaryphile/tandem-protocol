@@ -210,7 +210,21 @@ flowchart LR
     A["(3a) Execute"] --> B["(3b) Present"] --> C["(3c) Khorikov Posture"] --> D["(3d) Docs Refresh"]
 ```
 
-**3a Execute:** Implement each contract criterion.
+**3a Execute:** Implement each contract criterion, **docs-first**.
+
+Cycles that add or change user-visible behavior land doc commits BEFORE code commits within Phase 3a:
+
+1. **Commit 1 (WHAT — use case):** add or amend the affected use case in `docs/use-cases.md` (Cockburn shape: scope, level, primary actor, stakeholders, postconditions, minimal guarantee, main scenario, extensions, framing). The use case names the behavioral contract the cycle is about to deliver — it's the canonical statement of WHAT, not HOW. Per the doc-level WHAT/HOW separation rule earlier in this README, keep technology/mechanism specifics out of the UC body; cite the design doc for them.
+
+2. **Commit 2 (HOW — design doc):** add or amend the design.md (and any project-specific design docs like design-events.md) with the mechanism: data shape, algorithms, thresholds, schemas, error semantics, operational unit details. The design doc names HOW the use case is delivered.
+
+3. **Commit 3 (operator-facing surface, when applicable):** README.md operational-surface pointers and CLAUDE.md workflow sections — anything that helps an operator find and use the new capability.
+
+4. **Commit 4..N (implementation):** code and tests, evaluated against the WHAT and HOW just landed. Each commit references the UC number where relevant.
+
+Rationale: docs land first so the contract criteria (already published at the impl gate) can be evaluated against doc artifacts at impl-review time, not against still-being-typed code. Reviewers reading the diff see the contract → use case → design → code chain, in that order. Drift between code and docs caught during 3a folds into Commit N+1 (still docs-first within the cycle); drift caught at 3d folds in there.
+
+Internal refactors with no user-visible behavior change skip the doc commits and proceed straight to code — Phase 3d still re-reads to catch latent drift, but evidence form `docs refreshed: not applicable (internal refactor)` applies.
 
 **3b Present:** Auto `/i` (min 2, max 3, log each). Show results + verification per criterion. Update plan file (`~/.claude/plans/<plan-name>.md`):
 - Replace `git add` with actual files changed

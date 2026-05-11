@@ -220,7 +220,7 @@ Cycles that add or change user-visible behavior land doc commits BEFORE code com
 
 3. **Commit 3 (operator-facing surface, when applicable):** README.md operational-surface pointers and CLAUDE.md workflow sections — anything that helps an operator find and use the new capability.
 
-4. **Commit 4..N (implementation):** code and tests, evaluated against the WHAT and HOW just landed. Each commit references the UC number where relevant.
+4. **Commit 4..N (implementation):** code and tests, evaluated against the WHAT and HOW just landed. Each commit references the UC number where relevant. For new behavioral surface (not refactors, not observability-only, not docs-only), test-first (TDD red→green) is recommended — write the failing test before the implementation that makes it pass; the moment of seeing red confirms the test exercises the absent behavior. Project conventions in the consuming repo's CLAUDE.md decide whether to enforce it.
 
 Rationale: docs land first so the contract criteria (already published at the impl gate) can be evaluated against doc artifacts at impl-review time, not against still-being-typed code. Reviewers reading the diff see the contract → use case → design → code chain, in that order. Drift between code and docs caught during 3a folds into Commit N+1 (still docs-first within the cycle); drift caught at 3d folds in there.
 

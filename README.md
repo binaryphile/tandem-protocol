@@ -92,6 +92,51 @@ Plans should include such substitutions wherever the LLM's claim could
 diverge from stream state. The cost is a few lines of bash; the
 benefit is enforcement that doesn't depend on attestation prose.
 
+### Reconciliation audit
+
+Periodically (or when a session asks "what's unfinished?"), audit each
+project's stream for **contracts without a satisfying completion**. The
+canonical join is criterion-name string-equality between
+`contract.criteria[]` and `complete.criteria[].name`: a contract is
+satisfied when some later completion event's name-set is a superset of
+the contract's criteria.
+
+Counting raw `contract` vs `complete` events per stream is **not** a
+substitute — completions can carry added criteria, supersede earlier
+contracts, or be republished, so the counts diverge in both directions
+without indicating WIP.
+
+The join, expressed as one `era query` + `jq` per stream:
+
+```bash
+contracts=$(era query "tasks.$PROJECT" 'type = "contract"' --json)
+completes=$(era query "tasks.$PROJECT" 'type = "complete"' --json)
+jq -n --argjson C "$contracts" --argjson D "$completes" '
+  def parse_contract: {id, created: .created_at,
+    criteria: (try (.payload|fromjson|.criteria // []) catch [])};
+  def parse_complete: {id, created: .created_at,
+    names: (try (.payload|fromjson|.criteria // []|map(.name)) catch [])};
+  ($C|map(parse_contract)) as $cs |
+  ($D|map(parse_complete)) as $ds |
+  $cs | map(. as $c |
+    ($ds | map(select(.created > $c.created
+                   and (.names as $n | $c.criteria|length > 0
+                        and ($c.criteria|all(. as $k | ($n|index($k))!=null)))))
+        | first) as $m |
+    {contract:$c.id, matched:($m.id // null), criteria:$c.criteria})
+  | map(select(.matched == null))'
+```
+
+An unmatched contract is a *candidate* for WIP, not a confirmation —
+historical reasons it appears unmatched include criterion-rename
+supersedure (see "Criterion names are the join key" in §3b), early
+bootstrap contracts that predate strict attestation, and spurious
+publishes with empty `criteria`. Reconcile each unmatched contract
+against: (i) a later contract on the same topic with renamed criteria;
+(ii) commits that delivered the named work without a `complete` event;
+(iii) `era search` for memories recording the cycle's outcome. The
+audit narrows the search space; the operator decides.
+
 ## 1. Plan
 
 ```mermaid
@@ -231,7 +276,9 @@ Internal refactors with no user-visible behavior change skip the doc commits and
 - Compose attestation JSON (each criterion + status + evidence)
 - Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)
 
-**Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly. If `/i` reveals a criterion needs renaming, either (a) keep the attestation's name verbatim from the contract and explain the change in the evidence text, or (b) publish a corrected contract before completion. Diverging names produce `info: no matching contract found in stream, skipping validation` — completion publishes but is unvalidated.
+**Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly — at validate time *and* at after-the-fact audit time (see "Reconciliation audit" below). Diverging names produce `info: no matching contract found in stream, skipping validation` at completion, and they leave a permanent unmatched contract in the stream that audits cannot tell apart from genuinely-unfinished work.
+
+If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected contract before completion** over (a) keeping the attestation's name verbatim with an evidence note. Republishing leaves an explicit contract→contract chain in the stream (the later contract supersedes the earlier); verbatim-preservation hides the divergence in evidence prose, which audits and graders cannot parse. The cost of republishing is one extra `evtctl contract` event; the cost of verbatim-with-prose is that future cross-stream reconciliation has to do payload archaeology to decide whether an unmatched contract is WIP, superseded, or abandoned. Republish.
 
 **3c Khorikov Posture (rebalance / refactor):** review the cycle's code through Khorikov's classical-school testing lens before committing to attestation. Concretely:
 - **Quadrant**: classify each new SUT — Domain Model, Controller, Algorithm, or Overcomplicated. CLI command functions usually classify as Controllers (low domain complexity, many collaborators via subprocesses and external API calls). Domain logic that grew inside a controller may want to be extracted.

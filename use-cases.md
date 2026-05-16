@@ -310,7 +310,7 @@ System identifies a gap during grading that cannot be fixed in the current sessi
 |---|---|
 | Contract events (scope/deliverables) | Automated log analysis |
 | Completion events (deliverable done) | Log aggregation tools |
-| Interaction events (/i /c /g cycles) | |
+| Interaction events (/i /c /grade cycles) | |
 | Events recorded in event store | |
 
 ### System-in-Use Story
@@ -374,16 +374,16 @@ System reaches a protocol milestone: phase start (contract), deliverable done (c
 
 | In Scope | Out of Scope |
 |---|---|
-| `/i` improve cycles at both gates | Automated grading triggers |
+| `/i` improve cycles at both gates | Automated grading triggers (agent-driven beyond /grade) |
 | Auto `/i` cycles before presentation | Grading rubrics or scoring |
 | `/c` compliance grading | Per-criterion task tracking |
-| `/g` external review grading | |
+| `/grade` adversarial review (mandatory at §1d.5; manual at any gate) | |
 | Task events at gates | |
 | Grading loops in state machine diagrams | |
 
 ### System-in-Use Story
 
-Claude finishes implementing and presents results at the Completion Gate. User types `/i`. Claude self-assesses, finds a missing validation check, fixes it, and logs the interaction. Claude re-presents. User types `/i` again. Claude finds nothing more. User types `/c`. Claude grades against the project's Go guide, finds a naming violation, fixes it, and logs. Re-presents. User types `proceed`. Claude executes the Completion Gate actions, closing the task and committing.
+Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Then mandatory `/grade` (§1d.5): Claude invokes `/grade`, the skill `wl-copy`s a self-contained grading request, user pastes it to a fresh model context and pastes back the structured response (Grade:/Findings:/Verdict:). Claude absorbs findings via `/i`, re-grades if absorption changed substantive content, exits the loop when verdict APPROVES or rounds plateau on novelty. Each round is logged as an `evtctl interaction`. Claude then ExitPlanMode + asks "May I proceed?". User says proceed; gate fires.
 
 ### Stakeholders & Interests
 
@@ -406,26 +406,28 @@ Claude finishes implementing and presents results at the Completion Gate. User t
 
 ### Trigger
 
-User types `/i`, `/c`, or `/g` at either gate. If there are guides for compliance, a single `/c` runs first before the presentation step (1d or 3b).
+(a) Mandatory: agent invokes `/grade` at §1d.5 (adversarial review sub-step). (b) Optional: user types `/i`, `/c`, or `/grade` at either gate. If there are guides for compliance, a single `/c` runs first before the presentation step (1d or 3b).
 
 ### Main Success Scenario
 
-1. User types `/i` at a gate
-2. System records the interaction
-3. System self-assesses work, identifies issues
-4. System fixes issues
-5. System re-presents at the current gate's presentation step (1d or 3b)
-6. User repeats or advances the gate
+1. Agent runs Auto `/i` at §1d (per Gate Grading ROI rule)
+2. Agent invokes `/grade` at §1d.5 (skill wl-copies a self-contained grading request)
+3. User pastes request to a fresh model context (avoids frame-expansion) and pastes the structured response back
+4. Agent absorbs findings via `/i` (re-grades if absorption changed substantive content)
+5. Loop exits when grader's verdict begins APPROVES or successive rounds plateau on novelty
+6. Each grade round logged as `evtctl interaction "/grade r<N>: <letter>, <findings count>, <verdict-summary>"`
+7. Agent ExitPlanMode + asks "May I proceed?"; user advances gate
 
 ### Extensions
 
-- 1a. User types `/c` → grade against project guides, continue at step 2
-- 1b. User types `/g` → apply external review feedback, continue at step 2
-- 1c. `/g` already used at this gate → inform user, suggest `/i`
-- 2a. Auto `/i` ran before initial presentation (≥2 passes; cap 3 unless each surfaces a new defect class) → user sees polished result
-- 3a. No issues found → report, re-present unchanged
-- 6a. User advances gate → execute gate actions
-- 6b. Gate event recording fails → report error, do not commit
+- 1a. User types `/c` at gate → grade against project guides, continue at step 2
+- 1b. User types `/grade` at gate (in addition to §1d.5 mandatory invocation) → apply external review feedback, continue at step 4
+- 2a. Grader response missing prescribed shape (no `Grade:` / `Findings:` / `Verdict:` headings) → agent requests reformatting before parsing
+- 2b. Grader verdict cannot be classified as APPROVE / SEND BACK / GAP REMAINS → agent asks user to clarify before loop exit
+- 2c. Hard cap reached (5 rounds without APPROVE and without novelty plateau) → log `/loopback 1d.5->1c: review unbounded` and return to 1c (cycle is wrong-sized or grader is uncalibrated; parallel to §1a Scope check pattern from era #4997)
+- 4a. Auto `/i` ran before §1d.5 (≥2 passes; cap 3 unless each surfaces a new defect class) → grader sees pre-polished result
+- 5a. No findings → grader returns APPROVE → loop exits immediately
+- 7a. Gate event recording fails → report error, do not commit
 
 ### Guard Conditions
 
@@ -433,8 +435,9 @@ User types `/i`, `/c`, or `/g` at either gate. If there are guides for complianc
 |---|---|
 | `/i` at either gate | Interaction logged, issues found and fixed, re-present |
 | `/c` at either gate | Compliance grade against guides, fix violations |
-| `/g` at either gate | External feedback applied |
-| `/g` repeated at same gate | Once per gate — suggest `/i` instead |
+| `/grade` mandatory at §1d.5 | Skill invoked; fresh-context paste; structured response parsed; loop until APPROVE or plateau, hard-capped at 5 rounds |
+| `/grade` at any gate (manual) | Compose grading request, apply external feedback |
+| Grader response missing structured headings | Agent requests reformatting; does not infer verdict from prose |
 | Gate advanced after grading | Gate actions executed |
 
 ---

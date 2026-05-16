@@ -8,7 +8,7 @@ On any invocation, locate your current protocol stage and act within it.
 
 - `/begin` — start planning
 - `/i` — "improve" - self-assess + fix
-- `/g` — adversarial review
+- `/grade` — adversarial review
 - `/c` — compliance with guidelines
 
 ---
@@ -141,13 +141,15 @@ audit narrows the search space; the operator decides.
 
 ```mermaid
 flowchart LR
-    A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"]
+    A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"] --> E["(1d.5) Adversarial Review"]
     B -.->|"uncertainty"| A
     C -.->|"design reveals unclear requirements"| B
-    D -.->|"/i or /grade revises"| C
+    D -.->|"/i revises"| C
+    E -.->|"/grade revises plan"| C
+    E -.->|"/grade exposes clarify gap"| B
 ```
 
-**Phase regression is normal.** Real cycles loop: 1b->1a when clarify-answers surface new uncertainty; 1c->1b when design reveals unclear requirements; 1d->1c when /i or /grade revises the plan; 3a->3a when tests fail and need re-edits; 3b->3a when /i reveals an impl issue; 3c->3a when posture review requires impl rework; 3d->3a when drift fix requires further implementation. Log each regression via `evtctl interaction "/loopback <from>-><to>: <reason>"` so the cycle's plan->event chain captures the real shape, not the linear ideal.
+**Phase regression is normal.** Real cycles loop: 1b->1a when clarify-answers surface new uncertainty; 1c->1b when design reveals unclear requirements; 1d->1c when /i reveals plan issue; 1d.5->1c when /grade reveals plan issue; 1d.5->1b when /grade exposes a clarification gap (deeper than 1c can fix); 3a->3a when tests fail and need re-edits; 3b->3a when /i reveals an impl issue; 3c->3a when posture review requires impl rework; 3d->3a when drift fix requires further implementation. Log each regression via `evtctl interaction "/loopback <from>-><to>: <reason>"` so the cycle's plan->event chain captures the real shape, not the linear ideal.
 
 **1a Investigate:** Read codebase, identify affected files, note line refs, `era search` for prior context, web search if needed. **Verify load-bearing static-analysis findings with a runtime experiment** before designing on them (static reads have false-positive and false-negative rates a discriminating experiment doesn't). For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
 
@@ -238,7 +240,9 @@ cycles already past 1d; new plans MUST include them.
 [commands to verify]
 ```
 
-**1d Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands. `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
+**1d Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands.
+
+**1d.5 Adversarial Review (mandatory):** Invoke `/grade` (no argument; grades the current plan as work product). The skill composes a self-contained, staff-level adversarial grading request and copies it to the clipboard via `wl-copy`. **Paste to a fresh model context** to avoid frame-expansion (era memory `088bf6c5c08a`: same-frame graders confirm rather than challenge). Paste the grader's response back. Absorb findings via `/i` (per Gate Grading rule). Re-grade if absorption changed *substantive content* — any semantic change affecting gates, topology, evidence forms, or workflow semantics (typos and pure wording polish do not count). Exit the loop when (a) grader's verdict approves OR (b) successive rounds plateau on novelty OR (c) **hard cap: 5 rounds reached** (circuit breaker — if neither (a) nor (b) fires by round 5, log `evtctl interaction "/loopback 1d.5->1c: review unbounded"` and return to 1c for plan rework; the cycle is wrong-sized or the grader is uncalibrated, parallel to §1a Scope check's "ceremony-is-wrong-framing" signal from era #4997). Log each round: `evtctl interaction "/grade r<N>: <letter>, <findings count>, <verdict-summary>"`. Required grader-response shape (prescribed for deterministic parsing): three labeled sections — `Grade: <letter from A/A−/B+/.../F>`; `Findings: <numbered list, each tagged with probe id (P1, P2, ... or "new") + line refs>`; `Verdict: <one paragraph whose first sentence begins with one of APPROVE / SEND BACK / GAP REMAINS, followed by reasoning>`. The agent parses the verdict's first sentence for loop exit. After loop exit: `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
 
 **Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 
@@ -248,7 +252,7 @@ At either gate if there are guides for compliance, issue a single `/c` for compl
 
 - `/i`: find opportunities to improve and execute on them. `/i` passes remain useful while each surfaces a materially new defect class. **Run at least two passes. Three is the normal cap; exceed it only when each additional pass finds genuinely new issues.** When passes mostly reshuffle previously-identified feedback, stop iterating and proceed.
 - `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
-- `/g`: if this is a staff-level design, copy to the clipboard a grading request for the user to service with external resources.
+- `/grade`: invoke at any gate to compose a grading request (clipboard via `wl-copy`); mandatory at §1d.5 before `ExitPlanMode`.
 - Log: `evtctl interaction "/X -> what found and fixed"`
 
 ## 2. Implementation Gate

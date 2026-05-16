@@ -84,7 +84,7 @@ At either gate, if there are guides for compliance, issue `/c` first before the 
 
 - `/i`: find opportunities to improve and execute on them
 - `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
-- `/g`: for staff-level designs, copy a grading request to clipboard for user to service with external resources
+- `/grade`: copy a self-contained adversarial grading request to clipboard for user to service with external resources (mandatory at §1d.5 before ExitPlanMode; manual at any gate)
 
 ### Lesson Capture
 
@@ -120,7 +120,7 @@ The actionability test is a simple decision rule. Claude can reason through the 
 | Plan | Implementation Gate | `evtctl plan <file>` | Plan file contents |
 | Task | Implementation Gate | `evtctl task "desc"` | JSON: description |
 | Claim | Implementation Gate | `evtctl claim <id> <name>` | JSON: ref + claimer |
-| Interaction | `/i` `/c` `/g` at gates | `evtctl interaction "desc"` | JSON: description |
+| Interaction | `/i` `/c` `/grade` at gates | `evtctl interaction "desc"` | JSON: description |
 | Completion | Completion Gate | `evtctl complete <<'EOF' ... EOF` (stdin) | JSON: criteria + statuses |
 | Task-done | Completion Gate | `evtctl done <id> "evidence"` | JSON: refs + description |
 | Session | Both gates | `era store --type session -t "..." <<'EOF' ... EOF` (stdin) | Session summary: objective, decisions, deliverables, lessons, decision points and rationales |
@@ -244,7 +244,7 @@ Pure internal refactors (rename a private helper, reformat a comment) skip both 
 | T7.2 | UC7 | evtctl complete at Completion Gate | `evtctl complete` |
 | T7.3 | UC7 | evtctl interaction at grading | `evtctl interaction` |
 | T7.4 | UC7 | No local log files | NOT `plan-log` |
-| T9.1 | UC9 | Grading commands at gates | `/g.*fix\|/i.*fix\|/c.*fix` |
+| T9.1 | UC9 | Grading commands at gates | `(/grade\|/i\|/c).*fix` |
 | T9.2 | UC9 | Grading loop in overview diagram | `mermaid` |
 | T9.3 | UC9 | evtctl task in template | `evtctl task` |
 | T9.4 | UC9 | evtctl done in template | `evtctl done` |

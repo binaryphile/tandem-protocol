@@ -532,7 +532,7 @@ System reaches the Implementation Gate (task creation) or Completion Gate (task 
 |---|---|
 | Pre-impl review of all three docs | Internal refactors (no doc impact) |
 | Pre-attestation re-read of all three docs | evolution.md / gap-analysis.md updates |
-| Two-pass audit: scope-internal + scope-external (per #6191) | Mechanical line-count enforcement (#3883) |
+| Two-pass audit: scope-internal + scope-external (per #6191) | Mechanical line-count enforcement |
 | Literal evidence form on `docs refreshed` | Migrating UC2-UC10 to fully-dressed |
 | Amendment commits BEFORE `evtctl complete` | |
 
@@ -624,4 +624,81 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
 | Drift found but no amendment, no skip-justification | FAIL: review observed drift but did not act |
 | docs-first skipped on user-visible-behavior change | FAIL: docs-first discipline violated |
 | Two-pass audit not performed (one or both passes skipped) | FAIL: 3d discipline violated (per #6191) |
+
+---
+
+## UC12: Plan File Invariant Validation
+
+**Scope:** Tandem Protocol | **Level:** Blue
+**Primary Actor:** Operator (developer running `evtctl plan`) | **Secondary Actors:** LLM (composes the plan), validate-plan validator
+**Priority:** P2 (Medium) — prevents malformed plans landing in stream | **Frequency:** Every `evtctl plan` invocation
+
+### In/Out List
+
+| In Scope | Out of Scope |
+|---|---|
+| Literal-substring enforcement of README §1c invariants | Position-aware structural validation (commands in correct gate block) |
+| 13-marker checklist: gate headings, GATE C STOP, 3c/3d checkpoints, required bash commands, May-I-proceed prompt | Evidence-quality validation (semantic; per #3883) |
+| Blocking pre-publish hook on `cmd.plan` | Retroactive replay of legacy plan events |
+| Operator-observable bypass (`VALIDATE_PLAN_SKIP=1` with stderr warning) | Silent bypass / no-audit override |
+| Runtime smoke-test invocation at completion-gate first line | Defense-in-depth re-validation at completion gate (byte-match per #3881 is strictly stronger) |
+
+### System-in-Use Story
+
+Alex composes a plan via the Tandem Protocol's plan-mode workflow but forgets the GATE C STOP stanza. When Alex runs `evtctl plan ~/.claude/plans/foo.md` at the impl gate, validate-plan refuses publication, listing the missing substring `🛑 GATE C` and pointing to README §1c. Alex amends the plan file, re-runs `evtctl plan`, and the event lands. Later, when Alex deliberately wants to publish a historically-important malformed plan for audit purposes, Alex runs `VALIDATE_PLAN_SKIP=1 evtctl plan bad.md` — the validator prints a stderr warning and lets the event land. The warning makes the bypass observable to anyone reviewing operator logs.
+
+### Stakeholders & Interests
+
+- **Operator** (Alex): wants malformed plans caught BEFORE they land in the audit stream; wants an explicit, observable escape hatch for audit-recovery edge cases
+- **LLM**: wants deterministic gate-discipline check it can reason about (no semantic judgment required); wants its plan output validated at the same time the operator validates it
+- **Protocol Maintainer**: wants the README §1c checklist mechanically enforced so discipline drift becomes a build error, not silent regression
+
+### Preconditions
+
+- Operator invokes `evtctl plan <file>` from a `tasks.<project>` stream context (current working directory's basename determines the stream)
+- `validate-plan` is installed and on PATH (era binary symlink in `~/.local/bin/`)
+
+### Success Guarantee
+
+- A plan event lands in the stream only after validate-plan reports all 13 markers present, OR `VALIDATE_PLAN_SKIP=1` override is set (with stderr warning printed)
+- Bypass usage is visible in operator stderr (not silent)
+
+### Minimal Guarantee
+
+- Validation failure produces a list of missing markers on stderr
+- No plan event published on validation failure
+- Non-zero exit propagates to the operator
+
+### Trigger
+
+Operator runs `evtctl plan <file>`.
+
+### Main Success Scenario
+
+1. Operator invokes `evtctl plan <file>`
+2. cmd.plan checks that the file exists and is readable
+3. cmd.plan invokes validate-plan with the file path
+4. validate-plan reads the file contents
+5. validate-plan iterates the 13-marker array and substring-matches each against the contents
+6. validate-plan exits 0 (all markers present)
+7. cmd.plan invokes era.Publish with the file contents
+8. era publishes the plan event and returns the event id
+9. cmd.plan prints the published-id to operator's stdout
+
+### Extensions
+
+- 5a. One or more markers absent → validate-plan exits 1 + prints missing markers + substring-only disclaimer + spelling/whitespace hint + README §1c pointer (all to stderr) → cmd.plan returns non-zero → era.Publish NOT called → Operator amends plan file → retry from step 1
+- 2a. File not found / unreadable → cmd.plan errors at step 2 (existing behavior); validate-plan is never invoked
+- 1a. Operator sets `VALIDATE_PLAN_SKIP=1` (rare audit-recovery case) → validate-plan prints stderr bypass-warning + exits 0 at step 5 regardless of marker presence → publication proceeds at step 7
+
+### Guard Conditions
+
+| Condition | Expected Behavior |
+|---|---|
+| File missing required marker | era.Publish must NOT be called; non-zero exit |
+| `VALIDATE_PLAN_SKIP=1` set | Stderr warning printed; era.Publish called; bypass observable in operator logs |
+| Legacy plan never re-published | validate-plan never sees it (no retroactive check; future-only enforcement per 1b Q3=a) |
+| Completion-gate bash invokes validate-plan as first line | Runtime smoke-test (full code path on known-good file); marker stability already guaranteed by #3881 byte-match below it |
+| Marker absent in prose only but present in comments / code blocks | PASSES validation (substring-only; position-aware checking is out of scope per #3883 "narrow invariants") |
+
 

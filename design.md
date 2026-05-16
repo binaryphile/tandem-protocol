@@ -148,7 +148,7 @@ The stream chain — prior plan/contract events → `/loopback` regression event
 
 Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; alternatives cover lighter cases.
 
-**Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Mechanical enforcement deferred to #3883 validate-plan; non-blocking byte-match check in completion-gate verification today.
+**Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Marker-presence in re-published plans is mechanically enforced by validate-plan (per "validate-plan invariants — mechanism" below); plan-event-byte-match against the file remains a non-blocking check in completion-gate verification today.
 
 ### Docs-first commit ordering — rationale (moved from README §3a per #6249 slim-down)
 

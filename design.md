@@ -160,7 +160,68 @@ If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected con
 
 ### GATE C STOP stanza — rationale (moved from README §1c per #6249 slim-down)
 
-The stanza is a behavioral safeguard, not a mechanical enforcement mechanism — its purpose is execution-time locality: the halt instruction sits adjacent to the executable bash in the artifact the agent traverses. Mechanical enforcement (validate-plan) is deferred (#3883). Backward compatibility: legacy plans without the stanza or without the 3c/3d checkpoints are valid for in-flight cycles already past 1d; new plans MUST include them.
+The stanza is a behavioral safeguard, not a mechanical enforcement mechanism — its purpose is execution-time locality: the halt instruction sits adjacent to the executable bash in the artifact the agent traverses. Mechanical plan-file invariants are now enforced by `validate-plan` as a blocking pre-publish hook on `evtctl plan` (see "validate-plan invariants — mechanism" below). Backward compatibility: legacy plans without the stanza or without the 3c/3d checkpoints are valid for in-flight cycles already past 1d; new plans MUST include them (and any `evtctl plan` republish will be rejected unless markers are present).
+
+### validate-plan invariants — mechanism (UC #3883)
+
+`validate-plan` is the mechanical enforcer for the README §1c pre-ExitPlanMode checklist. It runs as a **blocking pre-publish hook** on `evtctl plan` (asymmetric with `validate-attestation`'s post-publish non-blocking model) and also as the first line of completion-gate bash (runtime smoke-test). Source: `~/projects/era/bin/validate-plan`.
+
+**The 13-marker list** (canonical executable mirror; README §1c is the protocol-level source of truth — this list mirrors as authoring-time reference):
+
+1. `## At Implementation Gate`
+2. `## At Completion Gate`
+3. `🛑 GATE C`
+4. `May I proceed?`
+5. `Phase 3c Khorikov`
+6. `Phase 3d Documentation Refresh`
+7. `evtctl contract`
+8. `evtctl plan`
+9. `evtctl claim`
+10. `era store`
+11. `evtctl complete`
+12. `evtctl done`
+13. `git commit`
+
+**Why literal substring-match only** (per #3883: "Don't try to validate evidence quality — semantic and unenforceable via grep"). Substring-match is intentionally permissive: a plan with markers inside HTML comments, fenced code blocks, or quoted prose passes validation. The trade is cheap deterministic checks vs full structural parser. The latter belongs in #5013 (doc-lint), not here.
+
+**Why blocking (asymmetric with validate-attestation)**:
+- Plans precede work (10s-100s of operator-hours per cycle); a bad plan = wasted cycle. Refusing up front is cheap.
+- Attestations follow work (audit artifact post-hoc); non-blocking lets the artifact land for later debugging without erasing the audit trail.
+- **Counter-scenario** (audit-recovery): an operator may want to publish a deliberately-malformed plan to the stream for historical/forensic purposes. Blocking-by-default would erase this artifact. **Mitigation**: env-var override `VALIDATE_PLAN_SKIP=1` bypasses validate-plan and prints a stderr warning ("WARNING: validate-plan bypassed by VALIDATE_PLAN_SKIP=1; plan published without invariant validation."). Default-secure; opt-in but observable escape hatch (not silent).
+
+**Why no `--legacy` flag**: future-only enforcement. In-flight legacy plans don't re-invoke `evtctl plan`, so they're naturally exempt. `/loopback` cycles that re-publish a legacy plan must first amend it to conform.
+
+**Why a self-referential marker `validate-plan` was rejected** (initial design considered a 14th marker requiring the plan to invoke validate-plan at completion-gate time; dropped):
+- The completion-gate first-line `validate-plan` call IS recommended (per #3883's task description) but its purpose is **runtime smoke-test**, NOT mechanical re-validation.
+- The plan-immutability byte-match (per #3881) is strictly stronger than any second validate-plan invocation: byte equality between plan file and plan event implies marker equality.
+- Requiring the literal string `validate-plan` as a plan-file marker passed via prose occurrence in template documentation, not actual gate invocation — the implemented invariant did not match the claimed invariant.
+
+**Acknowledged enforcement gap**: with that marker dropped, there is **no mechanical enforcement** that completion-gate bash actually invokes `validate-plan`. Operators can delete the line from their plan template and validation still passes. This gap is intentional — mechanical enforcement of "first-line invocation" requires position-aware parsing (impl-gate-section vs completion-gate-section vs prose), which is semantic and out of scope per #3883's "narrow invariants only" mandate. Pre-publish validation (the load-bearing check) is unaffected. The completion-gate invocation is operator discipline + runtime smoke-test; not a load-bearing enforcement point.
+
+**Runtime smoke-test honest framing**: the completion-gate `validate-plan ... || exit 1` line is a **runtime smoke-test**, not "install smoke-test" or "PATH check." It exercises the full validate-plan code path (read file, iterate markers, exit 0) on a known-good file. Alternative `command -v validate-plan` would only check PATH lookup. The runtime invocation is slightly stronger: catches binary-exists-but-broken cases (permissions, dynamic-linker, dependency missing). Operational value is admittedly low (cost ~10ms; covers a rare failure mode); we honor #3883's task description literally because the alternative is to drop the invocation entirely, which contradicts the task spec.
+
+**Cross-repo rollout ordering**:
+- Land tandem-protocol commits BEFORE era commits in calendar time
+- Rationale: docs lead implementation. README documenting "this is enforced" with the era binary not yet present is informational; era binary enforcing markers with the README not yet documenting them locks operators out without explanation
+- **Mechanical guard**: the completion-gate bash includes an assertion between the tandem-protocol push and the era commits:
+  ```bash
+  cd ~/projects/tandem-protocol
+  git fetch origin
+  git merge-base --is-ancestor HEAD origin/main || { echo "tandem-protocol HEAD not on origin/main; push before era commits"; exit 1; }
+  ```
+  Prevents operator drift on the ordering rule.
+- Rollback path: if era commits land but tandem-protocol README is unreachable to operators, they see "validate-plan" errors with old README templates. Override: `VALIDATE_PLAN_SKIP=1` for immediate relief; `git revert` on era binary commits is permanent.
+
+**Marker-list synchronization discipline**:
+- README §1c is the protocol-level spec
+- This section mirrors as authoring-time reference
+- validate-plan's bash array is the executable source
+- **All three MUST be amended in the same commit** when adding/removing required elements
+- **Mechanical protection (partial)**: `test_validatePlan_markerArrayIsCanonical` golden-list test protects the bash array from silent change — if anyone adds/removes/edits a marker, the test fails until the test's hardcoded expected list is also updated. Forces explicit attention.
+- **Sync against README §1c is NOT yet mechanically protected**: a CI lint that extracts §1c's marker list and diffs against the bash array remains pending — tracked as #5013 (existing pending task). For now: 3d-audit touchpoint discipline + the golden-list test catch the executable-side; README-side drift is operator discipline.
+- Add to the **3d audit touchpoint checklist**: "if §1c changed, the validate-plan bash array AND the golden-list test must be updated together."
+
+**Failure-mode UX**: the validator's failure message explicitly states the limitation ("literal substring not found anywhere in file") plus a spelling/whitespace hint ("exact substring match — check spelling, capitalization, whitespace"), so operators don't assume deeper validation or chase wrong-cause debugging on near-misses.
 
 ### Reconciliation audit — interpreting unmatched contracts (moved from README §"Stream as source of truth" A4 per #6249 slim-down)
 

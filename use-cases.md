@@ -37,6 +37,7 @@ Alex starts a feature request. Claude enters plan mode and writes methodology to
 - Contract event contains WHAT (scope, deliverables, success criteria)
 - Plan mode entered before planning begins
 - Plan mode exited after approval, before contract publishing
+- Plan file post-1d.5-final-exit is **immutable** as a design contract until explicit `/loopback` regression (see README §1d.5 Plan immutability)
 
 ### Minimal Guarantee
 
@@ -65,6 +66,7 @@ User starts the protocol for a new task.
 - 6a. Plan mode tools not available → note not applicable, continue at step 7
 - 7a. System writes plan-style content to contract → VIOLATION
 - 8a. Multi-phase: plan file retained across phases, each phase gets own contract
+- 9a. Post-impl investigation reveals plan needs reshape → fire `/loopback <impl-phase>->1c: <reason>`; re-enter plan mode; revise plan; publish new `evtctl plan` event with `"supersedes": <prior-plan-event-id>`; if criterion topology changed, also publish new `evtctl contract` with `"supersedes": <prior-contract-event-id>` (per Tier 1 #4070 supersedes-chain pattern; see README §1d.5 Plan immutability)
 
 ### Guard Conditions
 
@@ -75,6 +77,7 @@ User starts the protocol for a new task.
 | Plan mode exited before user approval | FAIL: Premature exit |
 | Contract published while plan mode active | FAIL: Should exit first |
 | Clarify step (1b) skipped without questions | FAIL: Must ask at least one question |
+| Plan file edited post-1d.5-final-exit without explicit `/loopback` regression | FAIL: silent mutation (see README §1d.5 Plan immutability) |
 
 ---
 

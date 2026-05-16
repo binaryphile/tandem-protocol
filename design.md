@@ -24,7 +24,7 @@
 
 ### Content Distinction
 
-Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `evtctl contract` at the Implementation Gate, not stored in the plan file.
+Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to Era via `evtctl contract` at the Implementation Gate, not stored in the plan file. Plan file post-1d.5-final-exit is immutable until explicit `/loopback` regression; see §Plan immutability for the lifecycle rules.
 
 | Content Type | Belongs In | Mechanism |
 |---|---|---|
@@ -121,6 +121,19 @@ The "evidence ledger" name describes the stream-aggregated view across these eve
 | §3d docs refresh | Still runs (induced drift can occur in any change) |
 
 Trivial-tier rationale: the eligibility predicate (single-file ≤20 lines, no API contract) is itself a strong proxy for "few defect classes adversarial review would catch," matching the goldilocks principle (era memory `41d659175095`). For changes large enough to merit /grade, the cycle is no longer trivial.
+
+### Plan immutability (UC #3881)
+
+The plan file at `~/.claude/plans/<plan-name>.md` is immutable post-1d.5-final-exit until explicit `/loopback` regression. Four reinforcing reasons:
+
+- **Stream-as-source-of-truth alignment.** The `evtctl plan` event captures plan content at the cycle's approval moment. Silent file edits after that create divergence: either file is truth and stream is stale, or stream is truth and file is misleading. Immutability picks: stream is canonical; file matches stream byte-for-byte until explicit regression. Resolves the contradiction.
+- **Explicit regression as audit signal.** When plan needs to change, the agent fires `/loopback <from>-><to>: <reason>` — a visible stream event. Auditors reconstruct change history from the chain `plan event A → /loopback event → plan event B`. With silent mutation, auditors see only the final plan; the journey is lost.
+- **Prevents subtle scope drift.** Mutable plans invite mid-impl rationalization ("this was always part of the plan"). Immutability + explicit regression forces the agent to admit: "the plan changed; here's the new contract." Scope creep stops being free.
+- **Architecture-artifact reuse.** A future operator reading a historical plan as a design reference reads a stable contract, not a living document re-edited five times since impl. The plan's value as a reusable pattern depends on freezing at a known moment.
+
+Plan-immutability is the application of stream-as-source-of-truth (Tier 1 axiom) to the plan-file artifact. Parallel patterns: contract-supersession via the `supersedes` chain (Tier 1 #4070); phase-regression-event-logging via `/loopback` (Tier 2 #3882); /tier-escalate via `/tier-escalate` event (Tier 3 #3880). The protocol's consistent discipline: structural changes leave audit-visible event traces; silent file mutation undermines the stream-canonical principle.
+
+**Mid-cycle plan supersession:** when `/loopback` regression to plan mode fires, both the plan event AND (if criterion topology changed) the contract event publish with `"supersedes": <prior-event-id>` field per Tier 1 #4070 chain pattern. Mechanical enforcement of the supersedes-field schema is tracked in #5705; the protocol prescribes the pattern even while the validator-level enforcement is pending.
 
 ### Lesson Capture
 

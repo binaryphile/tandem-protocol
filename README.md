@@ -201,10 +201,9 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 
 **🛑 GATE C — Before executing the bash block below:**
 
-1. Update `<compose>` placeholder with the actual attestation JSON
-   (criterion name + status + evidence + SHAs from the impl phase).
-2. Update `<MEMO>` placeholder with the composed session memory.
-3. Replace `git add file1.go file2.go` with the actual files changed.
+1. Compose the actual attestation JSON inline in the gate bash heredoc (criterion name + status + evidence + SHAs from the impl phase). Use `--from-file /tmp/<cycle>-attestation.json` for multi-criterion (per #4070). **Do NOT write back to the plan file** — the plan is immutable post-final-1d.5-exit (see §1d.5 Plan immutability).
+2. Compose the actual session memory inline in the `era store` heredoc. Do NOT write back to the plan file.
+3. Substitute the actual file list into `git add` inline (the plan template's `git add file1.go file2.go` placeholder stays literal in the plan file).
 4. Confirm Phase 3c Khorikov posture review has been performed
    (tests output-based / state-based via captured stdout; mocks at
    inter-system boundary only; refactor logged via /i if applied).
@@ -257,6 +256,18 @@ cycles already past 1d; new plans MUST include them.
 
 **1d.5 Adversarial Review (required for standard / high-risk; waived for trivial-tier cycles):** Invoke `/grade` (no argument; grades the current plan as work product). The skill composes a self-contained, staff-level adversarial grading request and copies it to the clipboard via `wl-copy`. **Paste to a fresh model context** to avoid frame-expansion (era memory `088bf6c5c08a`: same-frame graders confirm rather than challenge). Paste the grader's response back. Absorb findings via `/i` (per Gate Grading rule). Re-grade if absorption changed *substantive content* — any semantic change affecting gates, topology, evidence forms, or workflow semantics (typos and pure wording polish do not count). Exit the loop when (a) grader's verdict approves OR (b) successive rounds plateau on novelty OR (c) **hard cap: 5 rounds reached** (circuit breaker — if neither (a) nor (b) fires by round 5, log `evtctl interaction "/loopback 1d.5->1c: review unbounded"` and return to 1c for plan rework; the cycle is wrong-sized or the grader is uncalibrated, parallel to §1a Scope check's "ceremony-is-wrong-framing" signal from era #4997). Log each round: `evtctl interaction "/grade r<N>: <letter>, <findings count>, <verdict-summary>"`. Required grader-response shape (prescribed for deterministic parsing): three labeled sections — `Grade: <letter from A/A−/B+/.../F>`; `Findings: <numbered list, each tagged with probe id (P1, P2, ... or "new") + line refs>`; `Verdict: <one paragraph whose first sentence begins with one of APPROVE / SEND BACK / GAP REMAINS, followed by reasoning>`. The agent parses the verdict's first sentence for loop exit. After loop exit: `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
 
+**Plan immutability.** The plan file at `~/.claude/plans/<plan-name>.md` is **mutable during plan mode** — agents edit freely during 1a/1b/1c, during 1d's Auto /i passes, and during 1d.5's /grade SEND BACK loops (regression edges 1d.5→1c, D→C, etc., fire within plan mode and re-open plan editability). The plan becomes **immutable at each 1d.5-final-exit** — when the /grade loop terminates with APPROVE (or plateau or hard-cap), ExitPlanMode fires, and the Implementation Gate publishes `evtctl plan`. From that moment forward, the plan file byte-matches the most-recent `evtctl plan` event payload until an explicit regression event.
+
+**Phase regression to plan mode is supported via supersession chains.** If post-impl investigation (3a/3b/3c/3d) reveals the plan needs reshape, the agent fires an explicit `/loopback <impl-phase>->1c: <reason>` interaction event (per Tier 2 #3882 phase-regression discipline). This re-enters plan mode; plan file becomes mutable again. The agent revises the plan, runs another 1d → 1d.5 cycle, then at the new 1d.5-final-exit publishes:
+- **`evtctl plan ~/.claude/plans/<plan-name>.md`** with `"supersedes": <prior-plan-event-id>` — new plan event supersedes prior (per Tier 1 #4070's blessed `supersedes` chain pattern)
+- **`evtctl contract`** with `"supersedes": <prior-contract-event-id>` if criterion topology changed (renaming / splitting / merging)
+
+The stream chain — prior plan/contract events → `/loopback` regression event → new plan/contract events — is audit-visible. Plan file re-freezes at the new 1d.5-final-exit. **Mechanical enforcement of the supersedes-field schema deferred to #5705** (the same task that tracks supersedes-semantics formalization from Tier 1's contract-supersession work).
+
+**Alternatives without full re-entry** (for smaller adjustments): (a) **scope-fold** in-cycle correction within existing criterion topology (interaction events; no supersession), (b) **defer** affected criteria to follow-up task (`evtctl task` + `dropped` status), (c) **start a new plan cycle** with a fresh `<plan-name>.md` (file collision per #5060 acknowledged) for fundamentally different work. Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; the alternatives cover lighter cases.
+
+Subsequent runtime data (attestation JSON evidence text, session memos, git-add file lists) is composed **inline at gate-time** and published via stream events; do NOT write back to the plan file outside of an explicit `/loopback` regression. (Mechanical enforcement of plan-immutability deferred to #3883 validate-plan; non-blocking byte-match check fires in the completion-gate verification.)
+
 **Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 
 ## Gate Grading
@@ -303,10 +314,10 @@ Rationale: docs land first so the contract criteria (already published at the im
 
 Internal refactors with no user-visible behavior change skip the doc commits and proceed straight to code — Phase 3d still re-reads to catch latent drift, but evidence form `docs refreshed: not applicable (internal refactor)` applies.
 
-**3b Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Show results + verification per criterion. Update plan file (`~/.claude/plans/<plan-name>.md`):
-- Replace `git add` with actual files changed
-- Compose attestation JSON (each criterion + status + evidence)
-- Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)
+**3b Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Show results + verification per criterion. **Do NOT update the plan file** — the plan is immutable post-final-1d.5-exit per §1d.5 Plan immutability. Compose the cycle's runtime data inline at the Completion Gate bash:
+- Attestation JSON: inline heredoc for single-criterion; `evtctl complete --from-file /tmp/<cycle>-attestation.json` for multi-criterion (per #4070)
+- Session memo: inline heredoc in `era store`
+- `git add` file list: substituted inline in the gate bash (the plan template's `git add file1.go file2.go` placeholder stays literal)
 
 **Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly — at validate time *and* at after-the-fact audit time (see "Reconciliation audit" below). Diverging names produce `info: no matching contract found in stream, skipping validation` at completion, and they leave a permanent unmatched contract in the stream that audits cannot tell apart from genuinely-unfinished work.
 

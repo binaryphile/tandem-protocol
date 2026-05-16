@@ -33,80 +33,36 @@ flowchart LR
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
 - A **Phase 3c Khorikov Posture** checkpoint after 3b Present: review the cycle's tests/code through Khorikov's classical-school lens, refactor if needed (see §3).
-- A **Phase 3d Documentation Refresh** checkpoint after 3c with **two passes** (scope-internal + scope-external per #6191): re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>[, <SHA>...])` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `not applicable (docs-only cycle)` / `deferred (task #<N>)`.
+- A **Phase 3d Documentation Refresh** checkpoint after 3c with **two passes** (scope-internal + scope-external per #6191): re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of five literal forms — see §3d for the canonical enumeration.
 - A mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs).
 - Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`. (Docs-review now lives in Phase 3d, not embedded in this gate bash.)
-- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list (evidence per the literal forms above; the evidence must also cite the governing use case(s) by `docs/use-cases.md` path or `UC-N` identifier so the linkage is stream-visible). If a UC doesn't yet exist, Commit 1 (WHAT — use case) in Phase 3a creates it under that identifier.
+- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` criterion (evidence per §3d's forms; evidence MUST cite the governing UC by `docs/use-cases.md` path or `UC-N` for stream-visible linkage). If no UC exists, Commit 1 in Phase 3a creates it.
 
 Do not exit plan mode without the gate sections, the GATE C STOP stanza, the Phase 3c Khorikov checkpoint, and the Phase 3d docs-review checkpoint when applicable.
 
-**Doc-level WHAT/HOW separation.** Use cases describe **WHAT** (behavioral contracts, observable postconditions, stakeholder interests). Design docs describe **HOW** (mechanisms, wire formats, parse-loop patterns, retry strategies, REST endpoint specifics). Keep design-level details out of use cases — they drift faster than UCs do, and a UC's contract should survive a re-implementation. If a UC needs a "technology variation" with concrete details, the variation belongs in design, not in the UC body.
+**Doc-level WHAT/HOW separation.** Use cases = **WHAT** (behavioral contracts, observable postconditions, stakeholder interests). Design docs = **HOW** (mechanisms, wire formats, schemas, retry strategies). Keep design-level details out of UCs — they drift faster; a UC's contract should survive re-implementation. Technology variations belong in design, not the UC body.
 
 ## Stream as source of truth
 
-Streams are append-only journals of what happened. Plans and attestations
-**reference** stream-derived ids (event ids, task ids, commit SHAs) but
-must **not memoize** payload content. The stream is the record. Two
-implications for plan authoring:
+Streams are append-only. Plans and attestations **reference** stream ids (event ids, task ids, commit SHAs); they do **not memoize** payload content.
 
 ### Do not copy payloads into plans
 
-A plan that restates a contract, an attestation, or an interaction's
-content drifts from the stream the moment either side is edited. Quote
-the event id; let the reader run `evtctl` against the stream to fetch
-the current payload.
+A plan that restates contract/attestation/interaction content drifts the moment either side is edited. Quote the event id; let the reader run `evtctl` against the stream.
 
 ### Use bash substitution to enforce adherence at gate time
 
-LLMs can write declarative plans that diverge from reality. Plans
-*can't* diverge from a `$(...)` substitution that runs in the gate
-bash — the substitution evaluates against the current stream, not
-against what the plan claims. This is the same trick
-`validate-attestation` uses at the Completion Gate; it generalizes.
+Plans can diverge from reality; `$(...)` substitutions in the gate bash cannot — they evaluate against the current stream. Same trick `validate-attestation` uses. Use wherever the LLM's claim could diverge from stream state.
 
-Concrete patterns (output formats verified live):
-
-- **Planning stage 1a**: surface what's already pending so it gets considered:
-  ```bash
-  OPEN=$(evtctl open)
-  [[ -z $OPEN ]] || cat <<<"$OPEN"
-  ```
-- **Implementation Gate**: refuse double-claim on a task already claimed
-  by another agent. `evtctl claims` (delegating to `task-audit claims`)
-  prints lines `#<id>  <date>  <claimer>  <desc>` or the literal
-  `no active claims`:
-  ```bash
-  evtctl claims | grep -qE "^#$TASK_ID\b" && {
-    echo "task $TASK_ID already claimed; resolve before claiming"; exit 1
-  }
-  ```
-- **Completion Gate**: confirm the task being closed is in fact open.
-  `evtctl open` prints `#<id>  <date>  task  <desc>`:
-  ```bash
-  evtctl open | grep -qE "^#$TASK_ID\b" || {
-    echo "task $TASK_ID not in open list"; exit 1
-  }
-  ```
-
-Plans should include such substitutions wherever the LLM's claim could
-diverge from stream state. The cost is a few lines of bash; the
-benefit is enforcement that doesn't depend on attestation prose.
+| Stage | Pattern | Bash |
+|---|---|---|
+| Planning 1a | surface pending tasks | `OPEN=$(evtctl open); [[ -z $OPEN ]] \|\| cat <<<"$OPEN"` |
+| Impl Gate | refuse double-claim (`evtctl claims` prints `#<id>  <date>  <claimer>  <desc>` or `no active claims`) | `evtctl claims \| grep -qE "^#$TASK_ID\b" && { echo "task $TASK_ID already claimed"; exit 1; }` |
+| Completion Gate | confirm task is open (`evtctl open` prints `#<id>  <date>  task  <desc>`) | `evtctl open \| grep -qE "^#$TASK_ID\b" \|\| { echo "task $TASK_ID not in open list"; exit 1; }` |
 
 ### Reconciliation audit
 
-Periodically (or when a session asks "what's unfinished?"), audit each
-project's stream for **contracts without a satisfying completion**. The
-canonical join is criterion-name string-equality between
-`contract.criteria[]` and `complete.criteria[].name`: a contract is
-satisfied when some later completion event's name-set is a superset of
-the contract's criteria.
-
-Counting raw `contract` vs `complete` events per stream is **not** a
-substitute — completions can carry added criteria, supersede earlier
-contracts, or be republished, so the counts diverge in both directions
-without indicating WIP.
-
-The join, expressed as one `era query` + `jq` per stream:
+Audit each project's stream for **contracts without a satisfying completion**. Canonical join: criterion-name string-equality between `contract.criteria[]` and `complete.criteria[].name` (superset rule — completion's names ⊇ contract's criteria).
 
 ```bash
 contracts=$(era query "tasks.$PROJECT" 'type = "contract"' --json)
@@ -127,15 +83,7 @@ jq -n --argjson C "$contracts" --argjson D "$completes" '
   | map(select(.matched == null))'
 ```
 
-An unmatched contract is a *candidate* for WIP, not a confirmation —
-historical reasons it appears unmatched include criterion-rename
-supersedure (see "Criterion names are the join key" in §3b), early
-bootstrap contracts that predate strict attestation, and spurious
-publishes with empty `criteria`. Reconcile each unmatched contract
-against: (i) a later contract on the same topic with renamed criteria;
-(ii) commits that delivered the named work without a `complete` event;
-(iii) `era search` for memories recording the cycle's outcome. The
-audit narrows the search space; the operator decides.
+Unmatched contracts are *candidates* for WIP, not confirmations. See `design.md` §"Reconciliation audit — interpreting unmatched contracts" for causes + reconcile-against checklist.
 
 ## 1. Plan
 
@@ -151,11 +99,29 @@ flowchart LR
 
 *Diagram shows standard-tier flow. Trivial-tier cycles collapse 1a/1b and skip 1d/1d.5/3c. High-risk-tier cycles run the same flow plus per-phase-entry `evtctl interaction` events.*
 
-**Phase regression is normal.** Real cycles loop: 1b->1a when clarify-answers surface new uncertainty; 1c->1b when design reveals unclear requirements; 1d->1c when /i reveals plan issue; 1d.5->1c when /grade reveals plan issue; 1d.5->1b when /grade exposes a clarification gap (deeper than 1c can fix); 3a->3a when tests fail and need re-edits; 3b->3a when /i reveals an impl issue; 3c->3a when posture review requires impl rework; 3d->3a when drift fix requires further implementation. Log each regression via `evtctl interaction "/loopback <from>-><to>: <reason>"` so the cycle's plan->event chain captures the real shape, not the linear ideal.
+**Phase regression is normal.** Real cycles loop along these edges:
 
-**1a Investigate:** Read codebase, identify affected files, note line refs, `era search` for prior context, web search if needed. **Verify load-bearing static-analysis findings with a runtime experiment** before designing on them (static reads have false-positive and false-negative rates a discriminating experiment doesn't). For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
+| From | To | Trigger |
+|---|---|---|
+| 1b | 1a | clarify-answers surface new uncertainty |
+| 1c | 1b | design reveals unclear requirements |
+| 1d | 1c | /i reveals plan issue |
+| 1d.5 | 1c | /grade reveals plan issue |
+| 1d.5 | 1b | /grade exposes a clarification gap *deeper than 1c can fix* |
+| 3a | 3a | tests fail and need re-edits |
+| 3b | 3a | /i reveals an impl issue |
+| 3c | 3a | posture review requires impl rework |
+| 3d | 3a | drift fix requires further implementation |
 
-**Scope check.** If 1a investigation reveals work below Tandem's ceremony floor — single-function fix, ~< 100 LOC, no UC implications, no architectural consequence — propose **dropping the cycle** rather than proceeding to 1c Design. Direct commit + one `evtctl interaction` event is the appropriate substitute. Signal: when adversarial /grade reviewers converge across iteration rounds on "plan too large for fix," the redirect is ceremony-is-wrong-framing, not "the plan needs more polish." Empirical anchor: era #4997 (two /grade rounds at C+/B− both flagged disproportionate ceremony; dropped Tandem on the third round; shipped as direct commit `0b94ed0`, 66-line diff, 6 tests).
+Log each regression: `evtctl interaction "/loopback <from>-><to>: <reason>"`.
+
+**1a Investigate:**
+- Read codebase, identify affected files + line refs; `era search` for prior context; web search if needed.
+- **Verify load-bearing static-analysis findings with a runtime experiment** (static reads have FP/FN rates a discriminating experiment doesn't).
+- For debugging: complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, recent commits); each is a candidate until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.**
+- Adversarial review *narrows* the differential, doesn't expand it. When review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
+
+**Scope check.** If 1a reveals work below Tandem's ceremony floor (single-function fix, ~< 100 LOC, no UC implications, no architectural consequence), propose **dropping the cycle** — direct commit + one `evtctl interaction` event is the substitute. Signal: when adversarial /grade reviewers converge across rounds on "plan too large for fix," the redirect is ceremony-is-wrong-framing, not "the plan needs more polish." (Empirical anchor: era #4997.)
 
 **Tier classification.** After Scope check (if the cycle isn't dropped), classify the cycle into one of three tiers; agent self-classifies based on the eligibility rules below; user can override at 1b. **Tier may escalate mid-cycle** when a high-risk predicate (multi-repo / public API change / data migration) is discovered post-classification — log `evtctl interaction "/tier-escalate <from>-><to>: <reason>"` and apply the new tier's scaffolding from that point. **Downgrade is forbidden** mid-cycle (prevents ceremony gaming).
 
@@ -211,22 +177,14 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
    (BOTH scope-internal pass — deep re-read of modified docs — AND
    scope-external pass — scan of adjacent normative docs — per #6191;
    all affected docs re-read; drift amended + committed + pushed
-   BEFORE this gate; evidence form set on `docs refreshed` criterion:
-   `docs drift detected: yes (<SHA>[, <SHA>...])` or `no (reviewed: ...)`
-   or `not applicable (internal refactor)` or `not applicable (docs-only cycle)`
-   or `deferred (task #<N>)`).
+   BEFORE this gate; evidence form set on `docs refreshed` criterion
+   per §3d's canonical enumeration).
 6. Print this updated plan file to the user.
 7. Show the completion-gate bash block as it now reads.
 8. Ask "May I proceed?" and **wait for explicit approval** before
    executing.
 
-The stanza is a behavioral safeguard, not a mechanical enforcement
-mechanism — its purpose is execution-time locality: the halt
-instruction sits adjacent to the executable bash in the artifact
-the agent traverses. Mechanical enforcement (validate-plan) is
-deferred (#3883). Backward compatibility: legacy plans without the
-stanza or without the 3c/3d checkpoints are valid for in-flight
-cycles already past 1d; new plans MUST include them.
+(GATE C is a behavioral safeguard; mechanical enforcement deferred to #3883. See `design.md` §"GATE C STOP stanza — rationale" for the execution-time-locality argument and backward-compat note for legacy plans.)
 
 ## At Completion Gate
 
@@ -256,19 +214,26 @@ cycles already past 1d; new plans MUST include them.
 
 **1d Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading; waived for trivial-tier cycles). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands.
 
-**1d.5 Adversarial Review (required for standard / high-risk; waived for trivial-tier cycles):** Invoke `/grade` (no argument; grades the current plan as work product). The skill composes a self-contained, staff-level adversarial grading request and copies it to the clipboard via `wl-copy`. **Paste to a fresh model context** to avoid frame-expansion (era memory `088bf6c5c08a`: same-frame graders confirm rather than challenge). Paste the grader's response back. Absorb findings via `/i` (per Gate Grading rule). Re-grade if absorption changed *substantive content* — any semantic change affecting gates, topology, evidence forms, or workflow semantics (typos and pure wording polish do not count). Exit the loop when (a) grader's verdict approves OR (b) successive rounds plateau on novelty OR (c) **hard cap: 5 rounds reached** (circuit breaker — if neither (a) nor (b) fires by round 5, log `evtctl interaction "/loopback 1d.5->1c: review unbounded"` and return to 1c for plan rework; the cycle is wrong-sized or the grader is uncalibrated, parallel to §1a Scope check's "ceremony-is-wrong-framing" signal from era #4997). Log each round: `evtctl interaction "/grade r<N>: <letter>, <findings count>, <verdict-summary>"`. Required grader-response shape (prescribed for deterministic parsing): three labeled sections — `Grade: <letter from A/A−/B+/.../F>`; `Findings: <numbered list, each tagged with probe id (P1, P2, ... or "new") + line refs>`; `Verdict: <one paragraph whose first sentence begins with one of APPROVE / SEND BACK / GAP REMAINS, followed by reasoning>`. The agent parses the verdict's first sentence for loop exit. After loop exit: `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
+**1d.5 Adversarial Review (required for standard / high-risk; waived for trivial-tier cycles):**
 
-**Plan immutability.** The plan file at `~/.claude/plans/<plan-name>.md` is **mutable during plan mode** — agents edit freely during 1a/1b/1c, during 1d's Auto /i passes, and during 1d.5's /grade SEND BACK loops (regression edges 1d.5→1c, D→C, etc., fire within plan mode and re-open plan editability). The plan becomes **immutable at each 1d.5-final-exit** — when the /grade loop terminates with APPROVE (or plateau or hard-cap), ExitPlanMode fires, and the Implementation Gate publishes `evtctl plan`. From that moment forward, the plan file byte-matches the most-recent `evtctl plan` event payload until an explicit regression event.
+Workflow:
+1. Invoke `/grade` (no argument; grades the current plan).
+2. **Paste to a fresh model context** to avoid frame-expansion (era memory `088bf6c5c08a`: same-frame graders confirm rather than challenge).
+3. Paste grader response back; absorb findings via `/i` (per Gate Grading).
+4. Re-grade if absorption changed *substantive content* (semantic changes affecting gates, topology, evidence forms, or workflow; typos don't count).
 
-**Phase regression to plan mode is supported via supersession chains.** If post-impl investigation (3a/3b/3c/3d) reveals the plan needs reshape, the agent fires an explicit `/loopback <impl-phase>->1c: <reason>` interaction event (per Tier 2 #3882 phase-regression discipline). This re-enters plan mode; plan file becomes mutable again. The agent revises the plan, runs another 1d → 1d.5 cycle, then at the new 1d.5-final-exit publishes:
-- **`evtctl plan ~/.claude/plans/<plan-name>.md`** with `"supersedes": <prior-plan-event-id>` — new plan event supersedes prior (per Tier 1 #4070's blessed `supersedes` chain pattern)
-- **`evtctl contract`** with `"supersedes": <prior-contract-event-id>` if criterion topology changed (renaming / splitting / merging)
+Exit conditions (any one):
+- (a) Grader verdict approves
+- (b) Successive rounds plateau on novelty
+- (c) Hard cap: 5 rounds (log `/loopback 1d.5->1c: review unbounded`; return to 1c — cycle is wrong-sized or grader uncalibrated; parallel to §1a Scope check's "ceremony-is-wrong-framing" signal from era #4997)
 
-The stream chain — prior plan/contract events → `/loopback` regression event → new plan/contract events — is audit-visible. Plan file re-freezes at the new 1d.5-final-exit. **Mechanical enforcement of the supersedes-field schema deferred to #5705** (the same task that tracks supersedes-semantics formalization from Tier 1's contract-supersession work).
+Required grader-response shape (deterministic parsing): `Grade: <letter>` / `Findings: <numbered, probe-tagged + line refs>` / `Verdict: <one paragraph beginning APPROVE / SEND BACK / GAP REMAINS>`. Agent parses verdict's first sentence for loop exit.
 
-**Alternatives without full re-entry** (for smaller adjustments): (a) **scope-fold** in-cycle correction within existing criterion topology (interaction events; no supersession), (b) **defer** affected criteria to follow-up task (`evtctl task` + `dropped` status), (c) **start a new plan cycle** with a fresh `<plan-name>.md` (file collision per #5060 acknowledged) for fundamentally different work. Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; the alternatives cover lighter cases.
+Log each round: `evtctl interaction "/grade r<N>: <letter>, <findings count>, <verdict-summary>"`.
 
-Subsequent runtime data (attestation JSON evidence text, session memos, git-add file lists) is composed **inline at gate-time** and published via stream events; do NOT write back to the plan file outside of an explicit `/loopback` regression. (Mechanical enforcement of plan-immutability deferred to #3883 validate-plan; non-blocking byte-match check fires in the completion-gate verification.)
+After loop exit: `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
+
+**Plan immutability.** Plan file is mutable during plan mode (1a/1b/1c/1d/1d.5 /grade SEND BACK loops); immutable at each 1d.5-final-exit. Post-final-exit, runtime data (attestation JSON, session memos, git-add file list) is composed inline at gate-time; do NOT write back. Phase regression to plan mode supported via `/loopback` + plan-event + contract-event supersession chains (Tier 1 #4070 pattern). See `design.md` §"Plan immutability" for full mechanics (alternatives without re-entry, prospective-only escalation semantics, supersedes-chain audit-visibility, mechanical enforcement deferred to #3883).
 
 **Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 
@@ -300,21 +265,18 @@ flowchart LR
 
 *Diagram shows standard-tier flow. Trivial-tier cycles collapse 1a/1b and skip 1d/1d.5/3c. High-risk-tier cycles run the same flow plus per-phase-entry `evtctl interaction` events.*
 
-**3a Execute:** Implement each contract criterion, **docs-first**.
+**3a Execute:** Implement each contract criterion, **docs-first**. Cycles affecting user-visible behavior land doc commits BEFORE code:
 
-Cycles that add or change user-visible behavior land doc commits BEFORE code commits within Phase 3a:
+| Commit | Layer | Contents |
+|---|---|---|
+| 1 | WHAT — use case | amend `docs/use-cases.md` (Cockburn shape: scope, level, primary actor, stakeholders, postconditions, minimal guarantee, MSS, extensions, framing) |
+| 2 | HOW — design doc | amend `design.md` (mechanism, schemas, thresholds, error semantics) |
+| 3 | operator-facing | amend `README.md` operational-surface + `CLAUDE.md` workflow sections |
+| 4..N | implementation | code + tests (TDD recommended for new behavioral surface) |
 
-1. **Commit 1 (WHAT — use case):** add or amend the affected use case in `docs/use-cases.md` (Cockburn shape: scope, level, primary actor, stakeholders, postconditions, minimal guarantee, main scenario, extensions, framing). The use case names the behavioral contract the cycle is about to deliver — it's the canonical statement of WHAT, not HOW. Per the doc-level WHAT/HOW separation rule earlier in this README, keep technology/mechanism specifics out of the UC body; cite the design doc for them.
+**The UC is canonical WHAT.** Keep mechanism/technology specifics OUT of UC body — cite the design doc for them (doc-level WHAT/HOW separation, enforced).
 
-2. **Commit 2 (HOW — design doc):** add or amend the design.md (and any project-specific design docs like design-events.md) with the mechanism: data shape, algorithms, thresholds, schemas, error semantics, operational unit details. The design doc names HOW the use case is delivered.
-
-3. **Commit 3 (operator-facing surface, when applicable):** README.md operational-surface pointers and CLAUDE.md workflow sections — anything that helps an operator find and use the new capability.
-
-4. **Commit 4..N (implementation):** code and tests, evaluated against the WHAT and HOW just landed. Each commit references the UC number where relevant. For new behavioral surface (not refactors, not observability-only, not docs-only), test-first (TDD red→green) is recommended — write the failing test before the implementation that makes it pass; the moment of seeing red confirms the test exercises the absent behavior. Project conventions in the consuming repo's CLAUDE.md decide whether to enforce it.
-
-Rationale: docs land first so the contract criteria (already published at the impl gate) can be evaluated against doc artifacts at impl-review time, not against still-being-typed code. Reviewers reading the diff see the contract → use case → design → code chain, in that order. Drift between code and docs caught during 3a folds into Commit N+1 (still docs-first within the cycle); drift caught at 3d folds in there.
-
-Internal refactors with no user-visible behavior change skip the doc commits and proceed straight to code — Phase 3d still re-reads to catch latent drift, but evidence form `docs refreshed: not applicable (internal refactor)` applies.
+Internal refactors skip doc commits and proceed straight to code; §3d still re-reads (evidence: `not applicable (internal refactor)`). See `design.md` §"Docs-first commit ordering — rationale" for reviewer-experience rationale.
 
 **3b Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Show results + verification per criterion. **Do NOT update the plan file** — the plan is immutable post-final-1d.5-exit per §1d.5 Plan immutability. Compose the cycle's runtime data inline at the Completion Gate bash:
 - Attestation JSON: inline heredoc for single-criterion; `evtctl complete --from-file /tmp/<cycle>-attestation.json` for multi-criterion (per #4070)
@@ -323,16 +285,16 @@ Internal refactors with no user-visible behavior change skip the doc commits and
 
 **Criterion names are the join key.** `validate-attestation` matches completion → contract by string-equality on criterion names: contract publishes `criteria: ["name1", "name2", ...]`; completion publishes `criteria: [{"name": "name1", ...}, ...]`. Names must match exactly — at validate time *and* at after-the-fact audit time (see "Reconciliation audit" below). Diverging names produce `info: no matching contract found in stream, skipping validation` at completion, and they leave a permanent unmatched contract in the stream that audits cannot tell apart from genuinely-unfinished work.
 
-If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected contract before completion** over (a) keeping the attestation's name verbatim with an evidence note. Republishing leaves an explicit contract→contract chain in the stream (the later contract supersedes the earlier); verbatim-preservation hides the divergence in evidence prose, which audits and graders cannot parse. The cost of republishing is one extra `evtctl contract` event; the cost of verbatim-with-prose is that future cross-stream reconciliation has to do payload archaeology to decide whether an unmatched contract is WIP, superseded, or abandoned. Republish.
+If `/i` reveals a criterion needs renaming, publish a corrected contract before completion (`supersedes` chain per Tier 1 #4070 pattern). See `design.md` §"Criterion rename via republish-contract — rationale" for the full justification.
 
-**3c Khorikov Posture (rebalance / refactor; intensified for high-risk-tier; N/A for trivial-tier):** review the cycle's code through Khorikov's classical-school testing lens before committing to attestation. Concretely:
-- **Quadrant**: classify each new SUT — Domain Model, Controller, Algorithm, or Overcomplicated. CLI command functions usually classify as Controllers (low domain complexity, many collaborators via subprocesses and external API calls). Domain logic that grew inside a controller may want to be extracted.
-- **Style**: tests should be output-based (or, for bash CLI controllers, state-based via captured stdout — Khorikov's strict "output-based" requires pure-function returns, which `cmd.X` writes-to-stdout simulates via `$()`).
-- **Mock boundary**: mocks live at the inter-system edge only (REST helpers, external binaries via bash function-redef). Internal helpers are NOT mocked — they're exercised through the public interface.
-- **Granularity**: integration tests on the controller; per Khorikov §6275, "test controllers briefly as part of a much smaller set of the overarching integration tests."
-- **FAIL-stub-as-assertion**: communication-based assertion is reserved for "this collaborator MUST NOT be called" — a mock that errors if reached.
-- **Refactor opportunities**: extract semantic helpers when structural reuse hides opposite intent (e.g., a parse loop that collects positionals vs one that rejects them — name the helper `rejectAllPositionals`, not `parseFlags`).
-- **Don't pin known-broken behavior in tests.** A test that asserts "this bug currently does X" violates Khorikov's resistance-to-refactoring pillar — it fails when someone correctly fixes the bug. Mark `xfail`/pending, or document as an explicit compatibility contract with rationale; do not bake the wrong answer into the assertion.
+**3c Khorikov Posture (rebalance / refactor; intensified for high-risk-tier; N/A for trivial-tier):** review the cycle's code through Khorikov's classical-school lens before attestation:
+- **Quadrant**: classify each new SUT (Domain Model / Controller / Algorithm / Overcomplicated). Extract domain logic from controllers.
+- **Style**: output-based; bash CLI controllers use captured stdout (state-based via `$()`).
+- **Mock boundary**: only at inter-system edges. Internal helpers exercised through the public interface.
+- **Granularity**: integration tests on the controller (Khorikov §6275).
+- **FAIL-stub-as-assertion**: communication-based assertion only for "MUST NOT be called" — mock errors if reached.
+- **Refactor opportunities**: extract semantic helpers (e.g., `rejectAllPositionals` not `parseFlags`).
+- **Don't pin known-broken behavior**: violates resistance-to-refactoring; use `xfail`/pending or explicit compatibility contract instead.
 
 If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: `evtctl interaction "/i 3c Khorikov: <finding + fix>"`.
 
@@ -343,13 +305,11 @@ If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: 
 - `docs refreshed: not applicable (docs-only cycle)` — cycle was planned as docs-only at 1a (see design.md for plan-time-intent semantics and the incidental-fix boundary)
 - `docs drift detected: deferred (task #<N>)` — drift acknowledged; deferred
 
-**Two passes** (per #6191 discipline):
-1. **Scope-internal pass** (first): deep re-read of each doc the cycle is already modifying. Verify the cycle's amendments propagated through every subsection of every affected doc (UC In/Out, MSS, Extensions, Guard Conditions, Trigger, Preconditions, Stakeholders; README sub-steps; design.md rationale subsections + tables). The goal is propagation-completeness verification, not just drift-presence detection.
-2. **Scope-external pass** (second): scan OTHER normative docs (FEATURES.md, evolution.md, planning-guide.md, protocol-guide.md, project-specific design docs, CLAUDE.md imports the cycle touched) for transitively-induced drift.
+**Two passes** (per #6191):
+1. **Scope-internal**: deep re-read of every modified doc; verify amendments propagated through every subsection (UC In/Out, MSS, Extensions, Guard Conditions, Trigger, Preconditions, Stakeholders; README sub-steps; design.md tables + rationale). Goal: propagation-completeness, not drift-presence.
+2. **Scope-external**: scan OTHER normative docs (FEATURES.md, evolution.md, guides, project-specific design docs, touched CLAUDE.md imports) for transitively-induced drift.
 
-Re-read means actually reading the affected sections, not grep + spot-check (the latter catches arg-form residue and stale syntax but misses semantic drift). Two interaction events (one per pass) capture separately the propagation-completeness vs induced-drift outcomes (they have distinct remediation paths — see UC11 Extensions): `evtctl interaction "/i 3d scope-internal: <evidence-form>"` and `evtctl interaction "/i 3d scope-external: <evidence-form>"`.
-
-See `design.md` "Two-pass 3d audit" subsection for rationale + empirical anchor.
+Re-read = actually reading sections, not grep + spot-check. Log per pass: `evtctl interaction "/i 3d scope-internal: <evidence-form>"` and `/i 3d scope-external: <evidence-form>`. See `design.md` §"Two-pass 3d audit" for rationale (two-events-vs-combined, empirical anchor).
 
 After 3d: print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
 

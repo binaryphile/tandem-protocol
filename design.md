@@ -135,6 +135,49 @@ Plan-immutability is the application of stream-as-source-of-truth (Tier 1 axiom)
 
 **Mid-cycle plan supersession:** when `/loopback` regression to plan mode fires, both the plan event AND (if criterion topology changed) the contract event publish with `"supersedes": <prior-event-id>` field per Tier 1 #4070 chain pattern. Mechanical enforcement of the supersedes-field schema is tracked in #5705; the protocol prescribes the pattern even while the validator-level enforcement is pending.
 
+**Full regression mechanics (moved from README §1d.5 per #6249 slim-down).** Phase regression to plan mode is supported via supersession chains. If post-impl investigation (3a/3b/3c/3d) reveals the plan needs reshape, the agent fires an explicit `/loopback <impl-phase>->1c: <reason>` interaction event (per Tier 2 #3882 phase-regression discipline). This re-enters plan mode; plan file becomes mutable again. The agent revises the plan, runs another 1d → 1d.5 cycle, then at the new 1d.5-final-exit publishes:
+- `evtctl plan ~/.claude/plans/<plan-name>.md` with `"supersedes": <prior-plan-event-id>` — new plan event supersedes prior
+- `evtctl contract` with `"supersedes": <prior-contract-event-id>` if criterion topology changed (renaming / splitting / merging)
+
+The stream chain — prior plan/contract events → `/loopback` regression event → new plan/contract events — is audit-visible. Plan file re-freezes at the new 1d.5-final-exit.
+
+**Alternatives without full re-entry** (for smaller adjustments):
+- **(a) scope-fold** in-cycle correction within existing criterion topology (interaction events; no supersession)
+- **(b) defer** affected criteria to follow-up task (`evtctl task` + `dropped` status)
+- **(c) start a new plan cycle** with a fresh `<plan-name>.md` (file collision per #5060 acknowledged) for fundamentally different work
+
+Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; alternatives cover lighter cases.
+
+**Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Mechanical enforcement deferred to #3883 validate-plan; non-blocking byte-match check in completion-gate verification today.
+
+### Docs-first commit ordering — rationale (moved from README §3a per #6249 slim-down)
+
+Docs land first so the contract criteria (already published at the impl gate) can be evaluated against doc artifacts at impl-review time, not against still-being-typed code. Reviewers reading the diff see the contract → use case → design → code chain, in that order. Drift between code and docs caught during 3a folds into Commit N+1 (still docs-first within the cycle); drift caught at 3d folds in there.
+
+### Criterion rename via republish-contract — rationale (moved from README §3b per #6249 slim-down)
+
+If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected contract before completion** over (a) keeping the attestation's name verbatim with an evidence note. Republishing leaves an explicit contract→contract chain in the stream (the later contract supersedes the earlier); verbatim-preservation hides the divergence in evidence prose, which audits and graders cannot parse. The cost of republishing is one extra `evtctl contract` event; the cost of verbatim-with-prose is that future cross-stream reconciliation has to do payload archaeology to decide whether an unmatched contract is WIP, superseded, or abandoned. Republish.
+
+### GATE C STOP stanza — rationale (moved from README §1c per #6249 slim-down)
+
+The stanza is a behavioral safeguard, not a mechanical enforcement mechanism — its purpose is execution-time locality: the halt instruction sits adjacent to the executable bash in the artifact the agent traverses. Mechanical enforcement (validate-plan) is deferred (#3883). Backward compatibility: legacy plans without the stanza or without the 3c/3d checkpoints are valid for in-flight cycles already past 1d; new plans MUST include them.
+
+### Reconciliation audit — interpreting unmatched contracts (moved from README §"Stream as source of truth" A4 per #6249 slim-down)
+
+Counting raw `contract` vs `complete` events per stream is **not** a substitute for the criterion-name-superset join — completions can carry added criteria, supersede earlier contracts, or be republished, so the counts diverge in both directions without indicating WIP.
+
+An unmatched contract is a *candidate* for WIP, not a confirmation — historical reasons it appears unmatched include:
+- **Criterion-rename supersedure** (see "Criterion rename via republish-contract — rationale" above): a later contract on the same topic uses corrected criterion names; the earlier contract becomes unmatched
+- **Early bootstrap contracts** that predate strict attestation
+- **Spurious publishes with empty `criteria`** (validator skipped them)
+
+Reconcile each unmatched contract against:
+- (i) a later contract on the same topic with renamed criteria
+- (ii) commits that delivered the named work without a `complete` event
+- (iii) `era search` for memories recording the cycle's outcome
+
+The audit narrows the search space; the operator decides.
+
 ### Two-pass 3d audit (UC #6191)
 
 The two passes (scope-internal first, scope-external second) serve distinct purposes:

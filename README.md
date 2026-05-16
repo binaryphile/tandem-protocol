@@ -184,11 +184,13 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 8. Ask "May I proceed?" and **wait for explicit approval** before
    executing.
 
-(GATE C is a behavioral safeguard; mechanical enforcement deferred to #3883. See `design.md` §"GATE C STOP stanza — rationale" for the execution-time-locality argument and backward-compat note for legacy plans.)
+(GATE C is a behavioral safeguard for the operator; mechanical plan-file invariants are enforced by `validate-plan` as a blocking pre-publish hook on `evtctl plan` — see `design.md` §"GATE C STOP stanza — rationale" and §"validate-plan invariants — mechanism".)
 
 ## At Completion Gate
 
     ```bash
+    validate-plan ~/.claude/plans/<plan-name>.md || exit 1  # runtime smoke-test (markers already guaranteed by plan-immutability byte-match)
+
     # Phase 3c (Khorikov posture review) and Phase 3d (docs refresh)
     # have completed before this gate. Docs-drift evidence is already
     # set; amendments (if any) already committed and pushed.
@@ -233,7 +235,7 @@ Log each round: `evtctl interaction "/grade r<N>: <letter>, <findings count>, <v
 
 After loop exit: `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
 
-**Plan immutability.** Plan file is mutable during plan mode (1a/1b/1c/1d/1d.5 /grade SEND BACK loops); immutable at each 1d.5-final-exit. Post-final-exit, runtime data (attestation JSON, session memos, git-add file list) is composed inline at gate-time; do NOT write back. Phase regression to plan mode supported via `/loopback` + plan-event + contract-event supersession chains (Tier 1 #4070 pattern). See `design.md` §"Plan immutability" for full mechanics (alternatives without re-entry, prospective-only escalation semantics, supersedes-chain audit-visibility, mechanical enforcement deferred to #3883).
+**Plan immutability.** Plan file is mutable during plan mode (1a/1b/1c/1d/1d.5 /grade SEND BACK loops); immutable at each 1d.5-final-exit. Post-final-exit, runtime data (attestation JSON, session memos, git-add file list) is composed inline at gate-time; do NOT write back. Phase regression to plan mode supported via `/loopback` + plan-event + contract-event supersession chains (Tier 1 #4070 pattern). Plan-file invariants are mechanically enforced by `validate-plan` (blocking pre-publish hook on `evtctl plan`); see `design.md` §"Plan immutability" for full mechanics and §"validate-plan invariants — mechanism" for the enforced invariant set.
 
 **Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 

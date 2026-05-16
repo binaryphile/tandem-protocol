@@ -532,12 +532,13 @@ System reaches the Implementation Gate (task creation) or Completion Gate (task 
 |---|---|
 | Pre-impl review of all three docs | Internal refactors (no doc impact) |
 | Pre-attestation re-read of all three docs | evolution.md / gap-analysis.md updates |
-| Literal evidence form on `docs refreshed` | Mechanical line-count enforcement (#3883) |
-| Amendment commits BEFORE `evtctl complete` | Migrating UC2-UC10 to fully-dressed |
+| Two-pass audit: scope-internal + scope-external (per #6191) | Mechanical line-count enforcement (#3883) |
+| Literal evidence form on `docs refreshed` | Migrating UC2-UC10 to fully-dressed |
+| Amendment commits BEFORE `evtctl complete` | |
 
 ### System-in-Use Story
 
-Alex starts a cycle that adds a STOP-marker requirement. Before impl, Claude updates use-cases.md and design.md to reflect the new requirement (docs-first). After impl lands, but BEFORE publishing the attestation, Claude re-reads all three docs against what was actually built. A subtle wording divergence in design.md is found and amended in a follow-up commit. The attestation's `docs refreshed` criterion carries evidence `docs drift detected: yes (<amend-SHA>)`. Without the docs-late review, the attestation would have referenced docs known to diverge from reality.
+Alex starts a cycle that adds a STOP-marker requirement. Before impl, Claude updates use-cases.md and design.md to reflect the new requirement (docs-first). After impl lands, Claude runs the **two-pass flow** (per #6191): scope-internal pass deep-re-reads each modified doc to catch incomplete propagation through every subsection; scope-external pass scans adjacent normative docs for transitively-induced drift. The scope-internal pass finds a subtle wording divergence in design.md (the new requirement isn't reflected in design.md's table of related concepts); Claude amends and commits before attestation. The attestation's `docs refreshed` criterion carries evidence `docs drift detected: yes (<amend-SHA>)`. Without the two-pass flow, the attestation would have referenced docs known to diverge from reality.
 
 ### Stakeholders & Interests
 
@@ -553,7 +554,7 @@ Alex starts a cycle that adds a STOP-marker requirement. Before impl, Claude upd
 
 ### Success Guarantee
 
-- Pre-attestation review of all three docs has been performed
+- Both scope-internal pass (deep re-read of modified docs) and scope-external pass (scan of adjacent normative docs) have been performed before attestation (per #6191)
 - If drift was detected, amendment commits landed BEFORE `evtctl complete`
 - Attestation's `docs refreshed` evidence is one of five literal forms (see design.md "Docs-refreshed evidence form"):
   - `docs drift detected: yes (<SHA>[, <SHA>...])`
@@ -576,21 +577,27 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
 
 1. LLM finishes impl + 3b /i passes
 2. LLM commits + pushes implementation changes
-3. LLM re-reads README.md (operational spec; most likely to drift)
-4. LLM re-reads use-cases.md (UC fields surface impl-revealed edge cases?)
-5. LLM re-reads design.md (rationale matches what was built?)
-6. LLM determines drift status (yes / no)
-7. If drift: LLM amends affected docs, commits ("docs: post-impl drift fix"), pushes; sets evidence to `docs drift detected: yes (<SHA>)`
-8. If no drift: LLM sets evidence to `docs drift detected: no (reviewed: README, use-cases.md, design.md)`
-9. LLM publishes attestation (`evtctl complete`) with the literal evidence on the `docs refreshed` criterion
-10. LLM publishes `done` and stores completion memory
+3. LLM runs **SCOPE-INTERNAL pass** — deep re-read of each doc the cycle is modifying
+   a. Re-read every subsection header (and the prose under each) in each modified doc
+   b. For each concept the cycle amends, verify the concept appears (and is correctly framed) in every section where it logically belongs: UCs — In/Out, MSS, Extensions, Guard Conditions, Trigger, Preconditions, Stakeholders, Frequency; README — every sub-step referencing the concept; design.md — rationale subsections, tables, test plan. **Also verify cross-references between sections** (e.g., MSS step renumbering propagates into Extension references to step numbers; section anchors in cross-references resolve to renamed/restructured targets)
+   c. Verify propagation completeness, not just drift-presence
+   d. Log: `evtctl interaction "/i 3d scope-internal: <evidence-form-or-summary>"`
+4. LLM runs **SCOPE-EXTERNAL pass** — scan adjacent normative docs NOT being modified
+   a. Scan FEATURES.md, evolution.md, planning-guide.md, protocol-guide.md, project-specific design docs (design-events.md if present), CLAUDE.md imports the cycle touched
+   b. Identify any references that the cycle's amendment makes transitively stale
+   c. Log: `evtctl interaction "/i 3d scope-external: <evidence-form-or-summary>"`
+5. LLM determines drift status across BOTH passes (yes / no per pass)
+6. If drift: LLM amends affected docs, commits ("docs: post-impl drift fix"), pushes; sets evidence to `docs drift detected: yes (<SHA>)`
+7. If no drift: LLM sets evidence to `docs drift detected: no (reviewed: <doc-list>)`
+8. LLM publishes attestation (`evtctl complete`) with the literal evidence on the `docs refreshed` criterion
+9. LLM publishes `done` and stores completion memory
 
 ### Extensions
 
 - 6a. Drift found in MULTIPLE docs:
   1. LLM amends each affected doc
   2. Commits may be combined into one "docs: post-impl drift fix" commit or split per doc; evidence records the final SHA
-  3. Resume MSS step 9
+  3. Resume MSS step 8
 - 7a. Drift amendment itself reveals further drift (recursive review):
   1. LLM amends iteratively, capping at 2 amendment cycles
   2. If still surfacing drift after 2 cycles, halt and ask user (cycle may need scope reconsideration, not just doc fix)
@@ -605,6 +612,7 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
   2. Phase 3d still runs against the cycle's own diff
   3. Incidental drift fixes within the cycle's docs scope MAY be folded into the same commits; the form classifies cycle *intent at 1a*, not drift-absence
   4. Evidence: `docs refreshed: not applicable (docs-only cycle)` (fifth allowed form; parallel to 8a's `(internal refactor)` parenthetical)
+- 11a. Scope-internal pass found no surface drift BUT cycle introduces protocol-level semantics with multi-section reach (Trigger, In/Out, Stakeholders, Preconditions, MSS sub-steps, Extensions, Guard Conditions, Frequency, Priority) → re-run the scope-internal pass at SUBSECTION HEADER granularity: read each subsection of the affected UC and verify the new concept is reflected where logically needed. The discipline is **propagation-completeness verification**, not just drift-presence detection. Operational definition of "deep": every subsection header read; every concept-touchpoint verified against the amendment.
 
 ### Guard Conditions
 
@@ -615,4 +623,5 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
 | Amendment commits land AFTER attestation | FAIL: ordering invariant violated |
 | Drift found but no amendment, no skip-justification | FAIL: review observed drift but did not act |
 | docs-first skipped on user-visible-behavior change | FAIL: docs-first discipline violated |
+| Two-pass audit not performed (one or both passes skipped) | FAIL: 3d discipline violated (per #6191) |
 

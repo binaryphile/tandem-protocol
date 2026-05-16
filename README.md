@@ -33,7 +33,7 @@ flowchart LR
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
 - A **Phase 3c Khorikov Posture** checkpoint after 3b Present: review the cycle's tests/code through Khorikov's classical-school lens, refactor if needed (see §3).
-- A **Phase 3d Documentation Refresh** checkpoint after 3c: re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>[, <SHA>...])` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `not applicable (docs-only cycle)` / `deferred (task #<N>)`.
+- A **Phase 3d Documentation Refresh** checkpoint after 3c with **two passes** (scope-internal + scope-external per #6191): re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>[, <SHA>...])` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `not applicable (docs-only cycle)` / `deferred (task #<N>)`.
 - A mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs).
 - Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`. (Docs-review now lives in Phase 3d, not embedded in this gate bash.)
 - For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list (evidence per the literal forms above; the evidence must also cite the governing use case(s) by `docs/use-cases.md` path or `UC-N` identifier so the linkage is stream-visible). If a UC doesn't yet exist, Commit 1 (WHAT — use case) in Phase 3a creates it under that identifier.
@@ -208,11 +208,13 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
    (tests output-based / state-based via captured stdout; mocks at
    inter-system boundary only; refactor logged via /i if applied).
 5. Confirm Phase 3d Documentation Refresh has been performed
-   (all affected normative docs re-read; drift amended + committed
-   + pushed BEFORE this gate; evidence form set on
-   `docs refreshed` criterion: `docs drift detected: yes (<SHA>[, <SHA>...])`
-   or `no (reviewed: ...)` or `not applicable (internal refactor)`
-   or `not applicable (docs-only cycle)` or `deferred (task #<N>)`).
+   (BOTH scope-internal pass — deep re-read of modified docs — AND
+   scope-external pass — scan of adjacent normative docs — per #6191;
+   all affected docs re-read; drift amended + committed + pushed
+   BEFORE this gate; evidence form set on `docs refreshed` criterion:
+   `docs drift detected: yes (<SHA>[, <SHA>...])` or `no (reviewed: ...)`
+   or `not applicable (internal refactor)` or `not applicable (docs-only cycle)`
+   or `deferred (task #<N>)`).
 6. Print this updated plan file to the user.
 7. Show the completion-gate bash block as it now reads.
 8. Ask "May I proceed?" and **wait for explicit approval** before
@@ -341,7 +343,13 @@ If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: 
 - `docs refreshed: not applicable (docs-only cycle)` — cycle was planned as docs-only at 1a (see design.md for plan-time-intent semantics and the incidental-fix boundary)
 - `docs drift detected: deferred (task #<N>)` — drift acknowledged; deferred
 
-Review covers: README, use-cases.md, design.md (and project-specific design docs like design-events.md), plus any CLAUDE.md imports the cycle touched. Re-read means actually reading the affected sections, not grep + spot-check (the latter catches arg-form residue and stale syntax but misses semantic drift). Log: `evtctl interaction "/i 3d docs-refresh: <evidence-form>"`.
+**Two passes** (per #6191 discipline):
+1. **Scope-internal pass** (first): deep re-read of each doc the cycle is already modifying. Verify the cycle's amendments propagated through every subsection of every affected doc (UC In/Out, MSS, Extensions, Guard Conditions, Trigger, Preconditions, Stakeholders; README sub-steps; design.md rationale subsections + tables). The goal is propagation-completeness verification, not just drift-presence detection.
+2. **Scope-external pass** (second): scan OTHER normative docs (FEATURES.md, evolution.md, planning-guide.md, protocol-guide.md, project-specific design docs, CLAUDE.md imports the cycle touched) for transitively-induced drift.
+
+Re-read means actually reading the affected sections, not grep + spot-check (the latter catches arg-form residue and stale syntax but misses semantic drift). Two interaction events (one per pass) capture separately the propagation-completeness vs induced-drift outcomes (they have distinct remediation paths — see UC11 Extensions): `evtctl interaction "/i 3d scope-internal: <evidence-form>"` and `evtctl interaction "/i 3d scope-external: <evidence-form>"`.
+
+See `design.md` "Two-pass 3d audit" subsection for rationale + empirical anchor.
 
 After 3d: print plan file, show the completion bash block. Ask "May I proceed?" **STOP until approved.**
 

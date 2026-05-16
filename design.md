@@ -135,6 +135,20 @@ Plan-immutability is the application of stream-as-source-of-truth (Tier 1 axiom)
 
 **Mid-cycle plan supersession:** when `/loopback` regression to plan mode fires, both the plan event AND (if criterion topology changed) the contract event publish with `"supersedes": <prior-event-id>` field per Tier 1 #4070 chain pattern. Mechanical enforcement of the supersedes-field schema is tracked in #5705; the protocol prescribes the pattern even while the validator-level enforcement is pending.
 
+### Two-pass 3d audit (UC #6191)
+
+The two passes (scope-internal first, scope-external second) serve distinct purposes:
+- **Scope-internal:** propagation-completeness verification — when the cycle's amendment touches a concept, has it propagated through all sections of every affected doc? UCs have multiple normative sections (Trigger, In/Out, Stakeholders, Preconditions, MSS, Extensions, Guard Conditions, Frequency, Priority); README has multiple sub-steps; design.md has rationale subsections + tables + test plans. A single-pass surface re-read can miss broader-section propagation gaps.
+- **Scope-external:** induced-drift detection — the cycle's amendment may make transitively-stale content in adjacent docs (FEATURES.md, evolution.md, guides, project-specific design docs) the cycle did NOT modify. The scope-external scan catches transitively-induced drift.
+
+**Empirical anchor:** Tier 3 #3880 (tier system introduction) ran the original single-pass 3d audit on README + use-cases.md + design.md and found no drift, then user directive "we always find stuff" triggered a deeper second pass on the docs already being modified — which found UC9 broader sections (System-in-Use Story, MSS, Trigger, Preconditions, In/Out List, Frequency) still describing standard-tier workflow as if universal. Extension 2d (the cycle's planned UC9 touch) alone hadn't propagated broadly enough. Surfaced in completion memo `432b32e91947`.
+
+**Two interaction events per cycle** (vs one combined event): scope-internal failures (propagation gap) and scope-external failures (induced drift) have distinct remediation paths:
+- Scope-internal failure → fold an in-cycle amendment to the affected UC sections (the cycle's primary amendment expanding within existing criterion topology, per #3881 plan-immutability alternatives)
+- Scope-external failure → file a follow-up task for adjacent-doc alignment (per Tier 3 #4154's #5971 pattern) OR fold per topical-boundary rule
+
+Distinct event types make audit-time triage easier; a single combined event would force the auditor to parse a structured payload to determine which pass failed.
+
 ### Lesson Capture
 
 The actionability test is a simple decision rule. Claude can reason through the routing (which guide, etc.) without explicit protocol guidance. Encoding the decision point is sufficient.

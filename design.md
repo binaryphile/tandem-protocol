@@ -158,9 +158,10 @@ The `docs refreshed` criterion in a contract must carry, at attestation time, on
 
 | Form | When |
 |---|---|
-| `docs drift detected: yes (<SHA>)` | Drift found; SHA is the amendment commit |
+| `docs drift detected: yes (<SHA>[, <SHA>...])` | Drift found; one or more amendment commits, comma-separated (precedent era #3826) |
 | `docs drift detected: no (reviewed: README, use-cases.md, design.md)` | All three docs re-read; no drift |
 | `docs refreshed: not applicable (internal refactor)` | Cycle is pure-internal-refactor (no user-visible or design change) |
+| `docs refreshed: not applicable (docs-only cycle)` | Cycle was planned as docs-only at 1a; form indicates plan-time intent (cycle classification), not the absence of drift. Incidental drift fixes within the cycle's docs scope MAY be folded into the same commit — this form is about whether the cycle is *primarily* a docs amendment, not whether any drift was found en route. Boundary: incidental fixes must be directly exposed by the cycle's primary amendment (adjacency, induced inconsistency, stale enumeration that touches the same lines); opportunistic repo cleanup unrelated to the primary amendment is out of scope and belongs in its own cycle. |
 | `docs drift detected: deferred (task #<N>)` | Drift acknowledged; full update deferred to task <N> |
 
 Vague forms ("docs refreshed", "n/a", "ok") are rejected. The literal form is the auditable friction that prevents docs-late closure from becoming a rubber stamp.
@@ -253,4 +254,4 @@ Pure internal refactors (rename a private helper, reformat a comment) skip both 
 | T10.2 | UC10 | evtctl done at Completion Gate | `evtctl done` |
 | T11.1 | UC11 | GATE C STOP stanza in plan template | `🛑 GATE C — Before executing` |
 | T11.2 | UC11 | Docs-review precedes evtctl complete in template | `docs drift detected.*\nevtctl complete` (multiline / awk) |
-| T11.3 | UC11 | Literal evidence form enforced | `docs drift detected:` |
+| T11.3 | UC11 | Literal evidence form enforced | `(docs drift detected\|docs refreshed):` (both prefixes — `not applicable` forms use `docs refreshed:`; yes/no/deferred use `docs drift detected:`) |

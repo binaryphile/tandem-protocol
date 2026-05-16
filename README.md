@@ -33,7 +33,7 @@ flowchart LR
 Before `ExitPlanMode`, the plan must have:
 - Executable bash at **At Implementation Gate**: `evtctl contract`, `evtctl plan`, `evtctl task` (if new), `evtctl claim`, `era store`
 - A **Phase 3c Khorikov Posture** checkpoint after 3b Present: review the cycle's tests/code through Khorikov's classical-school lens, refactor if needed (see §3).
-- A **Phase 3d Documentation Refresh** checkpoint after 3c: re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>)` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `deferred (task #<N>)`.
+- A **Phase 3d Documentation Refresh** checkpoint after 3c: re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of the literal forms `docs drift detected: yes (<SHA>[, <SHA>...])` / `no (reviewed: ...)` / `not applicable (internal refactor)` / `not applicable (docs-only cycle)` / `deferred (task #<N>)`.
 - A mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs).
 - Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`. (Docs-review now lives in Phase 3d, not embedded in this gate bash.)
 - For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` entry in the contract criteria list (evidence per the literal forms above; the evidence must also cite the governing use case(s) by `docs/use-cases.md` path or `UC-N` identifier so the linkage is stream-visible). If a UC doesn't yet exist, Commit 1 (WHAT — use case) in Phase 3a creates it under that identifier.
@@ -146,7 +146,9 @@ flowchart LR
 
 **1a Investigate:** Read codebase, identify affected files, note line refs, `era search` for prior context, web search if needed. **Verify load-bearing static-analysis findings with a runtime experiment** before designing on them (static reads have false-positive and false-negative rates a discriminating experiment doesn't). For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
 
-**1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer.  You MUST ask at least one question.
+**Scope check.** If 1a investigation reveals work below Tandem's ceremony floor — single-function fix, ~< 100 LOC, no UC implications, no architectural consequence — propose **dropping the cycle** rather than proceeding to 1c Design. Direct commit + one `evtctl interaction` event is the appropriate substitute. Signal: when adversarial /grade reviewers converge across iteration rounds on "plan too large for fix," the redirect is ceremony-is-wrong-framing, not "the plan needs more polish." Empirical anchor: era #4997 (two /grade rounds at C+/B− both flagged disproportionate ceremony; dropped Tandem on the third round; shipped as direct commit `0b94ed0`, 66-line diff, 6 tests).
+
+**1b Clarify:** Ask user about uncertainties. User controls scope — Claude MAY suggest deferring, MAY NOT unilaterally defer. Claude MAY also suggest **dropping** the cycle entirely when 1a's scope check identifies the work as below-floor. You MUST ask at least one question.
 
 **1c Design:** `EnterPlanMode`. If existing plan found: quote verbatim, grade analysis ("Do I understand this?"), grade quality ("Is this sound?"), STOP for user direction. Otherwise create new plan:
 
@@ -189,9 +191,9 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 5. Confirm Phase 3d Documentation Refresh has been performed
    (all affected normative docs re-read; drift amended + committed
    + pushed BEFORE this gate; evidence form set on
-   `docs refreshed` criterion: `docs drift detected: yes (<SHA>)`
+   `docs refreshed` criterion: `docs drift detected: yes (<SHA>[, <SHA>...])`
    or `no (reviewed: ...)` or `not applicable (internal refactor)`
-   or `deferred (task #<N>)`).
+   or `not applicable (docs-only cycle)` or `deferred (task #<N>)`).
 6. Print this updated plan file to the user.
 7. Show the completion-gate bash block as it now reads.
 8. Ask "May I proceed?" and **wait for explicit approval** before
@@ -232,6 +234,8 @@ cycles already past 1d; new plans MUST include them.
 ```
 
 **1d Present:** Auto `/i` (min 2, max 3, log each). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
+
+**Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 
 ## Gate Grading
 
@@ -292,9 +296,10 @@ If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected con
 If the review surfaces structural issues, refactor before 3d. Log a `/i` entry: `evtctl interaction "/i 3c Khorikov: <finding + fix>"`.
 
 **3d Documentation Refresh:** re-read every normative doc affected by this cycle's changes; amend any drift; commit + push the amendments BEFORE the attestation publishes. The `docs refreshed` contract criterion's evidence MUST be one of these literal forms (UC11 verbatim):
-- `docs drift detected: yes (<SHA>)` — amendments landed in commit SHA
+- `docs drift detected: yes (<SHA>[, <SHA>...])` — amendments landed; one or more SHAs, comma-separated (precedent era #3826)
 - `docs drift detected: no (reviewed: <doc-list>)` — all docs re-read; no drift
-- `docs refreshed: not applicable (internal refactor)` — pure refactor
+- `docs refreshed: not applicable (internal refactor)` — pure refactor; no user-visible change
+- `docs refreshed: not applicable (docs-only cycle)` — cycle was planned as docs-only at 1a (see design.md for plan-time-intent semantics and the incidental-fix boundary)
 - `docs drift detected: deferred (task #<N>)` — drift acknowledged; deferred
 
 Review covers: README, use-cases.md, design.md (and project-specific design docs like design-events.md), plus any CLAUDE.md imports the cycle touched. Re-read means actually reading the affected sections, not grep + spot-check (the latter catches arg-form residue and stale syntax but misses semantic drift). Log: `evtctl interaction "/i 3d docs-refresh: <evidence-form>"`.

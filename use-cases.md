@@ -544,9 +544,12 @@ Alex starts a cycle that adds a STOP-marker requirement. Before impl, Claude upd
 
 - Pre-attestation review of all three docs has been performed
 - If drift was detected, amendment commits landed BEFORE `evtctl complete`
-- Attestation's `docs refreshed` evidence is one of two literal forms:
-  - `docs drift detected: yes (<SHA>)`
+- Attestation's `docs refreshed` evidence is one of five literal forms (see design.md "Docs-refreshed evidence form"):
+  - `docs drift detected: yes (<SHA>[, <SHA>...])`
   - `docs drift detected: no (reviewed: README, use-cases.md, design.md)`
+  - `docs refreshed: not applicable (internal refactor)`
+  - `docs refreshed: not applicable (docs-only cycle)`
+  - `docs drift detected: deferred (task #<N>)`
 - Attestation never references docs known to be stale
 
 ### Minimal Guarantee
@@ -586,6 +589,11 @@ LLM completes implementation-phase /i passes (≥2) and prepares the Completion 
 - 9a. Drift acknowledged but deferred (e.g., scope grew during impl; full doc update is its own task):
   1. LLM publishes a `task` event capturing the deferred docs work with revisit-trigger
   2. Evidence becomes `docs drift detected: deferred (task #<N>)` (fourth allowed form for this case)
+- 10a. Cycle is planned at 1a as a docs amendment (no code follows):
+  1. Docs-first sequencing collapses (no code follows the doc changes)
+  2. Phase 3d still runs against the cycle's own diff
+  3. Incidental drift fixes within the cycle's docs scope MAY be folded into the same commits; the form classifies cycle *intent at 1a*, not drift-absence
+  4. Evidence: `docs refreshed: not applicable (docs-only cycle)` (fifth allowed form; parallel to 8a's `(internal refactor)` parenthetical)
 
 ### Guard Conditions
 

@@ -368,22 +368,23 @@ System reaches a protocol milestone: phase start (contract), deliverable done (c
 
 **Scope:** Tandem Protocol | **Level:** Blue
 **Primary Actor:** User (developer) | **Secondary Actors:** LLM (executing protocol), event store
-**Priority:** P2 (Medium) | **Frequency:** Every gate interaction
+**Priority:** P2 (Medium) | **Frequency:** Every gate interaction for standard / high-risk tiers (waived for trivial-tier cycles per §1a Tier classification)
 
 ### In/Out List
 
 | In Scope | Out of Scope |
 |---|---|
-| `/i` improve cycles at both gates | Automated grading triggers (agent-driven beyond /grade) |
-| Auto `/i` cycles before presentation | Grading rubrics or scoring |
+| `/i` improve cycles at both gates (auto for standard/high-risk; manual-only for trivial) | Automated grading triggers (agent-driven beyond /grade) |
+| Auto `/i` cycles before presentation (waived for trivial) | Grading rubrics or scoring |
 | `/c` compliance grading | Per-criterion task tracking |
-| `/grade` adversarial review (mandatory at §1d.5; manual at any gate) | |
+| `/grade` adversarial review (required at §1d.5 for standard/high-risk; waived for trivial; manual at any gate) | |
 | Task events at gates | |
 | Grading loops in state machine diagrams | |
+| Tier-gated scaffolding (per §1a Tier classification) | |
 
 ### System-in-Use Story
 
-Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Then mandatory `/grade` (§1d.5): Claude invokes `/grade`, the skill `wl-copy`s a self-contained grading request, user pastes it to a fresh model context and pastes back the structured response (Grade:/Findings:/Verdict:). Claude absorbs findings via `/i`, re-grades if absorption changed substantive content, exits the loop when verdict APPROVES or rounds plateau on novelty. Each round is logged as an `evtctl interaction`. Claude then ExitPlanMode + asks "May I proceed?". User says proceed; gate fires.
+Claude finishes §1a investigation and classifies the cycle's tier (drop / trivial / standard / high-risk per §1a Tier classification). For trivial-tier cycles, Claude skips Auto `/i` and `/grade` (eligibility predicate is itself the adversarial-review substitute). For standard / high-risk cycles, Claude finishes planning at §1d, then Auto `/i` runs (per Gate Grading ROI rule). Then required `/grade` (§1d.5): Claude invokes `/grade`, the skill `wl-copy`s a self-contained grading request, user pastes it to a fresh model context and pastes back the structured response (Grade:/Findings:/Verdict:). Claude absorbs findings via `/i`, re-grades if absorption changed substantive content, exits the loop when verdict APPROVES or rounds plateau on novelty. Each round is logged as an `evtctl interaction`. High-risk cycles additionally log `/phase` events at each phase entry and `/decision` events at major decision points. Claude then ExitPlanMode + asks "May I proceed?". User says proceed; gate fires.
 
 ### Stakeholders & Interests
 
@@ -394,6 +395,7 @@ Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Th
 ### Preconditions
 
 - Protocol is at a gate (step 1d or 3b has presented)
+- Cycle tier has been classified at §1a (drop / trivial / standard / high-risk per §1a Tier classification)
 
 ### Success Guarantee
 
@@ -406,10 +408,11 @@ Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Th
 
 ### Trigger
 
-(a) Mandatory: agent invokes `/grade` at §1d.5 (adversarial review sub-step). (b) Optional: user types `/i`, `/c`, or `/grade` at either gate. If there are guides for compliance, a single `/c` runs first before the presentation step (1d or 3b).
+(a) Required for standard / high-risk cycles: agent invokes `/grade` at §1d.5 (adversarial review sub-step). Waived for trivial-tier cycles per Extension 2d. (b) Optional: user types `/i`, `/c`, or `/grade` at either gate. If there are guides for compliance, a single `/c` runs first before the presentation step (1d or 3b).
 
 ### Main Success Scenario
 
+0. Cycle tier was classified at §1a (this MSS describes standard/high-risk; trivial-tier branches at step 1, skipping to step 7)
 1. Agent runs Auto `/i` at §1d (per Gate Grading ROI rule)
 2. Agent invokes `/grade` at §1d.5 (skill wl-copies a self-contained grading request)
 3. User pastes request to a fresh model context (avoids frame-expansion) and pastes the structured response back
@@ -425,6 +428,7 @@ Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Th
 - 2a. Grader response missing prescribed shape (no `Grade:` / `Findings:` / `Verdict:` headings) → agent requests reformatting before parsing
 - 2b. Grader verdict cannot be classified as APPROVE / SEND BACK / GAP REMAINS → agent asks user to clarify before loop exit
 - 2c. Hard cap reached (5 rounds without APPROVE and without novelty plateau) → log `/loopback 1d.5->1c: review unbounded` and return to 1c (cycle is wrong-sized or grader is uncalibrated; parallel to §1a Scope check pattern from era #4997)
+- 2d. Cycle classified as **trivial tier** at §1a → §1d.5 mandatory `/grade` is exempted (eligibility predicate is itself the substitute for adversarial review; manual `/grade` still permitted)
 - 4a. Auto `/i` ran before §1d.5 (≥2 passes; cap 3 unless each surfaces a new defect class) → grader sees pre-polished result
 - 5a. No findings → grader returns APPROVE → loop exits immediately
 - 7a. Gate event recording fails → report error, do not commit
@@ -436,6 +440,7 @@ Claude finishes planning at §1d. Auto `/i` runs (per Gate Grading ROI rule). Th
 | `/i` at either gate | Interaction logged, issues found and fixed, re-present |
 | `/c` at either gate | Compliance grade against guides, fix violations |
 | `/grade` mandatory at §1d.5 | Skill invoked; fresh-context paste; structured response parsed; loop until APPROVE or plateau, hard-capped at 5 rounds |
+| Cycle classified as trivial tier | `/grade` exempted at §1d.5; manual `/grade` still allowed |
 | `/grade` at any gate (manual) | Compose grading request, apply external feedback |
 | Grader response missing structured headings | Agent requests reformatting; does not infer verdict from prose |
 | Gate advanced after grading | Gate actions executed |

@@ -84,7 +84,43 @@ At either gate, if there are guides for compliance, issue `/c` first before the 
 
 - `/i`: find opportunities to improve and execute on them
 - `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
-- `/grade`: copy a self-contained adversarial grading request to clipboard for user to service with external resources (mandatory at §1d.5 before ExitPlanMode; manual at any gate)
+- `/grade`: copy a self-contained adversarial grading request to clipboard for user to service with external resources (required at §1d.5 before ExitPlanMode for standard/high-risk tiers; waived for trivial; manual at any gate)
+
+### Tier classification (UC #3880)
+
+**Waterfall application:** at §1a Tier classification, the agent evaluates eligibility rules in order — drop → trivial → high-risk → standard (default). The first matching rule wins. High-risk overrides standard when its predicate fires (multi-repo / public API / data migration); trivial wins over standard when its predicate fires (single-file ≤20 lines + no API).
+
+**Why the LOC thresholds are soft:** the ~20-line cutoff for trivial and the ~100-line cutoff for drop (#5515) are guidelines, not strict cutoffs. Operator judgment + 1b clarify finalize. The hard rules are categorical:
+- multi-repo → high-risk MUST
+- public API change → high-risk MUST
+- data migration → high-risk MUST
+- drop's "no UC implications" — categorical (UC changes always merit Tandem)
+
+**Protocol-governance amendments are intentionally NOT in the high-risk predicate.** A docs-only cycle that changes every future cycle's ceremony (like #4154 or #3880 itself) is arguably higher operational risk than a small public API tweak, yet remains standard tier under current rules. This is a deliberate scoping choice (the predicate captures implementation-shaped risk, not protocol-impact-shaped risk); the operator can still self-classify a governance amendment as high-risk via §1b override.
+
+**Mid-cycle escalation:** when post-classification investigation reveals a high-risk predicate firing (e.g., the cycle actually touches a shared library; a public API change was missed), the agent escalates tier and applies the new scaffolding from that point. Log `evtctl interaction "/tier-escalate <from>-><to>: <reason>"`. Downgrades are forbidden mid-cycle (prevents an agent from claiming a tier change to skip /grade or /i after starting). Escalation is asymmetric: more ceremony OK, less ceremony NOT OK.
+
+**Escalation applies prospectively only**: previously omitted high-risk-only events (per-phase-entry `/phase` events, decision-point `/decision` events) are NOT backfilled when a cycle escalates from standard to high-risk. A late-escalation cycle's ledger is structurally distinct from an early-high-risk cycle's ledger — the partial-ledger pattern is intentional and audit-visible (auditors can distinguish "events absent because cycle was standard at the time" from "events absent because operator failed to log them" by reading the `/tier-escalate` event). Backfill would reconstruct event content without reconstructing the actual phase discipline the events are supposed to evidence; that would create audit-trail dishonesty.
+
+**Evidence ledger (high-risk tier): stream-based, NOT file-based.** High-risk cycles publish:
+- `evtctl interaction "/phase <id> entered: <one-line summary>"` at each phase entry (1a, 1b, 1c, 1d, 1d.5, 3a, 3b, 3c, 3d)
+- `evtctl interaction "/decision: <choice> chosen over <alternative> because <rationale>"` at major decision points
+- Existing event types (contract / plan / claim / complete / done / interaction / loopback) continue as canonical record
+
+The "evidence ledger" name describes the stream-aggregated view across these events — there is no new file type. An `era query session.<project> 'type = "interaction" AND payload ~ "/phase"'` reconstructs the ledger view at audit time.
+
+**Trivial-tier exemptions complete list:**
+
+| Step | Trivial behavior |
+|---|---|
+| §1a + §1b | Collapsed into single "Quick scope" step; investigation prose minimal; mandatory question waived if no uncertainty |
+| §1c | Plan with minimum sections only (Contract criteria + Implementation Gate bash + Completion Gate bash + Verification); no Context, no scope justification, no /i log |
+| §1d Auto `/i` | Exempted (manual `/i` still permitted) |
+| §1d.5 `/grade` | Exempted (manual `/grade` still permitted) |
+| §3c Khorikov | N/A (trivial cycles are typically too small for SUT classification) |
+| §3d docs refresh | Still runs (induced drift can occur in any change) |
+
+Trivial-tier rationale: the eligibility predicate (single-file ≤20 lines, no API contract) is itself a strong proxy for "few defect classes adversarial review would catch," matching the goldilocks principle (era memory `41d659175095`). For changes large enough to merit /grade, the cycle is no longer trivial.
 
 ### Lesson Capture
 

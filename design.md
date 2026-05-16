@@ -80,7 +80,7 @@ Plan file = HOW (approach, changes). Contract = WHAT (criteria) — published to
 
 ### Grading Model
 
-At either gate, if there are guides for compliance, issue `/c` first before the presentation step (1d or 3b). Auto `/i` cycles run min 2, max 3 before presentation.
+At either gate, if there are guides for compliance, issue `/c` first before the presentation step (1d or 3b). Auto `/i` cycles run ≥2 passes (cap 3 unless each additional pass surfaces a new defect class) before presentation; full rule in README Gate Grading.
 
 - `/i`: find opportunities to improve and execute on them
 - `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide

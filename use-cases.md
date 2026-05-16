@@ -422,7 +422,7 @@ User types `/i`, `/c`, or `/g` at either gate. If there are guides for complianc
 - 1a. User types `/c` → grade against project guides, continue at step 2
 - 1b. User types `/g` → apply external review feedback, continue at step 2
 - 1c. `/g` already used at this gate → inform user, suggest `/i`
-- 2a. Auto `/i` ran before initial presentation (min 2, max 3) → user sees polished result
+- 2a. Auto `/i` ran before initial presentation (≥2 passes; cap 3 unless each surfaces a new defect class) → user sees polished result
 - 3a. No issues found → report, re-present unchanged
 - 6a. User advances gate → execute gate actions
 - 6b. Gate event recording fails → report error, do not commit

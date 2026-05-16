@@ -142,7 +142,12 @@ audit narrows the search space; the operator decides.
 ```mermaid
 flowchart LR
     A["(1a) Investigate"] --> B["(1b) Clarify"] --> C["(1c) Design"] --> D["(1d) Present"]
+    B -.->|"uncertainty"| A
+    C -.->|"design reveals unclear requirements"| B
+    D -.->|"/i or /grade revises"| C
 ```
+
+**Phase regression is normal.** Real cycles loop: 1b->1a when clarify-answers surface new uncertainty; 1c->1b when design reveals unclear requirements; 1d->1c when /i or /grade revises the plan; 3a->3a when tests fail and need re-edits; 3b->3a when /i reveals an impl issue; 3c->3a when posture review requires impl rework; 3d->3a when drift fix requires further implementation. Log each regression via `evtctl interaction "/loopback <from>-><to>: <reason>"` so the cycle's plan->event chain captures the real shape, not the linear ideal.
 
 **1a Investigate:** Read codebase, identify affected files, note line refs, `era search` for prior context, web search if needed. **Verify load-bearing static-analysis findings with a runtime experiment** before designing on them (static reads have false-positive and false-negative rates a discriminating experiment doesn't). For debugging/issue investigation, first perform a complete differential diagnosis — enumerate every actor in the failing flow (client process, OS service, browser cookie jar, identity provider, network path, server policy, your own recent commits) and treat each as a candidate cause until evidence rules it out. **If it's not in the differential, it can't be in the diagnosis.** Adversarial review narrows the differential; it does not expand it — when review keeps confirming the same conclusion across rounds, the differential is suspect, not the testing.
 
@@ -233,7 +238,7 @@ cycles already past 1d; new plans MUST include them.
 [commands to verify]
 ```
 
-**1d Present:** Auto `/i` (min 2, max 3, log each). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands. `ExitPlanMode`. **STOP until user accepts.**
+**1d Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Validate plan file (`~/.claude/plans/<plan-name>.md`) has both gate sections with required executable commands. `ExitPlanMode`. Then surface the plan file and impl-gate bash. Ask "May I proceed?" **STOP until approved.**
 
 **Attestation payload shape.** For single-line or single-criterion evidence, inline `<<'EOF' ... EOF` is fine. For multi-criterion or multi-paragraph evidence, prefer composing the JSON in a file and publishing with `evtctl complete --from-file path.json` — pure JSON proofreads more reliably than JSON mixed with shell heredoc indentation, and parse errors point at the actual offending line. Discovered during era task #4052: a missing closing `}` inside an inline heredoc surfaced as a misleading "expected }" error at the wrong line.
 
@@ -241,7 +246,7 @@ cycles already past 1d; new plans MUST include them.
 
 At either gate if there are guides for compliance, issue a single `/c` for compliance first and fix, prior to doing the current presentation step (1d or 3b).
 
-- `/i`: find opportunities to improve and execute on them
+- `/i`: find opportunities to improve and execute on them. `/i` passes remain useful while each surfaces a materially new defect class. **Run at least two passes. Three is the normal cap; exceed it only when each additional pass finds genuinely new issues.** When passes mostly reshuffle previously-identified feedback, stop iterating and proceed.
 - `/c`: grade vs guides + fix; ask "Can I fix this now?" — yes → fix, no → capture in guide
 - `/g`: if this is a staff-level design, copy to the clipboard a grading request for the user to service with external resources.
 - Log: `evtctl interaction "/X -> what found and fixed"`
@@ -257,6 +262,10 @@ At either gate if there are guides for compliance, issue a single `/c` for compl
 ```mermaid
 flowchart LR
     A["(3a) Execute"] --> B["(3b) Present"] --> C["(3c) Khorikov Posture"] --> D["(3d) Docs Refresh"]
+    A -.->|"tests fail"| A
+    B -.->|"/i reveals impl issue"| A
+    C -.->|"posture review requires impl rework"| A
+    D -.->|"drift fix needs further impl"| A
 ```
 
 **3a Execute:** Implement each contract criterion, **docs-first**.
@@ -275,7 +284,7 @@ Rationale: docs land first so the contract criteria (already published at the im
 
 Internal refactors with no user-visible behavior change skip the doc commits and proceed straight to code — Phase 3d still re-reads to catch latent drift, but evidence form `docs refreshed: not applicable (internal refactor)` applies.
 
-**3b Present:** Auto `/i` (min 2, max 3, log each). Show results + verification per criterion. Update plan file (`~/.claude/plans/<plan-name>.md`):
+**3b Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Show results + verification per criterion. Update plan file (`~/.claude/plans/<plan-name>.md`):
 - Replace `git add` with actual files changed
 - Compose attestation JSON (each criterion + status + evidence)
 - Compose session memory (delivered/dropped, /i lessons, insights, decision points and rationales)

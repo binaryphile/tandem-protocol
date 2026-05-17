@@ -6,7 +6,7 @@ At either gate, run grading cycles before approving. Each cycle returns to the p
 
 ```mermaid
 flowchart TD
-    GATE{"GATE<br/>May I proceed?"} -->|"/g"| EXTERN["Apply feedback + fix"]
+    GATE{"GATE<br/>May I proceed?"} -->|"/grade"| EXTERN["Apply feedback + fix"]
     EXTERN --> GATE
     GATE -->|"/i"| IMPROVE["Self-assess + fix"]
     IMPROVE --> GATE
@@ -22,7 +22,7 @@ flowchart TD
 
 **Typical sequence:**
 1. Auto `/i` cycles (up to 3, before initial presentation)
-2. `/g` external review (once, at initial gate presentation — calibrated projects only)
+2. `/grade` adversarial review (mandatory at §1d.5 for standard/high-risk tiers; trivial-tier waived) — agent invokes the skill (composes wl-copied grading request), user pastes to a fresh model and pastes the structured response back, agent absorbs via `/i`; loop until APPROVE-or-plateau (5-round cap)
 3. Manual `/i` cycles until self-assessment finds nothing more
 4. `/c` to check compliance against project guides
 5. Accept plan (Gate 1) or `proceed` (Gate 2) to advance
@@ -104,11 +104,11 @@ For projects spanning multiple sessions or requiring distinct phases:
 flowchart TD
     START(["Start"]) -->|"Make a plan to..."| PLAN["Plan Stage"]
     PLAN --> G1{"GATE 1"}
-    G1 -->|"/g /i /c"| PLAN
+    G1 -->|"/grade /i /c"| PLAN
     G1 -->|"accept plan"| IMPL["Implement Stage"]
     IMPL --> PRESENT["Present Results"]
     PRESENT --> G2{"GATE 2"}
-    G2 -->|"/g /i /c"| IMPL
+    G2 -->|"/grade /i /c"| IMPL
     G2 -->|"proceed"| COMMIT["Commit"]
     COMMIT --> DONE(["Done / Next phase"])
 
@@ -127,7 +127,7 @@ The protocol achieves reliability through a two-part model:
 | Component | Compliance | How |
 |-----------|------------|-----|
 | **Baseline** | ~80% | Protocol in CLAUDE.md via @reference |
-| **Grading cycles** | Works reliably | `/i`, `/c`, `/g` at gates |
+| **Grading cycles** | Works reliably | `/i`, `/c`, `/grade` at gates |
 | **Gate logging** | 100% | evtctl commands (executable, not descriptive) |
 
 This is intentional. Chasing 100% initial compliance requires complex setup. Instead:
@@ -171,7 +171,7 @@ Behavioral instructions like "quote the plan VERBATIM" require Claude to choose 
 
 **Why this approach?** Combines best of all:
 - Protocol in CLAUDE.md (always available via @reference)
-- Grading cycles (`/i`, `/c`, `/g`) at gates for quality convergence
+- Grading cycles (`/i`, `/c`, `/grade`) at gates for quality convergence
 - evtctl commands at gates for 100% reliable logging
 - Accepts ~80% baseline, relies on grading cycles
 
@@ -184,9 +184,6 @@ bash tests/integration/smoke-test.sh
 # Individual use case tests
 bash tests/integration/uc7-event-logging.sh    # Contract/Completion/Interaction
 bash tests/integration/uc3-plan-entry-sequence.sh  # Plan mode compliance
-
-# Grading cycles
-bash tests/integration/uc9-grading-cycles.sh   # /i /c /g at gates
 
 # Full test suite
 for t in tests/integration/*.sh; do bash "$t"; done

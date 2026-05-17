@@ -701,4 +701,86 @@ Operator runs `evtctl plan <file>`.
 | Completion-gate bash invokes validate-plan as first line | Runtime smoke-test (full code path on known-good file); marker stability already guaranteed by #3881 byte-match below it |
 | Marker absent in prose only but present in comments / code blocks | PASSES validation (substring-only; position-aware checking is out of scope per #3883 "narrow invariants") |
 
+## UC13: Plan File Naming Uniqueness
+
+**Scope:** Tandem Protocol | **Level:** Blue
+**Primary Actor:** Operator (developer running `/begin` and the impl-gate bash) | **Secondary Actors:** LLM (composes the plan and derives the convention-compliant filename), Claude Code plan-mode (pre-assigns the initial random filename)
+**Priority:** P2 (Medium) — reduces but does not eliminate the silent-overwrite class | **Frequency:** Every `/begin` invocation
+
+### In/Out List
+
+| In Scope | Out of Scope |
+|---|---|
+| Filename-prefix convention computed from `/begin` arguments at 1c Design | Prevention of `EnterPlanMode` overwriting a path that already holds prior content (the Write has already happened by the time impl-gate bash runs) |
+| Fail-loud rename block in impl-gate bash (5 explicit arms; no silent loss on src∧dst collision) | Migration of the existing pre-convention plan files in `~/.claude/plans/` |
+| Future-only enforcement, consistent with #3883's no-legacy-flag pattern | Era-side `cmd.plan` filename validator hook (deferred to a future task per the operator's mitigation-b choice over mitigation-c) |
+| `^[1-9][0-9]*$` regex for the task-ID form; `$(date -u +%Y%m%dT%H%M%S)-$RANDOM` for the no-task-id branch | Subsecond entropy beyond what bash `$RANDOM` provides (~15 bits; collision odds ~1/32768 per matched-second) |
+
+### System-in-Use Story
+
+Alex invokes `/begin 5060`. Claude Code's plan-mode pre-assigns a random filename, `quiet-binding-knuth.md`. The agent, following the /begin skill's naming-discipline section, computes `5060-quiet-binding-knuth.md` as the convention-compliant target and hardcodes the fail-loud rename block into the impl-gate bash. Alex approves the plan and runs the impl-gate bash. The rename completes; `evtctl plan` publishes from the new path.
+
+Three months later Alex starts `/begin 7821` in a fresh session. Claude Code's plan-mode happens to draw `quiet-binding-knuth.md` again — the bare random suffix that #5060 also drew. The agent computes `7821-quiet-binding-knuth.md`. Source and target share the random suffix but differ in prefix; no path collision arises; rename runs; the first cycle's `5060-quiet-binding-knuth.md` remains untouched.
+
+In a later session Alex's plan-mode points at an existing `5060-quiet-binding-knuth.md` because Claude Code re-uses plan files across sessions. The agent's Write at step 6 of MSS overwrites the prior content before any rename can intervene. The rename block detects source equals target and runs as no-op. `evtctl plan` publishes the now-overwritten file. The prior cycle's content survives in the era stream and can be recovered via `era query`, but not from disk. The design.md residual-risks subsection names this branch explicitly.
+
+### Stakeholders & Interests
+
+- **Operator** (Alex): wants the silent-overwrite class reduced; wants filenames that grep and sort predictably; accepts the EnterPlanMode-overwrites residual as out of scope for this cycle
+- **LLM**: wants a deterministic naming rule it can compute from `/begin` arguments without consulting external state
+- **Auditor**: wants the era stream to remain authoritative for plan history — unchanged by this cycle, which operates only on filesystem paths
+- **Protocol Maintainer**: wants the convention encoded in /begin skill text so future drift becomes a file edit rather than a silent regression; accepts that mechanical filename-shape enforcement is deferred
+
+### Preconditions
+
+- Operator invokes `/begin [args]`
+- Claude Code's plan-mode pre-assigns an initial filename at some path under `~/.claude/plans/`
+
+### Success Guarantee
+
+- The plan event lands in the era stream with the plan file at the convention-compliant path
+- Inter-task collision is eliminated whenever both cycles use the task-ID form (era task IDs are monotonic)
+- If both source and target exist at rename time, the bash fails loudly rather than silently losing content
+
+### Minimal Guarantee
+
+- If the operator skips the rename block, behavior degrades to current — no worse than today
+- The era stream remains authoritative for plan history in all branches
+
+### Trigger
+
+Operator runs `/begin [args]`.
+
+### Main Success Scenario
+
+1. Operator invokes `/begin <args>`
+2. Claude Code plan-mode pre-assigns the initial filename `~/.claude/plans/<initial>.md`
+3. Agent reads the /begin skill; parses the first whitespace-separated token of `$ARGUMENTS`
+4. If the first token matches `^[1-9][0-9]*$`, the agent sets `<prefix>` to that integer; otherwise `<prefix>` becomes `$(date -u +%Y%m%dT%H%M%S)-$RANDOM`
+5. Agent composes `<prefix>-<random>.md` where `<random>` is the basename of the pre-assigned path with the `.md` extension stripped
+6. Agent writes plan content to the pre-assigned path (plan-mode forbids writing elsewhere); hardcodes the fail-loud rename block and the convention-compliant filename into impl-gate and completion-gate bash
+7. Agent exits plan mode, surfaces the plan and impl-gate bash, awaits "proceed"
+8. Operator approves; impl-gate bash runs the rename: if source exists and target does not, `mv`; if both exist, fail loudly; otherwise no-op
+9. Impl-gate bash continues with `evtctl plan ~/.claude/plans/<convention-compliant>.md`; the plan event publishes from the new path
+
+### Extensions
+
+- 3a. /begin has no arguments → step 4 takes the timestamp+entropy branch
+- 4a. /begin's first token does not parse as a positive integer (free-form description, `0`, negative, `task-5060`, leading-plus, quoted-numeric) → step 4 takes the timestamp+entropy branch; the /begin skill text names this fallback as intentional, not error
+- 6a. The plan-mode system reminder format changed and the agent cannot parse the pre-assigned path from it → agent falls back to `ls -1t ~/.claude/plans/*.md | head -1`
+- 8a. Operator skips or omits the rename block → file stays at the pre-assigned path; the collision class returns for this cycle; the era stream still records the plan event
+- 8b. Both source and target exist at rename time (distinct paths, both occupied) → bash fails loudly; operator manually resolves with `rm <dst>` for intentional replan or `mv <dst> <dst>.bak` to preserve; re-runs impl-gate bash
+- 8c. Source equals target (the pre-assigned path is already convention-compliant — bootstrap-exception cycle, or a same-task replan that re-uses the slot) → no-op branch; bash falls through to evtctl plan
+- 8d. `mv` fails (cross-device move, permission denied, ENOSPC) → `set -euo pipefail` aborts the gate; operator sees the mv error on stderr, resolves, re-runs (the no-op branches make re-entry idempotent)
+- 8e. EnterPlanMode pre-assigns an existing convention-compliant file from a different prior cycle → the agent's Write at step 6 has already overwritten prior content before the rename block runs; rename detects source equals target and runs as no-op; prior content survives in the era stream but not on disk; the convention does not close this branch
+
+### Guard Conditions
+
+| Condition | Expected Behavior |
+|---|---|
+| Existing pre-convention plan files in `~/.claude/plans/` | Untouched (future-only enforcement) |
+| Plan-immutability byte-match (#3881) | Holds — `mv` preserves bytes |
+| validate-plan (#3883) | Reads the convention-compliant path after rename; marker check unaffected (path-agnostic) |
+| Bootstrap exception (#5060's own plan file) | Grandfathered at `greedy-churning-lerdorf.md`; does not extend to other cycles |
+
 

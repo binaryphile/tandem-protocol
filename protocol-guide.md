@@ -2,7 +2,7 @@
 
 **Focus:** Meta-level lessons about protocol design and structure
 
-**Note:** This is the place for lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, /i /c /g cycles, feedback patterns). The planning guide is for cognitive stages; this guide is for protocol process improvements.
+**Note:** This is the place for lessons learned from reviewing behavioral logging in plan-log.md (Interaction entries, /i /c /grade cycles, feedback patterns). The planning guide is for cognitive stages; this guide is for protocol process improvements.
 
 ## Lessons
 

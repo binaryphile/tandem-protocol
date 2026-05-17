@@ -144,11 +144,63 @@ The stream chain — prior plan/contract events → `/loopback` regression event
 **Alternatives without full re-entry** (for smaller adjustments):
 - **(a) scope-fold** in-cycle correction within existing criterion topology (interaction events; no supersession)
 - **(b) defer** affected criteria to follow-up task (`evtctl task` + `dropped` status)
-- **(c) start a new plan cycle** with a fresh `<plan-name>.md` (file collision per #5060 acknowledged) for fundamentally different work
+- **(c) start a new plan cycle** with a fresh `<plan-name>.md` (filename uniqueness convention per "Plan filename uniqueness — convention" below — reduces but does not eliminate collision risk) for fundamentally different work
 
 Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; alternatives cover lighter cases.
 
 **Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Marker-presence in re-published plans is mechanically enforced by validate-plan (per "validate-plan invariants — mechanism" below); plan-event-byte-match against the file remains a non-blocking check in completion-gate verification today.
+
+### Plan filename uniqueness — convention (UC #5060)
+
+A naming convention applied at impl-gate bash time, computed by the agent at 1c Design from `/begin`'s arguments. Reduces the silent-overwrite class that arises when Claude Code's plan-mode draws a random filename that collides with a prior cycle's plan file. Does not eliminate the class: when `EnterPlanMode` pre-assigns a path that already holds prior content, the agent's Write overwrites that content before any impl-gate rename can intervene. The convention is documentation and skill text, not a mechanical hook in `cmd.plan`.
+
+**Filename shape**: `~/.claude/plans/<prefix>-<random>.md`. The prefix takes one of two forms. If `/begin`'s first whitespace-separated argument matches `^[1-9][0-9]*$`, that integer is the prefix and the era stream's monotonic task IDs guarantee inter-task uniqueness. Otherwise the prefix is `$(date -u +%Y%m%dT%H%M%S)-$RANDOM` — UTC timestamp at second granularity plus the ~15 bits of bash `$RANDOM` entropy. Collision odds for the timestamp form are roughly 1/32768 per matched-second; practically rare, not impossible. The `<random>` suffix is the basename of Claude Code's pre-assigned path with the `.md` extension stripped.
+
+**Fail-loud rename block.** The agent hardcodes both source and target paths into the impl-gate bash and includes a 5-arm conditional as the first lines:
+
+```bash
+src=~/.claude/plans/<claude-code-assigned>.md
+dst=~/.claude/plans/<convention-compliant>.md
+if [[ -f $src && -f $dst && $src != $dst ]]; then
+  echo "FAIL: collision on $dst; manually resolve (rm $dst or mv $dst $dst.bak)" >&2; exit 1
+elif [[ -f $src && ! -f $dst ]]; then
+  mv "$src" "$dst"
+elif [[ $src == $dst ]]; then
+  :
+elif [[ ! -f $src && -f $dst ]]; then
+  :
+else
+  echo "FAIL: neither $src nor $dst exists" >&2; exit 1
+fi
+```
+
+The first arm catches collision — both files exist at distinct paths — and refuses to rename. Without that refusal, `mv` would either silently skip (the prior idempotent design that R1 grader F4/F5 surfaced) or clobber the target; either way some plan content would be silently lost. The second arm is the common case. The third and fourth arms make re-runs of impl-gate bash idempotent: if rename already happened, source is gone and target is present; if the pre-assignment was already convention-compliant, source equals target. The fifth arm catches the impossible state and fails loudly rather than continuing silently.
+
+**Rationale for the task-ID form.** Era task IDs are monotonic across the stream. Two cycles cannot draw the same task ID, so two cycles using the task-ID prefix cannot collide regardless of the random suffix Claude Code happens to draw. Operator-facing filenames also become sortable by cycle order, which the bare random naming did not give.
+
+**Rationale for the timestamp+entropy fallback.** Some `/begin` invocations have no task ID — the operator types a free-form description. Falling back to a UTC timestamp prefix preserves a partial-uniqueness guarantee (collisions only across the same second), and the bash `$RANDOM` suffix reduces the residual probability further. Both are bash builtins, so the cost is zero; the alternative — refusing to plan without a task ID — would break the current free-form `/begin` flow.
+
+**Why alternative mitigations were rejected.** Discipline-only check (mitigation a in the original 1b enumeration) is what the protocol already does informally; the failure mode is exactly that operators forget. Era-side filename-validator hook (mitigation c) was rejected by the operator in favor of a lighter docs+skill change; the hook remains a valid future task. Claim-aware refusal in /begin (mitigation d) fires at the wrong checkpoint — by the time a claim exists, the Write has already overwritten the file — and would also break legitimate `/loopback` replanning on the same task ID.
+
+**Composition with #3881 (plan-immutability byte-match).** `mv` preserves bytes, so the byte-match comparison at completion-gate uses the new path and still holds against the plan-event payload. The byte-match is the load-bearing immutability check; the convention does not weaken it.
+
+**Composition with #3883 (validate-plan).** `validate-plan` reads file contents and is path-agnostic — it operates on whatever path the impl-gate bash passes to `evtctl plan`. After the rename runs, `evtctl plan` invokes `validate-plan` against the convention-compliant path; marker check is unaffected.
+
+**Bootstrap exception.** The cycle that introduced the convention (#5060) keeps its own plan file at Claude Code's pre-assigned `greedy-churning-lerdorf.md`. Plan-mode rules forbid writing to any other path during plan mode, and the convention was being defined for the first time inside that very cycle — there was no /begin-time skill instruction to follow until the cycle completed. The exception is narrow: it covers exactly that one plan file. It does not extend to the existing pre-convention plan files in `~/.claude/plans/`; those are out of scope rather than grandfathered, because the convention is future-only and they remain readable as historical references.
+
+**Residual risks.** The convention does not close five distinct branches, and the design admits each one rather than hiding it.
+
+1. **EnterPlanMode-overwrites-existing-file.** Claude Code's plan-mode re-uses paths across sessions. When the pre-assigned path already holds a different cycle's plan content, the agent's Write at MSS step 6 overwrites it before any rename can run. The era stream preserves the prior plan event; the filesystem working copy is lost. Closing this branch requires intercepting plan-mode's pre-assignment, which is out of this cycle's scope. A future era-side `cmd.plan` filename-shape validator could refuse to publish from a non-conforming path, but that is mitigation (c) which the operator deferred.
+
+2. **Operator/agent skips the rename block.** The convention is bash-template + agent-discipline; no mechanism rejects a plan event whose path does not match the convention regex. The same future cmd.plan validator would close this gap; the protocol leaves it open by design here.
+
+3. **Filesystem failures.** `mv` can fail on cross-device move, permission denied, or ENOSPC. The impl-gate bash uses `set -euo pipefail`, so the failure aborts the gate cleanly; the operator sees the mv error, resolves it, and re-runs. The no-op arms make re-entry idempotent.
+
+4. **Same-second timestamp collision** (no-task-id branch only). `$RANDOM` reduces the probability to ~1/32768 per matched-second. Automated burst invocations of `/begin` without task IDs could still collide; the residual is acceptable for the current human-interactive workflow.
+
+5. **Doc-drift across the four canonical sources** (the /begin skill, README §1c, this design.md subsection, and UC13 in use-cases.md). Phase 3d sync-touchpoint discipline tabulates the convention statement across all four and verifies they match; this is manual until #5013 (doc-lint) provides a mechanical diff.
+
+The behavioral contract lives in UC13.
 
 ### Docs-first commit ordering — rationale (moved from README §3a per #6249 slim-down)
 

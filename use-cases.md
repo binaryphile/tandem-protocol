@@ -783,4 +783,74 @@ Operator runs `/begin [args]`.
 | validate-plan (#3883) | Reads the convention-compliant path after rename; marker check unaffected (path-agnostic) |
 | Bootstrap exception (#5060's own plan file) | Grandfathered at `greedy-churning-lerdorf.md`; does not extend to other cycles |
 
+## UC14: Documentation Vocabulary Lint
+
+**Scope:** Tandem Protocol | **Level:** Blue
+**Primary Actor:** Operator or Author (whoever edited README.md and chose to run the lint) | **Secondary Actors:** Protocol Maintainer
+**Priority:** P3 (Low) — optional manual drift detection, not mechanical enforcement | **Frequency:** invoked at the operator's discretion after touching README.md
+
+### In/Out List
+
+| In Scope | Out of Scope |
+|---|---|
+| 7 canonical literal-substring checks against README.md (5 vocabulary substrings for alignments A1 and A2 + 2 structural anchors for §3a identity) | Full structural parsing of README.md; position-aware validation that substrings appear in the right §3a context |
+| Optional manual invocation: `bash tests/doc-lint.sh [README-path]` | Pre-commit hook, CI integration, validate-plan-style era hook (all deferred to future tasks) |
+| Fixed-string match (grep -qF); future canonical substrings containing regex metacharacters are safe | Semantic validation of meaning — the lint cannot detect that vocabulary was rephrased while preserving the substring shape |
+| Lint of files other than README.md via the optional path-argument form (e.g., a temp copy for synthetic-drift verification) | Lint of files other than README.md as part of the canonical contract; UC14 governs README only |
+
+### System-in-Use Story
+
+A future author edits the §3a table and accidentally rewords "WHAT — use case" to "what — usecase" while reformatting. The author runs `bash tests/doc-lint.sh` and sees `FAIL: A1 alignment target` with the missing substring quoted on stderr. The author restores the canonical form and re-runs to verify all 7 checks PASS. The lint surfaced drift the /grade rounds would have caught much later, but only because the author chose to invoke it — the lint does not fire automatically.
+
+A different scenario shows the lint's bounded scope. A maintainer slim-downs README §3a in the future, preserving all 7 canonical substrings but moving the §3a table into a new top-level section. The lint passes — substring-only match cannot distinguish "in §3a context" from "elsewhere in README." The grader, not the lint, catches the semantic-adjacency break. The lint is shallow on purpose: cheap to maintain, narrow in what it claims.
+
+### Stakeholders & Interests
+
+- **Operator** (whoever runs the lint): wants vocabulary drift caught locally before it reaches /grade rounds where the cost of round-trip is higher
+- **Author** (whoever edited README): wants immediate feedback on whether the edit broke a vocabulary alignment
+- **Protocol Maintainer**: wants the alignment encoded in a check rather than depending on tribal knowledge or grader vigilance; accepts that the lint is manual-discipline and the alignment between UC14 prose and the script remains the author's responsibility to maintain in the same commit
+
+### Preconditions
+
+- README.md is readable at the resolved path (default `../README.md` relative to the script, or the optional path argument)
+
+### Success Guarantee
+
+- All 7 canonical substrings are present in the lint's target file → script exits 0; the author has confirmation that vocabulary alignment holds at the current invocation
+- Any substring is absent → script exits with the FAIL count; missing substrings printed on stderr with quoted text
+
+### Minimal Guarantee
+
+- The lint reports its result accurately for the invocation that ran. It makes no claim about drift between invocations or about content not in the 7 canonical substrings.
+
+### Trigger
+
+Author or operator runs `bash tests/doc-lint.sh [README-path]`.
+
+### Main Success Scenario
+
+1. Operator runs `bash tests/doc-lint.sh` (or `bash tests/doc-lint.sh /path/to/temp/README.md` for the path-arg form)
+2. Script resolves README path (argument if provided, else default `../README.md` relative to the script location)
+3. Script iterates the 7 canonical substring checks (5 vocabulary substrings for alignments A1/A2 + 2 structural anchors for §3a identity)
+4. For each check, script invokes `grep -qF -- "$substring" "$README"` and reports PASS or FAIL with label
+5. Script prints summary counters (Passed: N / Failed: M)
+6. Script exits with the FAIL count (0 if all passed)
+
+### Extensions
+
+- 4a. Any substring absent → script prints FAIL line with the missing substring quoted on stderr; FAIL counter increments; script continues to remaining checks (no early-exit on first failure)
+- 2a. README.md unreadable at resolved path → grep prints "No such file or directory" on stderr and the corresponding check reports FAIL; remaining checks run against the same unreadable path
+- 4b. grep returns an exit status other than 0 or 1 (e.g., GNU grep returns 2 on read errors) → the `if grep ...; then ... else ... fi` branch follows the else arm; FAIL is recorded for that check
+- 1a. Operator passes an optional path argument → script lints that path instead of the default; used by the verification's synthetic-drift test and by any future CI that wants to lint a temp copy or a branch checkout without touching the live README
+
+### Guard Conditions
+
+| Condition | Expected Behavior |
+|---|---|
+| Substring 3 (`WHAT — use case`) uses U+2014 em-dash | Byte-exact match required; editor auto-normalization to ASCII `--` trips the lint (intentional contract scope per R1 grader F2) |
+| README.md path resolution relative to script location | `dirname "$0"` makes the default path work from any cwd |
+| Fixed-string match via `grep -qF --` | Future canonical substrings containing regex metacharacters cannot be misinterpreted; `--` defends against substrings starting with `-` |
+| Substrings 6 and 7 (structural anchors) | Reduce — do not eliminate — the section-reshuffle risk; a future quoted snippet or transcript elsewhere in README could satisfy the anchors while §3a content has moved |
+| UC14 prose ↔ lint script alignment | Manual: when adding, removing, or renaming a substring in the script, the author must update UC14's In/Out, MSS, Extensions in the same commit. The lint enforces README↔script (2/3 of the sync surface); UC14↔script remains author discipline (1/3) |
+
 

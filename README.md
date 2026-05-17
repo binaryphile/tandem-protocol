@@ -36,7 +36,7 @@ Before `ExitPlanMode`, the plan must have:
 - A **Phase 3d Documentation Refresh** checkpoint after 3c with **two passes** (scope-internal + scope-external per #6191): re-read affected normative docs, amend any drift, commit + push amendments BEFORE attestation. Evidence on the `docs refreshed` criterion is one of five literal forms — see §3d for the canonical enumeration.
 - A mandatory **🛑 GATE C STOP stanza** directly above `## At Completion Gate` (handshake to halt execution before the gate bash runs).
 - Executable bash at **At Completion Gate**: `evtctl complete`, `evtctl done`, `era store`, `git commit`. (Docs-review now lives in Phase 3d, not embedded in this gate bash.)
-- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` criterion (evidence per §3d's forms; evidence MUST cite the governing UC by `docs/use-cases.md` path or `UC-N` for stream-visible linkage). If no UC exists, Commit 1 in Phase 3a creates it.
+- For changes affecting **user-visible behavior or operator workflow**: a `docs refreshed` criterion (evidence per §3d's forms; evidence MUST cite the governing UC by `docs/use-cases.md` path or `UC-N` for stream-visible linkage). If no UC exists, Commit 1 in Phase 3a creates it. (Optional drift detection: run `bash tests/doc-lint.sh` after touching this checklist or §3a's table to verify vocabulary alignment — see UC14.)
 
 Do not exit plan mode without the gate sections, the GATE C STOP stanza, the Phase 3c Khorikov checkpoint, and the Phase 3d docs-review checkpoint when applicable.
 

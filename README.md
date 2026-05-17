@@ -141,6 +141,8 @@ Waterfall: apply the first matching tier from least to most ceremony (drop → t
 Plan = HOW (approach, changes). Contract = WHAT (criteria, published via `evtctl contract` at gate).
 Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` to find plans.
 
+Plan filenames follow `<task-id>-<random>.md` when `/begin`'s first whitespace-separated argument matches `^[1-9][0-9]*$`, else `<UTC YYYYMMDDTHHMMSS>-<entropy>-<random>.md`. The convention reduces but does not eliminate the silent-overwrite class — see `design.md` §"Plan filename uniqueness — convention" for the fail-loud rename mechanism, residual risks, and bootstrap exception.
+
 ```markdown
 # [Project Name]
 
@@ -150,6 +152,19 @@ Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` 
 ## At Implementation Gate
 
     ```bash
+    src=~/.claude/plans/<claude-code-assigned>.md
+    dst=~/.claude/plans/<plan-name>.md
+    if [[ -f $src && -f $dst && $src != $dst ]]; then
+      echo "FAIL: collision on $dst; manually resolve (rm $dst or mv $dst $dst.bak)" >&2; exit 1
+    elif [[ -f $src && ! -f $dst ]]; then
+      mv "$src" "$dst"                                 # first-time rename, common case
+    elif [[ $src == $dst ]]; then
+      :                                                # source IS target (bootstrap or already-conv pre-assign); no-op
+    elif [[ ! -f $src && -f $dst ]]; then
+      :                                                # idempotent re-entry (rename already happened); no-op
+    else
+      echo "FAIL: neither $src nor $dst exists" >&2; exit 1
+    fi
     evtctl contract <<'EOF'
     {"phase":"objective","criteria":["criterion1","criterion2","docs refreshed"]}
     EOF

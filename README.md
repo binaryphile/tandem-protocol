@@ -141,7 +141,7 @@ Waterfall: apply the first matching tier from least to most ceremony (drop → t
 Plan = HOW (approach, changes). Contract = WHAT (criteria, published via `evtctl contract` at gate).
 Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` to find plans.
 
-Plan filenames follow `<task-id>-<random>.md` when `/begin`'s first whitespace-separated argument matches `^[1-9][0-9]*$`, else `<UTC YYYYMMDDTHHMMSS>-<entropy>-<random>.md`. The convention reduces but does not eliminate the silent-overwrite class — see `design.md` §"Plan filename uniqueness — convention" for the fail-loud rename mechanism, residual risks, and bootstrap exception.
+Plan filenames follow `<prefix>-<random>.md` where `<prefix>` is the first whitespace-separated token of `/begin`'s arguments when that token matches `^[1-9][0-9]*$`, else `$(date -u +%Y%m%dT%H%M%S)-$RANDOM`. The convention reduces but does not eliminate the silent-overwrite class — see `design.md` §"Plan filename uniqueness — convention" for the fail-loud rename mechanism, residual risks, and bootstrap exception.
 
 ```markdown
 # [Project Name]

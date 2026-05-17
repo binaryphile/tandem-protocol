@@ -188,7 +188,7 @@ The first arm catches collision — both files exist at distinct paths — and r
 
 **Bootstrap exception.** The cycle that introduced the convention (#5060) keeps its own plan file at Claude Code's pre-assigned `greedy-churning-lerdorf.md`. Plan-mode rules forbid writing to any other path during plan mode, and the convention was being defined for the first time inside that very cycle — there was no /begin-time skill instruction to follow until the cycle completed. The exception is narrow: it covers exactly that one plan file. It does not extend to the existing pre-convention plan files in `~/.claude/plans/`; those are out of scope rather than grandfathered, because the convention is future-only and they remain readable as historical references.
 
-**Residual risks.** The convention does not close five distinct branches, and the design admits each one rather than hiding it. Items 1 and 2 name the convention's structural incompleteness — both close only with a future era-side `cmd.plan` filename-shape validator (mitigation c, deferred per the operator's choice). Items 3 and 4 are bounded runtime edge cases the fail-loud rename handles or accepts. Item 5 is a documentation-process risk distinct from the runtime failure modes, slated for mechanical close by #5013 (doc-lint).
+**Residual risks.** The convention does not close five distinct branches, and the design admits each one rather than hiding it. Items 1 and 2 name the convention's structural incompleteness — both close only with a future era-side `cmd.plan` filename-shape validator (mitigation c, deferred per the operator's choice). Items 3 and 4 are bounded runtime edge cases the fail-loud rename handles or accepts. Item 5 is a documentation-process risk distinct from the runtime failure modes; #5013 (now delivered as `tests/doc-lint.sh`, UC14) is the FIRST lint of this shape but covers README-vocabulary alignment only, not the #5060 4-source sync surface — that broader sync-touchpoint mechanization remains a future task.
 
 1. **EnterPlanMode-overwrites-existing-file.** Claude Code's plan-mode re-uses paths across sessions. When the pre-assigned path already holds a different cycle's plan content, the agent's Write at MSS step 6 overwrites it before any rename can run. The era stream preserves the prior plan event; the filesystem working copy is lost. Closing this branch requires intercepting plan-mode's pre-assignment, which is out of this cycle's scope. A future era-side `cmd.plan` filename-shape validator could refuse to publish from a non-conforming path, but that is mitigation (c) which the operator deferred.
 
@@ -198,7 +198,7 @@ The first arm catches collision — both files exist at distinct paths — and r
 
 4. **Same-second timestamp collision** (no-task-id branch only). `$RANDOM` reduces the probability to ~1/32768 per matched-second. Automated burst invocations of `/begin` without task IDs could still collide; the residual is acceptable for the current human-interactive workflow.
 
-5. **Doc-drift across the four canonical sources** (the /begin skill, README §1c, this design.md subsection, and UC13 in use-cases.md). Phase 3d sync-touchpoint discipline tabulates the convention statement across all four and verifies they match; this is manual until #5013 (doc-lint) provides a mechanical diff.
+5. **Doc-drift across the four canonical sources** (the /begin skill, README §1c, this design.md subsection, and UC13 in use-cases.md). Phase 3d sync-touchpoint discipline tabulates the convention statement across all four and verifies they match; this remains manual. #5013 delivered the FIRST tandem doc-lint (`tests/doc-lint.sh`, UC14) but its canonical-substring set covers README §1c / §3a vocabulary alignment, not the #5060 4-source convention sync. A future task could extend the lint's pattern (or add a sibling script) to mechanize the 4-source diff.
 
 The behavioral contract lives in UC13.
 
@@ -234,7 +234,7 @@ The stanza is a behavioral safeguard, not a mechanical enforcement mechanism —
 12. `evtctl done`
 13. `git commit`
 
-**Why literal substring-match only** (per #3883: "Don't try to validate evidence quality — semantic and unenforceable via grep"). Substring-match is intentionally permissive: a plan with markers inside HTML comments, fenced code blocks, or quoted prose passes validation. The trade is cheap deterministic checks vs full structural parser. The latter belongs in #5013 (doc-lint), not here.
+**Why literal substring-match only** (per #3883: "Don't try to validate evidence quality — semantic and unenforceable via grep"). Substring-match is intentionally permissive: a plan with markers inside HTML comments, fenced code blocks, or quoted prose passes validation. The trade is cheap deterministic checks vs full structural parser. #5013 (delivered as `tests/doc-lint.sh`, UC14) followed the same shallow-substring approach for README vocabulary; full structural parsing remains future work.
 
 **Why blocking (asymmetric with validate-attestation)**:
 - Plans precede work (10s-100s of operator-hours per cycle); a bad plan = wasted cycle. Refusing up front is cheap.

@@ -449,6 +449,7 @@ Claude finishes §1a investigation and classifies the cycle's tier (drop / trivi
 | Grader response missing structured headings | Agent requests reformatting; does not infer verdict from prose |
 | Gate advanced after grading | Gate actions executed |
 | Contract with supersedes-chain | Reconciliation audit filters out precursors before matching; precursors do not appear as unmatched contracts in audit output |
+| Cross-stream task-closure check at gate-bash time | Use `cd <project> && evtctl open \| grep -qE "^#N\b"` rather than raw `era query 'type = "task-done" AND payload ~ "N"'` — operator-facing abstraction protects against command-name-vs-event-type-name divergence and future vocabulary drift (era/docs/evtctl.md §"Command → event_type mapping" is the authoritative inventory) |
 
 ---
 

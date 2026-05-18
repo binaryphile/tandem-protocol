@@ -435,6 +435,7 @@ Claude finishes §1a investigation and classifies the cycle's tier (drop / trivi
 - 4a. Auto `/i` ran before §1d.5 (≥2 passes; cap 3 unless each surfaces a new defect class) → grader sees pre-polished result
 - 5a. No findings → grader returns APPROVE → loop exits immediately
 - 7a. Gate event recording fails → report error, do not commit
+- 9b. Reconciliation audit run with supersession chains present → audit skips precursors per the README §"Reconciliation audit" jq's filter step (Q1=a per #5705); operator can still query precursors for forensics via `era query "tasks.$PROJECT" 'payload ~ "supersedes"' --json`.
 
 ### Guard Conditions
 
@@ -447,6 +448,7 @@ Claude finishes §1a investigation and classifies the cycle's tier (drop / trivi
 | `/grade` at any gate (manual) | Compose grading request, apply external feedback |
 | Grader response missing structured headings | Agent requests reformatting; does not infer verdict from prose |
 | Gate advanced after grading | Gate actions executed |
+| Contract with supersedes-chain | Reconciliation audit filters out precursors before matching; precursors do not appear as unmatched contracts in audit output |
 
 ---
 

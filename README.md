@@ -64,24 +64,32 @@ Plans can diverge from reality; `$(...)` substitutions in the gate bash cannot �
 
 Audit each project's stream for **contracts without a satisfying completion**. Canonical join: criterion-name string-equality between `contract.criteria[]` and `complete.criteria[].name` (superset rule — completion's names ⊇ contract's criteria).
 
+The audit filters out contracts that have been explicitly superseded by a later contract (i.e., any contract whose `id` appears as the `supersedes` field of another contract). The intent of publishing a supersession event is to declare the precursor's criteria dead; treating it as unmatched would contradict that intent. See `design.md` §"Supersedes-field schema" for the field definitions and the deferred validate-attestation work in tasks.era #7901.
+
 ```bash
 contracts=$(era query "tasks.$PROJECT" 'type = "contract"' --json)
 completes=$(era query "tasks.$PROJECT" 'type = "complete"' --json)
 jq -n --argjson C "$contracts" --argjson D "$completes" '
   def parse_contract: {id, created: .created_at,
-    criteria: (try (.payload|fromjson|.criteria // []) catch [])};
+    criteria: (try (.payload|fromjson|.criteria // []) catch []),
+    supersedes: (try (.payload|fromjson|.supersedes // null) catch null)};
   def parse_complete: {id, created: .created_at,
     names: (try (.payload|fromjson|.criteria // []|map(.name)) catch [])};
   ($C|map(parse_contract)) as $cs |
   ($D|map(parse_complete)) as $ds |
-  $cs | map(. as $c |
-    ($ds | map(select(.created > $c.created
-                   and (.names as $n | $c.criteria|length > 0
-                        and ($c.criteria|all(. as $k | ($n|index($k))!=null)))))
-        | first) as $m |
-    {contract:$c.id, matched:($m.id // null), criteria:$c.criteria})
+  ($cs | map(select(.supersedes != null) | .supersedes) | unique) as $precursors |
+  $cs
+  | map(select(.id as $cid | $precursors | index($cid) | not))
+  | map(. as $c |
+      ($ds | map(select(.created > $c.created
+                     and (.names as $n | $c.criteria|length > 0
+                          and ($c.criteria|all(. as $k | ($n|index($k))!=null)))))
+          | first) as $m |
+      {contract:$c.id, matched:($m.id // null), criteria:$c.criteria})
   | map(select(.matched == null))'
 ```
+
+To inspect supersession chains (e.g., audit trail of criterion-renames), query the stream for events with a supersedes field: `era query "tasks.$PROJECT" 'payload ~ "supersedes"' --json`. These chains are intentionally excluded from the reconciliation audit but remain visible in the stream.
 
 Unmatched contracts are *candidates* for WIP, not confirmations. See `design.md` §"Reconciliation audit — interpreting unmatched contracts" for causes + reconcile-against checklist.
 

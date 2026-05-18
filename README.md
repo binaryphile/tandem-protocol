@@ -123,6 +123,8 @@ flowchart LR
 
 Log each regression: `evtctl interaction "/loopback <from>-><to>: <reason>"`.
 
+Log each in-cycle scope-fold: `evtctl interaction "/scope-fold <task-id>: <reason>"`. When unexpected work surfaces mid-impl, see `design.md` §"Alternatives without full re-entry" for the four-option decision tree (scope-fold / defer / new cycle / /loopback).
+
 **1a Investigate:**
 - Read codebase, identify affected files + line refs; `era search` for prior context; web search if needed.
 - **Verify load-bearing static-analysis findings with a runtime experiment** (static reads have FP/FN rates a discriminating experiment doesn't).
@@ -150,6 +152,8 @@ Plan = HOW (approach, changes). Contract = WHAT (criteria, published via `evtctl
 Substitute `<plan-name>` and `<task-id>` with actual values. Do NOT use `ls -t` to find plans.
 
 Plan filenames follow `<prefix>-<random>.md` where `<prefix>` is the first whitespace-separated token of `/begin`'s arguments when that token matches `^[1-9][0-9]*$`, else `$(date -u +%Y%m%dT%H%M%S)-$RANDOM`. The convention reduces but does not eliminate the silent-overwrite class — see `design.md` §"Plan filename uniqueness — convention" for the fail-loud rename mechanism, residual risks, and bootstrap exception.
+
+Plans MAY adopt stricter-than-protocol conventions for local discipline, but MUST identify them as plan-local and MUST specify breach-handling using protocol mechanisms. See `design.md` §"Alternatives without full re-entry" for the canonical breach-handling taxonomy.
 
 ```markdown
 # [Project Name]

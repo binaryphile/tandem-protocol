@@ -134,3 +134,8 @@ When a tool/API seems unreliable, investigate its implementation. The answer may
 
 ### User Frustration is a Pivot Signal
 When a user expresses frustration with lack of progress, question assumptions rather than doubling down. The breakthrough came from asking "where does it store data?" not "how do I force the tool call?"
+
+### Plan-Local Conventions vs Protocol Law
+**Context:** When plans adopt stricter local discipline (e.g., file-count invariants, additional gates) than the protocol baseline
+**Lesson:** Identify plan-local conventions as plan-local, not protocol law. Specify breach-handling using protocol mechanisms (the design.md §"Alternatives without full re-entry" taxonomy: scope-fold / defer / new cycle / /loopback). Treating plan conventions as protocol law pushes agents toward over-conservative ceremony for mechanical cascades that should be scope-folds.
+**Source:** era #9146 (mechanical-interface-cascade surfaced the distinction).

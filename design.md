@@ -146,6 +146,26 @@ The stream chain — prior plan/contract events → `/loopback` regression event
 - **(b) defer** affected criteria to follow-up task (`evtctl task` + `dropped` status)
 - **(c) start a new plan cycle** with a fresh `<plan-name>.md` (filename uniqueness convention per "Plan filename uniqueness — convention" below — reduces but does not eliminate collision risk) for fundamentally different work
 
+**Decision criteria** (distinguishing the four options):
+
+| Option | When | Audit-trail mechanism |
+|---|---|---|
+| (a) scope-fold | Expansion is **propagation work** that preserves existing contract interpretation and merely restores consistency — semantic-invariant w.r.t. the contract's intent. Common cases: interface change cascading to mocks; latent helper surfacing via in-scope tests; small fix outside the original file list but within an existing criterion's intent. **May add a new criterion** to the attestation (permitted by the validator's superset rule — completion names ⊇ contract criteria, per README §3b; the validator's superset semantics constrain set inclusion only, not when the additional criterion is introduced, so mid-cycle additions are validator-equivalent to contract-time additions like `docs refreshed`; precedent: era #6266 added `list query disambiguation` mid-cycle); **MUST NOT rename, split, or merge** existing criteria | `evtctl interaction "/scope-fold <task-id>: <reason>"` — single event captures the discovery + decision |
+| (b) defer | Discovered work is real but should ship separately — e.g., audit surfaces a test depending on undocumented behavior that requires separate design; the cycle's contract criteria can complete without it | `evtctl task` for the follow-up + `dropped` status on the affected criterion in the completion attestation |
+| (c) new plan cycle | Discovered work is genuinely different shape — e.g., performance-profile cycle that surfaces a separate architecture proposal | Close current cycle on its own merits; start a new `/begin <task-id>` cycle |
+| /loopback regression | Plan's criterion topology itself needs to change — a criterion needs **renaming, splitting, or merging**; mid-impl investigation reveals a load-bearing assumption is false; the discovered work shifts the contract's interpretation surface; or plan reshape is required | `/loopback <impl-phase>->1c: <reason>` + republish contract with `supersedes` field (per Tier 1 #4070 supersedes-chain) |
+
+**Mechanical interface cascade** is the canonical (a) scope-fold case: an interface contract change (e.g., adding a method) mechanically propagates to all implementers including test mocks. The cascaded edits are semantic-invariant w.r.t. the contract — they restore consistency with a decision already in the original plan, not introduce new behavior. Logging via `/scope-fold` captures the discovery and bounded expansion without requiring full /loopback ceremony.
+
+**The semantic-invariance test** (decision criterion): scope-fold applies when the discovered work satisfies ALL of:
+- Preserves existing contract interpretation (no criterion's meaning shifts)
+- Preserves acceptance topology (no criterion rename / split / merge; addition of a new criterion is permitted per the validator's superset rule)
+- Preserves **documented** architectural intent — no new behavior surface, no new public API, no new operator-visible workflow change relative to what the plan / design doc / use-case publicly committed (subordinating the clause to documented commitments rather than subjective design judgment)
+
+If ANY of these fail, the discovered work is NOT propagation — use /loopback regression + republish-contract with `supersedes`. The "is each cascaded edit mechanical?" heuristic is weaker than the semantic-invariance test because "mechanical" is too pliable; the contract-preservation criteria are sharper.
+
+**Plan-text invariants — provenance and authority boundaries**: plans MAY adopt stricter-than-protocol conventions for local discipline, but MUST identify them as **plan-local** (not protocol law) and MUST specify breach-handling in terms of protocol mechanisms (the alternatives taxonomy above). Plans citing "any file modification triggers /loopback" without provenance language overstate what the protocol requires and push agents toward over-conservative full-/loopback ceremony for mechanical cascades that should be scope-folds. The failure mode in era #9146 was not stricter discipline; it was treating a plan-local convention as if it were protocol law.
+
 Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; alternatives cover lighter cases.
 
 **Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Marker-presence in re-published plans is mechanically enforced by validate-plan (per "validate-plan invariants — mechanism" below); plan-event-byte-match against the file remains a non-blocking check in completion-gate verification today.

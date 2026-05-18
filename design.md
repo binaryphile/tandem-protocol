@@ -133,7 +133,7 @@ The plan file at `~/.claude/plans/<plan-name>.md` is immutable post-1d.5-final-e
 
 Plan-immutability is the application of stream-as-source-of-truth (Tier 1 axiom) to the plan-file artifact. Parallel patterns: contract-supersession via the `supersedes` chain (Tier 1 #4070); phase-regression-event-logging via `/loopback` (Tier 2 #3882); /tier-escalate via `/tier-escalate` event (Tier 3 #3880). The protocol's consistent discipline: structural changes leave audit-visible event traces; silent file mutation undermines the stream-canonical principle.
 
-**Mid-cycle plan supersession:** when `/loopback` regression to plan mode fires, both the plan event AND (if criterion topology changed) the contract event publish with `"supersedes": <prior-event-id>` field per Tier 1 #4070 chain pattern. Mechanical enforcement of the supersedes-field schema is tracked in #5705; the protocol prescribes the pattern even while the validator-level enforcement is pending.
+**Mid-cycle plan supersession:** when `/loopback` regression to plan mode fires, both the plan event AND (if criterion topology changed) the contract event publish with `"supersedes": <prior-event-id>` field per Tier 1 #4070 chain pattern. Schema for the `supersedes` and `supersedes_reason` fields is defined in §"Supersedes-field schema" below; mechanical enforcement at the validate-attestation layer is tracked in tasks.era task #7901 (#5705 follow-up).
 
 **Full regression mechanics (moved from README §1d.5 per #6249 slim-down).** Phase regression to plan mode is supported via supersession chains. If post-impl investigation (3a/3b/3c/3d) reveals the plan needs reshape, the agent fires an explicit `/loopback <impl-phase>->1c: <reason>` interaction event (per Tier 2 #3882 phase-regression discipline). This re-enters plan mode; plan file becomes mutable again. The agent revises the plan, runs another 1d → 1d.5 cycle, then at the new 1d.5-final-exit publishes:
 - `evtctl plan ~/.claude/plans/<plan-name>.md` with `"supersedes": <prior-plan-event-id>` — new plan event supersedes prior
@@ -149,6 +149,31 @@ The stream chain — prior plan/contract events → `/loopback` regression event
 Re-entry via `/loopback` + supersedes-chain is for genuine plan-reshape regression; alternatives cover lighter cases.
 
 **Prospective-only escalation semantics:** when regression fires, the new plan covers only forward-looking work. Already-attested criteria stay attested under the prior contract; the new contract only carries criteria for the regression-induced work. Marker-presence in re-published plans is mechanically enforced by validate-plan (per "validate-plan invariants — mechanism" below); plan-event-byte-match against the file remains a non-blocking check in completion-gate verification today.
+
+### Supersedes-field schema (UC #5705)
+
+Schema for contract events (identical schema applies to `plan` events):
+
+```json
+{
+  "phase": "objective",
+  "criteria": ["name1", "name2", ...],
+  "supersedes": <prior-event-id>,
+  "supersedes_reason": "<short prose reason>"
+}
+```
+
+The `phase` and `criteria` fields remain as today. The two new fields are:
+
+- `supersedes` (optional, integer): the event id of the prior contract this contract supersedes. **Protocol requirement pending validator enforcement**: the prior event SHOULD be of type `contract` in the SAME stream, but no era binary enforces this today; operator discipline carries the constraint until the follow-up task (tasks.era #7901) lands. Multi-hop chains (A→B→C, where B both supersedes A and is itself superseded by C) are handled incidentally by the reconciliation rule — both A and B appear in the precursor set and are both filtered.
+
+- `supersedes_reason` (optional but recommended when `supersedes` is present, string): a short prose reason for the supersession (e.g., "criterion 'gate-bash example' renamed to 'gate-bash demonstration' per /i pass 3"). Recommended for audit-readability; ad-hoc precedent (5593→5640) set without it, so making it strictly required would invalidate existing chains retroactively. Future-validator strictness: tasks.era #7901 should preserve advisory status (warn but don't refuse) rather than hard-requiring the field — preserves backward compatibility with legacy chains.
+
+**Plan-event audit asymmetry**: no plan-event reconciliation audit exists today — the README "Reconciliation audit" jq operates on contracts only. Plan-event supersession is observable in the stream via `era query` but not surfaced in any audit output. Extending audit coverage to plan events would be a future task; for now, plan-event supersedes is purely informational.
+
+**Reconciliation rule** (Q1=a per #5705): the README "Reconciliation audit" jq filters supersedes-chained precursors out of the contract set BEFORE the match step. Rationale: the explicit purpose of publishing a supersession event is to declare the precursor's criteria dead. Continuing to flag those precursors as unmatched contradicts the operator's published intent. The skip rule honors the supersession declaration as semantic, not merely cosmetic. Precursors remain queryable for forensics via `era query "tasks.$PROJECT" 'payload ~ "supersedes"' --json`. See README §"Reconciliation audit" for the updated jq.
+
+**Composition with prior cycles**: #3881 plan-immutability uses the same `supersedes` field on plan events; #3883 criterion-rename via republish-contract (README §3b) is the primary contract-event use case; #5060 references the supersedes chain for plan-mode regression.
 
 ### Plan filename uniqueness — convention (UC #5060)
 

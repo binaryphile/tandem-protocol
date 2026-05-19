@@ -251,6 +251,58 @@ The behavioral contract lives in UC13.
 
 Docs land first so the contract criteria (already published at the impl gate) can be evaluated against doc artifacts at impl-review time, not against still-being-typed code. Reviewers reading the diff see the contract → use case → design → code chain, in that order. Drift between code and docs caught during 3a folds into Commit N+1 (still docs-first within the cycle); drift caught at 3d folds in there.
 
+### Specify-vs-observe principle (UC #9662)
+
+The docs-first commit ordering applies when docs SPECIFY behavior the implementation will satisfy: UC (WHAT), design doc (HOW), operator-facing prose (workflow). In that mode, docs precede code so reviewers traverse contract → use case → design → code in dependency order.
+
+The principle inverts when docs OBSERVE rather than specify: the doc's content depends on the implementation's output (a measurement, a characterization, a profile-grounded decision). In that mode, the measurement instrument commits FIRST and the **result-bearing sections** of the doc follow; **non-result-bearing sections** (hypothesis, methodology, success criteria, planned interpretation structure) MAY still be drafted before measurement runs, but the doc's final form requires the measured output.
+
+**Interpretive conclusions belong post-execution**: conclusions materially contingent on observed outputs (verdict, implications, suitability classification) MUST be authored after execution. Pre-authoring an interpretive narrative and inserting only the empirical number as decorative confirmation violates the principle. The distinguishing test: if the interpretation could have been written identically had the measurement returned the OPPOSITE result, the conclusion was pre-committed and the cycle is not legitimately OBSERVE-shaped.
+
+**Dominant causal dependency**: the principle governs the dominant causal dependency of the cycle's PRIMARY deliverable, not every artifact inside it. Hybrid cycles (telemetry-addition that defines a new metric AND samples its output) classify by the cycle's primary deliverable shape — not by enumerating every artifact's role.
+
+**Primary-deliverable discriminator test**: "Which artifact would FAIL VALIDITY if execution never occurred?" If the doc would still be valid (specifies behavior that future implementations satisfy), it's SPECIFY-shaped (docs-first). If the doc would be invalid (un-fillable placeholders, no measured results to interpret), it's OBSERVE-shaped (implementation-first). The test is empirical-by-construction: it asks which artifact's content depends on the other's existence.
+
+**Discriminator test scope**: the test distinguishes between rows 1 (SPECIFY-shaped) and 3 (OBSERVE-shaped) in the table below — the cycle types where ordering is a meaningful choice. Rows 2 (internal refactor; no doc commits) and 4 (docs-only; no separate impl phase) are STRUCTURAL classifications, not ordering choices — the test doesn't apply.
+
+| Cycle type | Doc role | Order |
+|---|---|---|
+| Behavioral implementation | docs SPECIFY (UC + design + workflow) | docs-first per §3a table |
+| Internal refactor | docs unchanged | code-only (no doc commits) |
+| Observation-driven (measurement / characterization / profile-grounded decision / empirical study) | result-bearing sections OBSERVE measured output | implementation-first; result-bearing doc sections follow |
+| Docs-only governance / taxonomy / wording amendment | docs ARE the implementation | docs-only (no separate impl phase) |
+
+**Observation-driven cycles** (named class; covers regression forensics, comparative evaluation studies, large-scale behavioral audits, characterization, profiling studies, decision documents grounded in empirical data):
+
+- Primary deliverable is a doc whose **result-bearing content materially depends on outputs unavailable prior to execution**
+- Result-bearing sections cannot be meaningfully written before the implementation runs (placeholders would defeat the doc's purpose)
+- The implementation instrument is the LOAD-BEARING precondition for the result-bearing sections
+
+The anti-gaming clause is critical: "contains metrics" does NOT qualify a cycle as observation-driven. The test is whether the PRIMARY document content materially depends on outputs unavailable prior to execution. A telemetry-addition cycle that specifies a new metric and includes a sample dashboard remains SPECIFY-shaped because the metric definition (the primary content) precedes the sample.
+
+Commit order for observation-driven cycles:
+1. Implementation instrument (test, script, or analysis code)
+2. Doc citing measured results (with verdict + implications)
+3. Adjacent-doc drift fixes (per 3d scope-external review)
+
+The classification is locked at 1b — agents identify a cycle as observation-driven at 1a-investigation or 1b-clarify, and the user can override at 1b. Once locked, the cycle's gate bash reflects the inverted order.
+
+**Mid-cycle epistemic-shape change**: if 3a investigation reveals the cycle's actual deliverable is observation-driven (or vice versa) and the original classification no longer fits, the agent fires `/loopback 3a->1b: epistemic shape change` and re-locks the classification at 1b. The /loopback creates a stream-visible regression event; bypassing it via silent reclassification mid-3a violates the 1b-locked discipline. Use the alternatives taxonomy per §"Alternatives without full re-entry" for the mechanics: if criterion topology stays intact, /scope-fold; if topology changes (e.g., adding a result-bearing criterion), full /loopback.
+
+Empirical precedents:
+- era #9009 (decision doc): measurement-grounded recommendation for the test-bash performance problem; inverted docs-first because the recommendation's evidence was per-call timing data measured during 1a
+- era #9389 (ranking-separability characterization): 50-pair corpus measurement of varied vs hugot; doc cites actual percentages (hugot 42%/80%/80%, varied 2%/14%/10%) that didn't exist until the test ran
+
+Neither cycle had explicit protocol guidance at the time; both relied on operator judgment + informal precedent. #9662 codifies the pattern.
+
+**Comparison to #9406**: #9406 codified scope-fold taxonomy semantics (terminology refinement); #9662 changes commit-order governance behavior (ordering semantics). Both are governance-refinement amendments surfaced from operational pressure, but ordering semantics are more load-bearing than terminology taxonomy. The analogy is valid at the "governance refinement from operational discovery" level, not at the "equal governance weight" level.
+
+**What this does NOT do**:
+- Does not weaken docs-first for behavioral-implementation cycles (the dominant cycle class); docs-first remains the default
+- Does not permit retroactive inversion (e.g., "I'll write the doc later" framing); observation-driven classification is a 1b-locked decision based on whether the doc OBSERVES vs SPECIFIES the primary deliverable content
+- Does not exempt observation-driven cycles from 3d scope-external drift detection — adjacent docs may still need amendment (e.g., #9389 found drift in test-performance-profile.md and fixed it via /scope-fold per §"Alternatives without full re-entry")
+- Does not authorize agents to label cycles "observation-driven" because some empirical artifact exists somewhere in the workflow; the test is "primary document content materially depends on outputs unavailable prior to execution" (anti-gaming clause)
+
 ### Criterion rename via republish-contract — rationale (moved from README §3b per #6249 slim-down)
 
 If `/i` reveals a criterion needs renaming, prefer **(b) publish a corrected contract before completion** over (a) keeping the attestation's name verbatim with an evidence note. Republishing leaves an explicit contract→contract chain in the stream (the later contract supersedes the earlier); verbatim-preservation hides the divergence in evidence prose, which audits and graders cannot parse. The cost of republishing is one extra `evtctl contract` event; the cost of verbatim-with-prose is that future cross-stream reconciliation has to do payload archaeology to decide whether an unmatched contract is WIP, superseded, or abandoned. Republish.

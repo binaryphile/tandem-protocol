@@ -307,6 +307,8 @@ flowchart LR
 
 Internal refactors skip doc commits and proceed straight to code; §3d still re-reads (evidence: `not applicable (internal refactor)`). See `design.md` §"Docs-first commit ordering — rationale" for reviewer-experience rationale.
 
+Observation-driven cycles — where the doc's RESULT-BEARING content materially depends on outputs unavailable prior to execution (e.g., characterizations, profiling studies, decision documents grounded in empirical data, regression forensics) — INVERT the ordering: implementation instrument commits first; result-bearing doc sections follow. Non-result-bearing sections (hypothesis, methodology, success criteria) MAY still be drafted before execution. See `design.md` §"Specify-vs-observe principle" for the general framing and anti-gaming clause.
+
 **3b Present:** Auto `/i` (≥2 passes; exceed 3 only while finding new defect classes; log each; see Gate Grading). Show results + verification per criterion. **Do NOT update the plan file** — the plan is immutable post-final-1d.5-exit per §1d.5 Plan immutability. Compose the cycle's runtime data inline at the Completion Gate bash:
 - Attestation JSON: inline heredoc for single-criterion; `evtctl complete --from-file /tmp/<cycle>-attestation.json` for multi-criterion (per #4070)
 - Session memo: inline heredoc in `era store`
